@@ -20,7 +20,7 @@ Este documento establece las convenciones para nombrar ramas y escribir commits 
 
 ### Estructura de Ramas
 
-```
+```bash
 dev
   └── feat/startup-crm                    (Epic)
         ├── feat/startup-crm/auth          (Módulo)
@@ -58,7 +58,7 @@ dev
 
 ### Formato
 
-```
+```bash
 <tipo>(<alcance>): <mensaje>
 ```
 
@@ -91,7 +91,7 @@ dev
 
 ### Ejemplos de Commits Buenos
 
-```
+```bash
 feat(contacts): add filter by status in contacts list
 feat(whatsapp): integrate WhatsApp Cloud API send message
 fix(login): resolve redirect loop on invalid credentials
