@@ -114,4 +114,42 @@ O usar `doc/planeacion de trabajo/03-task.md`.
 
 ---
 
-*Última actualización: 17 de marzo de 2026*
+## 📝 Convenciones de Commits
+
+Usar **Conventional Commits**:
+
+```
+<tipo>(<scope>): descripción
+
+feat(auth): add login functionality
+fix(contacts): resolve N+1 query issue
+docs(readme): update installation guide
+chore(deps): upgrade dependencies
+refactor(api): simplify error handling
+```
+
+### Tipos permitidos
+
+| Tipo | Uso |
+|------|-----|
+| `feat` | Nueva funcionalidad |
+| `fix` | Corrección de bug |
+| `docs` | Documentación |
+| `chore` | Mantenimiento, dependencias |
+| `refactor` | Refactoring sin cambio de funcionalidad |
+| `test` | Tests |
+| `style` | Formato, style (no lógica) |
+| `perf` | Mejoras de performance |
+| `ci` | Configuración de CI/CD |
+
+### Reglas
+
+- **Descripción en imperativo**: "add" no "added", "fix" no "fixed"
+- **Scope opcional**: usar el nombre del módulo/componente
+- **Sin punto final** en la descripción
+- **Máximo 72 caracteres** en la primera línea
+- **Si hay body**, separar con línea en blanco
+
+---
+
+*Última actualización: 19 de marzo de 2026*
