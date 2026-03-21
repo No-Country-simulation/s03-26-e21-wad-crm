@@ -1,72 +1,98 @@
-# {{titulo}}
+---
+name: PR de Module
+about: Template para PRs que integran múltiples tasks de un módulo
+title: 'feat/xxx: Módulo '
+labels: 'Module, Working'
+reviewers: davidcoachdev
+---
 
-## 📸 Screenshot
-![{{proyecto}}]({{screenshot_url}})
+## 📸 Preview (si aplica)
+
+<!-- Screenshot del módulo completo -->
+
+---
 
 ## 📌 Issue Relacionado
-- {{#if closes}}Closes #{{closes}}{{/if}}
-{{#if related}}- {{related}}{{/if}}
+
+<!-- Closes #XX (Module issue) -->
 
 ---
 
 ## 📌 Descripción del PR
 
-{{descripcion}}
-
-{{#if contexto}}
-> 🎯 {{contexto}}
-{{/if}}
+<!-- Descripción del módulo completado -->
 
 ---
 
-## ✅ Tasks integradas a este módulo
+## ✅ Tasks integradas
 
-Todas las tareas de este módulo han sido completadas y mergeadas:
+Todas las tasks de este módulo fueron completadas:
 
-{{tareas}}
+| # | Task | PR | Estado |
+|---|------|-----|--------|
+| | | | ✅ |
+| | | | ✅ |
+| | | | ✅ |
 
 ---
 
-{{#if estructura}}
 ## 📁 Estructura del módulo
 
-{{estructura}}
-{{/if}}
-
-{{#if entregables}}
-## 📁 Entregables del módulo
-
-{{entregables}}
-{{/if}}
-
-{{#if validacion}}
-## 🧪 Validación del módulo
-
-{{validacion}}
-{{/if}}
-
-{{#if checklist}}
-## 🧩 Checklist de validación
-
-{{checklist}}
-{{/if}}
-
-{{#if estrategia}}
-## 🔀 Estrategia de merge
-
-- **Rama**: `{{rama}}`
-- **Destino**: `{{rama_destino}}`
-- **Precondición**: todas las tasks ya mergeadas
-{{/if}}
-
-{{#if notas}}
-## 📝 Notas clave
-
-{{notas}}
-{{/if}}
+```
+/src/features/xxx/
+├── components/
+├── domain/
+├── services/
+└── ...
+```
 
 ---
 
-Asignado: @{{responsable}}  
-{{#if estado}}Estado: **{{estado}}**{{/if}}
-{{#if fecha}}Fecha: {{fecha}}{{/if}}
+## 📦 Entregables del módulo
+
+| Entregable | Estado |
+|------------|--------|
+| | ✅ |
+| | ✅ |
+
+---
+
+## 🧪 Validación del módulo
+
+```bash
+npm run dev
+npm run test
+```
+
+1. Verificar todas las features del módulo
+2. Probar edge cases
+3. Verificar responsive
+
+---
+
+## 🧩 Checklist de validación
+
+- [ ] Todas las tasks mergeadas
+- [ ] Integración entre tasks OK
+- [ ] Sin conflictos con `feat/startup-crm/landing`
+- [ ] Tests del módulo pasando
+- [ ] Documentación actualizada (si aplica)
+
+---
+
+## 🔀 Estrategia de merge
+
+- **Rama**: `feat/startup-crm/xxx`
+- **Destino**: `feat/startup-crm/landing` (o `dev` si es final)
+- **Precondición**: todas las `task/` mergeadas
+
+---
+
+## 📝 Notas
+
+<!-- Consideraciones de integración, dependencias -->
+
+---
+
+**Responsable**: @davidcoachdev  
+**Estado**: ✅ Listo para review

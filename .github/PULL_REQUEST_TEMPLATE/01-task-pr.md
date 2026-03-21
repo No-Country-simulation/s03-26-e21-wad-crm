@@ -1,58 +1,82 @@
-# {{titulo}}
+---
+name: PR de Task
+about: Template para PRs de tareas individuales
+title: 'task/xxx/yyy: '
+labels: 'Task, Working'
+reviewers: davidcoachdev
+---
 
-## 📸 Screenshot
-![{{proyecto}}]({{screenshot_url}})
+## 📸 Screenshot (si aplica)
+
+<!-- Pegar screenshot o gif del cambio -->
+
+---
 
 ## 📌 Issue Relacionado
-- {{#if closes}}Closes #{{closes}}{{/if}}
-{{#if related}}- {{related}}{{/if}}
+
+<!-- Closes #XX -->
 
 ---
 
 ## 📌 Descripción del PR
 
-{{descripcion}}
-
-{{#if cambios}}
-## ✅ Cambios incluidos
-
-{{cambios}}
-{{/if}}
-
-{{#if validacion}}
-## 🧪 ¿Cómo probar?
-
-{{validacion}}
-{{/if}}
-
-{{#if estrategia}}
-## 🔀 Estrategia de merge
-
-- **Rama**: `{{rama}}`
-- **Destino**: `{{rama_destino}}`
-- **No se mergea directamente a `{{rama_final}}`**
-{{/if}}
-
-{{#if entregables}}
-## 📁 Entregables clave
-
-{{entregables}}
-{{/if}}
-
-{{#if checklist}}
-## 🧩 Checklist de validación
-
-{{checklist}}
-{{/if}}
-
-{{#if notas}}
-## 📝 Notas clave
-
-{{notas}}
-{{/if}}
+<!-- Descripción breve de qué hace esta task -->
 
 ---
 
-Asignado: @{{responsable}}  
-{{#if estado}}Estado: **{{estado}}**{{/if}}
-{{#if fecha}}Fecha: {{fecha}}{{/if}}
+## ✅ Cambios incluidos
+
+<!-- Lista concreta de archivos/carpetas -->
+
+-
+
+---
+
+## 📁 Entregables
+
+| Tipo | Ruta |
+|------|------|
+| Componente | |
+| Test | |
+| Tipo | |
+
+---
+
+## 🧪 ¿Cómo probar?
+
+```bash
+npm run dev
+```
+
+1. 
+2. 
+3. Verificar resultado
+
+---
+
+## 🧩 Checklist de validación
+
+- [ ] Funcionalidad completa
+- [ ] Manejo de errores
+- [ ] Validación de inputs
+- [ ] Estilos responsive
+- [ ] Sin errores en consola
+
+---
+
+## 🔀 Estrategia de merge
+
+- **Rama**: `task/startup-crm/xxx/yyy`
+- **Destino**: `feat/startup-crm/xxx`
+- **No mergea directo a `dev`**
+
+---
+
+## 📝 Notas
+
+<!-- Gotchas, decisiones técnicas, dependencias -->
+
+---
+
+**Responsable**: @davidcoachdev  
+**Estado**: ✅ Listo para review

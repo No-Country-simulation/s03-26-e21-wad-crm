@@ -1,6 +1,14 @@
+<!--
+name: PR Template Genérico
+about: Template base para cualquier PR
+title: '[PR] '
+labels: 'Task, Working'
+reviewers: davidcoachdev
+-->
+
 ## 📌 Issue Relacionado
 
-<!-- Closes #ID -->
+<!-- Closes #XX -->
 
 ---
 
@@ -12,8 +20,9 @@
 
 ## ✅ Cambios incluidos
 
-- 
-- 
+<!-- Lista de archivos/carpetas cambiados -->
+
+-
 
 ---
 
@@ -30,8 +39,10 @@ npm run dev
 
 ## 🧩 Checklist de validación
 
-- [ ] 
-- [ ] 
+- [ ] Código funcional
+- [ ] Sin errores en consola
+- [ ] Tests pasando (si aplica)
+- [ ] Responsive (si es UI)
 
 ---
 
@@ -48,5 +59,5 @@ npm run dev
 
 ---
 
-Asignado: @  
-Estado: ✅ **Listo para review y merge**
+**Responsable**: @  
+**Estado**: ✅ Listo para review
