@@ -1,0 +1,143 @@
+# GitHub Issue Generator Skill
+
+## Overview
+
+This skill helps you create structured GitHub issues and pull requests following the Epic → Module → Task → PR workflow.
+
+## When to Use
+
+- User wants to create an **Epic** (parent issue) with multiple modules
+- User needs to generate **Modules** (sub-issues) from an Epic
+- User wants to create **Tasks** (individual issues)
+- User needs to generate **Pull Requests** with proper format
+- Commands like: "create Epic", "generate PR", "create task"
+
+## Project Structure
+
+```
+Epic (Issue #1)
+  └── Module (Issue #2)
+        └── Task (Issue #3)
+              └── PR → Closes #3
+        └── Task (Issue #4)
+              └── PR → Closes #4
+        PR Module → Closes #2
+  PR Final → Closes #1 → dev
+```
+
+## Branch Convention
+
+```
+dev
+  └── feat/project-name
+        ├── feat/project-name/module1
+        │     └── task/project-name/module1/task1
+        └── feat/project-name/module2
+              └── task/project-name/module2/task1
+```
+
+## Issue Types
+
+### Epic
+Large project or feature. Contains multiple Modules.
+
+| Field | Required | Example |
+|-------|----------|---------|
+| Title | Yes | "🚀 Epic: Landing Page" |
+| Base branch | Yes | `feat/project-name` |
+| Destination branch | Yes | `dev` |
+| Modules | Yes | List: Auth, Citas, Perfil... |
+
+### Module
+Sub-feature inside an Epic.
+
+| Field | Required | Example |
+|-------|----------|---------|
+| Title | Yes | "🏗️ Module: Authentication" |
+| Epic ID | Yes | #1 |
+| Branch | Yes | `feat/project-name/auth` |
+| Tasks | Yes | List: login, register... |
+
+### Task
+Individual implementation task.
+
+| Field | Required | Example |
+|-------|----------|---------|
+| Title | Yes | "task/auth/login" |
+| Branch | Yes | `task/project-name/auth/login` |
+| Base branch | Yes | `feat/project-name/auth` |
+
+## Available Labels
+
+| Label | Color | Use for |
+|-------|-------|---------|
+| Backend | 🟣 #7B1FA2 | Server issues |
+| Frontend | 🔵 #1976D2 | UI issues |
+| Finished | 🟢 #4CAF50 | Completed |
+| Working | 🟠 #FF9800 | In progress |
+| Epic | 🟣 #9C27B0 | Large project |
+| Module | 🟣 #673AB7 | Sub-feature |
+| Task | 🔵 #2196F3 | Individual task |
+| Landing | 🩷 #E91E63 | Landing page |
+| Auth | 🔴 #F44336 | Authentication |
+
+## Available Milestones
+
+| # | Milestone | Description |
+|---|-----------|-------------|
+| 1 | Frontend | React, components, UI |
+| 2 | Backend | API, auth, DB, integrations |
+| 3 | Documentación | README, guides, user stories |
+| 4 | Diseño | Wireframes, mockups |
+| 5 | QA | Testing, E2E, bugs |
+
+## Templates Location
+
+Issue templates are in `.github/ISSUE_TEMPLATE/`:
+- `epic.md` - Epic template
+- `module.md` - Module template
+- `task.md` - Task template
+- `bug.md` - Bug report
+
+PR templates are in `.github/PULL_REQUEST_TEMPLATE/`:
+- `01-task-pr.md` - Task PR
+- `02-module-pr.md` - Module PR
+- `03-final-pr.md` - Final PR (closes Epic)
+
+## Example: Creating an Epic
+
+```
+gh issue create \
+  --title "🚀 Epic: Landing Page" \
+  --template epic.md \
+  --label "Epic" \
+  --label "Landing" \
+  --milestone "Frontend" \
+  --assignee "@me"
+```
+
+## Example: Creating a PR
+
+```
+gh pr create \
+  --title "task/auth/login: Login implementation" \
+  --template 01-task-pr.md \
+  --label "Task" \
+  --label "Working" \
+  --assignee "@me"
+```
+
+## Team
+
+| Area | Assignee |
+|------|----------|
+| Landing Page | @davidcoachdev |
+| Frontend CRM | @davidcoachdev |
+| Backend / Server | @davidcoachdev |
+| Integración WhatsApp | @davidcoachdev |
+| Integración Email | @davidcoachdev |
+| Documentación | @davidcoachdev |
+| Diseño / UI | @davidcoachdev |
+| Testing / QA | @davidcoachdev |
+
+See `.github/TEAM.md` for full details.
