@@ -180,6 +180,43 @@ Skills están en: `setup-ai-skills/skills/`
 
 ---
 
+## 🧠 Memoria y Persistencia (Engram) — REGLA OBLIGATORIA
+
+**SIEMPRE buscar en engram ANTES de cada pedido del usuario.**
+
+### Cuándo buscar
+
+| Situación | Qué buscar |
+|-----------|-----------|
+| **Inicio de sesión nueva** | mem_context + mem_search por project |
+| **Cualquier pedido del usuario** | mem_search con keywords del proyecto |
+| **Keywords del proyecto** | auth, contacts, whatsapp, email, metrics, settings |
+| **Trabajo en módulo existente** | Decisiones/artefactos previos |
+
+### Qué buscar
+
+```
+mem_search(query: "{keywords del pedido}", project: "s03-26-e21-wad-crm")
+```
+
+### Qué guardar después
+
+| Cuándo | Función | Ejemplo |
+|--------|---------|---------|
+| Arquitectura/Decisiones | `mem_save` tipo "decision" | "Elegimos Zustand porque..." |
+| Bugs fixed/discovered | `mem_save` tipo "bugfix"/"discovery" | "Fix N+1 query" |
+| Fin de sesión | `mem_session_summary` | Resumen completo |
+| Commit realizado | `mem_save` tipo "pattern" | "Add login con JWT" |
+
+### Proyecto keywords
+
+```
+auth, authentication, login, contacts, whatsapp, email, metrics, 
+sdd, setup-ai-skills, gentleman, copilot, agent
+```
+
+---
+
 ## Proyecto: Startup CRM
 
 ```
