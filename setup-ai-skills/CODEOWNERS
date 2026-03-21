@@ -1,0 +1,30 @@
+# ============================================================================
+# CODEOWNERS - Startup CRM
+# ============================================================================
+# Define owners para approval de PRs.
+#
+# Docs: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+# ============================================================================
+
+# Default owner para TODO el repo
+* @davidcoachdev
+
+# GitHub workflows y configuración
+/.github/ @davidcoachdev
+
+# Frontend CRM
+/crm/ @Jordy756
+
+# Backend / API
+/server/ @Ed-Pino
+
+# Landing page
+/landing/ @davidcoachdev
+
+# Documentación
+/doc/ @davidcoachdev
+
+# Configuración raíz
+/.* @davidcoachdev
+/*.json @davidcoachdev
+/*.md @davidcoachdev
