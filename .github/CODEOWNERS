@@ -1,16 +1,30 @@
 # ============================================================================
-# CODEOWNERS - Gentleman Guardian Angel
+# CODEOWNERS - Startup CRM
 # ============================================================================
-# This file defines who must approve pull requests before they can be merged.
-# All changes require approval from the repository owner.
+# Define owners para approval de PRs.
 #
 # Docs: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
 # ============================================================================
 
-# Default owner for everything in the repo
+# Default owner para TODO el repo
 * @davidcoachdev
 
-# Critical files - extra attention
+# GitHub workflows y configuración
 /.github/ @davidcoachdev
-/bin/gga @davidcaochdev
-/lib/ @davidcoachdev
+
+# Frontend CRM
+/crm/ @Jordy756
+
+# Backend / API
+/server/ @Ed-Pino
+
+# Landing page
+/landing/ @davidcoachdev
+
+# Documentación
+/doc/ @davidcoachdev
+
+# Configuración raíz
+/.* @davidcoachdev
+/*.json @davidcoachdev
+/*.md @davidcoachdev
