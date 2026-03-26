@@ -37,7 +37,7 @@ services:
 
   app:
     build:
-      context: .
+      context: ./server
       dockerfile: Dockerfile
     container_name: crm_app
     ports:

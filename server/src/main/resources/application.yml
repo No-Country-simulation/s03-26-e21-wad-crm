@@ -4,15 +4,23 @@ spring:
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:dev}
 
+  # Datasource (overridden per profile)
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/crm_db}
+    username: ${DB_USERNAME:crm_user}
+    password: ${DB_PASSWORD:crm_pass}
+    driver-class-name: org.postgresql.Driver
+
   # JPA
   jpa:
     hibernate:
       ddl-auto: validate
+    show-sql: false
     open-in-view: false
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
-        format_sql: false
+        format_sql: true
 
   # Flyway
   flyway:
@@ -27,8 +35,12 @@ spring:
       port: ${REDIS_PORT:6379}
       password: ${REDIS_PASSWORD:}
 
-  # Mail (override por perfil)
+  # Mail
   mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
     properties:
       mail:
         smtp:
@@ -40,16 +52,16 @@ spring:
   websocket:
     allowed-origins: ${CORS_ORIGINS:http://localhost:3000}
 
-# JWT
+# App config
 app:
   jwt:
-    secret: ${JWT_SECRET:changeme-at-least-32-chars-long!!}
-    access-token-expiry: ${JWT_ACCESS_EXPIRY:900}       # 15 min en segundos
-    refresh-token-expiry: ${JWT_REFRESH_EXPIRY:604800}  # 7 días en segundos
+    secret: ${JWT_SECRET:your-256-bit-secret-key-here-change-in-production}
+    access-token-expiry: 900000      # 15 minutes in ms
+    refresh-token-expiry: 604800000  # 7 days in ms
   cors:
     allowed-origins: ${CORS_ORIGINS:http://localhost:3000}
   encryption:
-    key: ${ENCRYPTION_KEY:changeme-encryption-key-32ch}
+    key: ${ENCRYPTION_KEY:your-aes-256-key-here-change-in-production}
 
 # Actuator
 management:
@@ -60,6 +72,17 @@ management:
   endpoint:
     health:
       show-details: when-authorized
+
+# SpringDoc (disabled by default, enabled in dev profile)
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+
+# Server
+server:
+  port: ${PORT:8080}
 
 # Logging
 logging:
