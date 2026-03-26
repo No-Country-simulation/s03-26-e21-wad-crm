@@ -180,78 +180,78 @@ Cada tarea construye sobre la anterior; al final todos los módulos quedan integ
     - _Requisitos: 20.1, 20.3, 20.5, 21.3_
 
 
-- [ ] 10. Módulo Email (SMTP/Brevo + Gmail OAuth)
-  - [ ] 10.1 Crear entidades `EmailConfig` (SMTP: host, port, username, password encriptado, encryption enum NONE/SSL/TLS) y `GmailConfig` (accessToken, refreshToken encriptados, email, workspaceId)
+- [x] 10. Módulo Email (SMTP/Brevo + Gmail OAuth)
+  - [x] 10.1 Crear entidades `EmailConfig` (SMTP: host, port, username, password encriptado, encryption enum NONE/SSL/TLS) y `GmailConfig` (accessToken, refreshToken encriptados, email, workspaceId)
     - _Requisitos: 23.1, 23.4, 23.5, 24.1_
-  - [ ] 10.2 Implementar `SmtpEmailProvider`: enviar email usando `JavaMailSender` con la config SMTP del workspace; método `testConnection()` para validar antes de guardar
+  - [x] 10.2 Implementar `SmtpEmailProvider`: enviar email usando `JavaMailSender` con la config SMTP del workspace; método `testConnection()` para validar antes de guardar
     - _Requisitos: 23.2, 23.3, 25.1_
-  - [ ] 10.3 Implementar `GmailOAuthProvider`: flujo OAuth2 con Google (redirect, callback, intercambio de código, renovación automática de access token, revocación)
+  - [x] 10.3 Implementar `GmailOAuthProvider`: flujo OAuth2 con Google (redirect, callback, intercambio de código, renovación automática de access token, revocación)
     - _Requisitos: 24.1–24.4_
-  - [ ] 10.4 Implementar `EmailService` con métodos: `send`, `resolveTemplate`, `processInboundReply`
+  - [x] 10.4 Implementar `EmailService` con métodos: `send`, `resolveTemplate`, `processInboundReply`
     - `send`: seleccionar provider activo (SMTP o Gmail), registrar mensaje en conversación con canal EMAIL/OUTBOUND/SENT
     - `resolveTemplate`: reemplazar `{{contact_name}}` y `{{company_name}}` con datos del contacto
     - `processInboundReply`: identificar thread por `In-Reply-To`/`References`, agregar mensaje a conversación existente
     - _Requisitos: 25.1–25.5, 26.1–26.4_
-  - [ ] 10.5 Crear `EmailController` con endpoints:
+  - [x] 10.5 Crear `EmailController` con endpoints:
     - `POST /api/email/send`
     - `POST /api/settings/integrations/email` (ADMIN), `GET /api/settings/integrations/email/oauth/callback`
     - _Requisitos: 23.1, 24.1, 25.1_
-  - [ ]* 10.6 Escribir tests unitarios para `EmailService`
+  - [x] 10.6 Escribir tests unitarios para `EmailService`
     - Casos: enviar sin config activa → 422, template con variables resueltas, reply encadenado a conversación existente, remitente desconocido crea contacto
     - _Requisitos: 25.3, 25.5, 26.2, 26.3_
 
 
 - [ ] 11. Módulo Conversation (WebSockets STOMP)
-  - [ ] 11.1 Crear entidades `Conversation` y `Message` con sus repositorios
+  - [x] 11.1 Crear entidades `Conversation` y `Message` con sus repositorios
     - `Conversation`: id, contactId, channel (enum WHATSAPP/EMAIL), lastMessageAt, workspaceId, createdAt
     - `Message`: id, conversationId, body, direction (INBOUND/OUTBOUND), channel, status (SENDING/SENT/DELIVERED/READ/FAILED), externalId, sentAt, deliveredAt, readAt, workspaceId
     - _Requisitos: 20.4, 21.4, 22.2_
-  - [ ] 11.2 Implementar `ConversationService` con métodos: `findOrCreate`, `addMessage`, `listMessages`, `listConversations`, `notifyViaWebSocket`
+  - [x] 11.2 Implementar `ConversationService` con métodos: `findOrCreate`, `addMessage`, `listMessages`, `listConversations`, `notifyViaWebSocket`
     - `findOrCreate`: buscar conversación activa por contactId + channel; crear si no existe
     - `notifyViaWebSocket`: publicar en `/topic/workspace/{workspaceId}/conversations` al recibir mensaje nuevo
     - _Requisitos: 21.4, 21.5, 22.1–22.4_
-  - [ ] 11.3 Crear `ConversationController` con endpoints:
+  - [x] 11.3 Crear `ConversationController` con endpoints:
     - `GET /api/conversations` (ordenado por lastMessageAt desc)
     - `GET /api/conversations/{id}/messages` (paginado, ordenado por sentAt asc)
     - _Requisitos: 22.1, 22.4_
-  - [ ]* 11.4 Escribir test de propiedad: invariante de canal
+  - [x] 11.4 Escribir test de propiedad: invariante de canal
     - **Propiedad 11: canal del mensaje siempre coincide con canal de la conversación padre**
     - **Valida: Requisito 20.4, 25.2**
-  - [ ]* 11.5 Escribir test de propiedad: ordenamiento temporal de mensajes
+  - [x] 11.5 Escribir test de propiedad: ordenamiento temporal de mensajes
     - **Propiedad 12: mensajes retornados por /api/conversations/{id}/messages siempre ordenados por sentAt asc**
     - **Valida: Requisito 22.1**
-  - [ ]* 11.6 Escribir tests unitarios para `ConversationService`
+  - [x] 11.6 Escribir tests unitarios para `ConversationService`
     - Casos: findOrCreate idempotente, listado ordenado por lastMessageAt, conversación de otro workspace → 404
     - _Requisitos: 21.4, 22.4, 8.3_
 
-- [ ] 12. Checkpoint — Verificar módulos Deal + WhatsApp + Email + Conversation
+- [x] 12. Checkpoint — Verificar módulos Deal + WhatsApp + Email + Conversation
   - Asegurar que todos los tests pasan. Consultar al usuario si hay dudas antes de continuar.
 
 
 - [ ] 13. Módulo Task (con scheduler de recordatorios)
-  - [ ] 13.1 Crear entidad `Task` con su repositorio
+  - [x] 13.1 Crear entidad `Task` con su repositorio
     - Campos: id, title, description, priority (enum LOW/MEDIUM/HIGH/URGENT), dueAt, isCompleted, completedAt, completedBy, contactId, dealId, assignedTo, workspaceId, createdAt, updatedAt
     - _Requisitos: 27.1, 27.4_
-  - [ ] 13.2 Implementar `TaskService` con métodos: `create`, `list`, `complete`, `uncomplete`, `update`
+  - [x] 13.2 Implementar `TaskService` con métodos: `create`, `list`, `complete`, `uncomplete`, `update`
     - `create`: asignar al usuario creador si `assignedTo` no se especifica
     - `list`: filtros por completed, assignedTo (con soporte `me`), priority, contactId, dueBefore/dueAfter; ordenar por dueAt asc
     - `complete`: registrar completedAt + completedBy; idempotente si ya está completada
     - _Requisitos: 27.1–27.6, 28.1–28.4, 29.1–29.4_
-  - [ ] 13.3 Implementar `TaskReminderScheduler` con `@Scheduled(fixedRate = 60000)`
+  - [x] 13.3 Implementar `TaskReminderScheduler` con `@Scheduled(fixedRate = 60000)`
     - Consultar tareas pendientes con dueAt entre ahora y ahora+15min que no hayan sido notificadas
     - Publicar notificación vía WebSocket a `/queue/user/{userId}/reminders`
     - Omitir tareas completadas
     - _Requisitos: 30.1–30.4_
-  - [ ] 13.4 Crear `TaskController` con endpoints:
+  - [x] 13.4 Crear `TaskController` con endpoints:
     - `POST /api/tasks`, `GET /api/tasks`, `PATCH /api/tasks/{id}`, `PATCH /api/tasks/{id}/complete`
     - _Requisitos: 27.1, 28.1, 29.1, 29.4_
-  - [ ]* 13.5 Escribir test de propiedad: invariante de completado
+  - [x] 13.5 Escribir test de propiedad: invariante de completado
     - **Propiedad 14: task.isCompleted=true → task.completedAt != null siempre**
     - **Valida: Requisito 29.1**
-  - [ ]* 13.6 Escribir test de propiedad: metamórfica de filtros de fecha
+  - [x] 13.6 Escribir test de propiedad: metamórfica de filtros de fecha
     - **Propiedad 15: tareas con dueAfter=T1 AND dueBefore=T2 ⊆ tareas con solo dueAfter=T1**
     - **Valida: Requisito 28.2**
-  - [ ]* 13.7 Escribir tests unitarios para `TaskService` y `TaskReminderScheduler`
+  - [x] 13.7 Escribir tests unitarios para `TaskService` y `TaskReminderScheduler`
     - Casos: completar tarea ya completada (idempotente), filtro assignedTo=me, scheduler omite tareas completadas
     - _Requisitos: 29.2, 28.3, 30.3_
 
