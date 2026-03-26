@@ -296,49 +296,49 @@ Cada tarea construye sobre la anterior; al final todos los módulos quedan integ
 
 
 - [ ] 18. Migraciones Flyway
-  - [ ] 18.1 Crear `V1__create_workspace_and_users.sql`
+  - [x] 18.1 Crear `V1__create_workspace_and_users.sql`
     - Tablas: `workspaces`, `users`, `refresh_tokens`
     - Índices: `users(email)`, `users(workspace_id)`, `refresh_tokens(token_hash)`
     - _Requisitos: 1.1, 2.4_
-  - [ ] 18.2 Crear `V2__create_contacts_companies_tags.sql`
+  - [x] 18.2 Crear `V2__create_contacts_companies_tags.sql`
     - Tablas: `companies`, `contacts`, `tags`, `contact_tags`, `contact_notes`
     - Índices: `contacts(workspace_id, email)` (unique), `contacts(workspace_id, status)`, `contacts(assigned_to)`
     - _Requisitos: 9.2, 11.1_
-  - [ ] 18.3 Crear `V3__create_deals_pipeline.sql`
+  - [x] 18.3 Crear `V3__create_deals_pipeline.sql`
     - Tablas: `pipelines`, `stages`, `deals`, `deal_stage_history`
     - Índices: `deals(workspace_id, stage_id)`, `deals(workspace_id, is_deleted)`, `stages(pipeline_id, order)`
     - _Requisitos: 14.4, 17.4_
-  - [ ] 18.4 Crear `V4__create_conversations_messages.sql`
+  - [x] 18.4 Crear `V4__create_conversations_messages.sql`
     - Tablas: `conversations`, `messages`
     - Índices: `conversations(workspace_id, contact_id, channel)`, `messages(conversation_id, sent_at)`, `messages(external_id)` (unique)
     - _Requisitos: 20.4, 22.1_
-  - [ ] 18.5 Crear `V5__create_tasks.sql`
+  - [x] 18.5 Crear `V5__create_tasks.sql`
     - Tabla: `tasks`
     - Índices: `tasks(workspace_id, assigned_to)`, `tasks(workspace_id, due_at)`, `tasks(workspace_id, is_completed)`
     - _Requisitos: 27.1, 28.2_
-  - [ ] 18.6 Crear `V6__create_integrations_settings.sql`
+  - [x] 18.6 Crear `V6__create_integrations_settings.sql`
     - Tablas: `whatsapp_configs`, `email_smtp_configs`, `gmail_configs`
     - Todos los campos de credenciales como `TEXT` (almacenados encriptados con AES-256)
     - _Requisitos: 19.1, 23.1, 24.1, NFR-6_
-  - [ ] 18.7 Crear `V7__seed_default_pipeline.sql`
+  - [x] 18.7 Crear `V7__seed_default_pipeline.sql`
     - Insertar pipeline por defecto con etapas: Nuevo Lead, Contactado, Propuesta, Negociación, Cerrado Ganado (isWon=true), Cerrado Perdido (isLost=true)
     - _Requisitos: 14.4_
 
 
-- [ ] 19. Tests de integración
-  - [ ]* 19.1 Escribir tests de integración para el flujo completo de Auth
+- [x] 19. Tests de integración
+  - [x] 19.1 Escribir tests de integración para el flujo completo de Auth
     - Usar `@SpringBootTest` + Testcontainers (PostgreSQL + Redis)
     - Flujo: register → login → refresh → logout → intentar refresh con token revocado
     - _Requisitos: 1.1, 2.1, 4.1, 5.1, 5.2_
-  - [ ]* 19.2 Escribir tests de integración para aislamiento de workspace
+  - [x] 19.2 Escribir tests de integración para aislamiento de workspace
     - Crear dos workspaces, verificar que los recursos de uno no son visibles desde el otro
     - **Propiedad 4: aislamiento de workspace**
     - _Requisitos: 8.1–8.5_
-  - [ ]* 19.3 Escribir tests de integración para el flujo WhatsApp webhook
+  - [x] 19.3 Escribir tests de integración para el flujo WhatsApp webhook
     - Simular payload de Meta, verificar creación de contacto + mensaje + notificación WebSocket
     - Verificar idempotencia con mismo externalId
     - _Requisitos: 20.1–20.6_
-  - [ ]* 19.4 Escribir tests de integración para el módulo Deal + pipeline summary
+  - [~] 19.4 Escribir tests de integración para el módulo Deal + pipeline summary
     - Crear deals en distintas etapas, verificar que el summary coincide con la suma aritmética
     - **Propiedad 8: invariante de valor del pipeline**
     - _Requisitos: 17.1, 18.1–18.4_

@@ -15,5 +15,8 @@ public interface ContactRepository extends JpaRepository<Contact, UUID>, JpaSpec
 
     Optional<Contact> findByWorkspaceIdAndEmailAndDeletedFalse(UUID workspaceId, String email);
 
+    /** Req 20.2: identificar contacto por teléfono dentro del workspace. */
+    Optional<Contact> findByWorkspaceIdAndPhoneAndDeletedFalse(UUID workspaceId, String phone);
+
     long countByWorkspaceIdAndDeletedFalse(UUID workspaceId);
 }
