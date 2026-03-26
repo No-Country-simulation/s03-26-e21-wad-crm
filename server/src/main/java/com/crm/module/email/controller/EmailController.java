@@ -151,35 +151,6 @@ public class EmailController {
         ));
     }
 
-    /**
-     * DELETE /api/settings/integrations/email — desconectar integración activa.
-     * ADMIN only. Requisito: 24.4
-     */
-    @DeleteMapping("/api/settings/integrations/email")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Void> disconnectEmailIntegration(Principal principal) {
-        UUID workspaceId = extractWorkspaceId(principal);
-
-        // Revoke Gmail if active
-        Optional<GmailConfig> gmailConfig = gmailConfigRepository.findByWorkspaceIdAndIsActiveTrue(workspaceId);
-        if (gmailConfig.isPresent()) {
-            gmailOAuthProvider.revokeTokens(gmailConfig.get());
-            log.info("Gmail integration disconnected for workspace {}", workspaceId);
-            return ResponseEntity.noContent().build();
-        }
-
-        // Deactivate SMTP if active
-        Optional<EmailConfig> smtpConfig = emailConfigRepository.findByWorkspaceIdAndIsActiveTrue(workspaceId);
-        if (smtpConfig.isPresent()) {
-            smtpConfig.get().setActive(false);
-            emailConfigRepository.save(smtpConfig.get());
-            log.info("SMTP integration disconnected for workspace {}", workspaceId);
-            return ResponseEntity.noContent().build();
-        }
-
-        return ResponseEntity.noContent().build(); // idempotent
-    }
-
     // ── Private helpers ──────────────────────────────────────────────────────
 
     /**

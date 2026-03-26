@@ -257,41 +257,41 @@ Cada tarea construye sobre la anterior; al final todos los módulos quedan integ
 
 
 - [ ] 14. Módulo Analytics
-  - [ ] 14.1 Implementar `AnalyticsService` con método `getDashboard(workspaceId, period)`
+  - [x] 14.1 Implementar `AnalyticsService` con método `getDashboard(workspaceId, period)`
     - Calcular: total contactos activos, total deals activos, valor total del pipeline, tasa de conversión
     - Tasa de conversión: (deals con etapa isWon=true / total deals creados en período) × 100
     - Soportar períodos: `7d`, `30d`, `90d` (default `30d`)
     - _Requisitos: 31.1–31.5_
-  - [ ] 14.2 Crear `AnalyticsController` con endpoint `GET /api/analytics/dashboard` (ADMIN/MANAGER únicamente)
+  - [x] 14.2 Crear `AnalyticsController` con endpoint `GET /api/analytics/dashboard` (ADMIN/MANAGER únicamente)
     - _Requisitos: 31.1, 31.4_
-  - [ ]* 14.3 Escribir tests unitarios para `AnalyticsService`
+  - [x] 14.3 Escribir tests unitarios para `AnalyticsService`
     - Casos: tasa de conversión con 0 deals, acceso de SALES → 403, datos de otro workspace no incluidos
     - _Requisitos: 31.2, 31.4, 31.5_
 
 - [ ] 15. Módulo Export
-  - [ ] 15.1 Implementar `ExportService` con métodos: `exportContactsCsv(workspaceId, filters)`, `exportDealsCsv(workspaceId, filters)`, `exportContactsPdf(workspaceId, filters)`
+  - [x] 15.1 Implementar `ExportService` con métodos: `exportContactsCsv(workspaceId, filters)`, `exportDealsCsv(workspaceId, filters)`, `exportContactsPdf(workspaceId, filters)`
     - CSV: usar OpenCSV o Apache Commons CSV; incluir todos los campos visibles del listado
     - PDF: usar iText o Apache PDFBox; tabla con columnas principales
     - Respetar los mismos filtros que los listados normales
     - _Requisitos: 8.2 (aislamiento), 11.1 (filtros de contactos)_
-  - [ ] 15.2 Crear `ExportController` con endpoints:
+  - [x] 15.2 Crear `ExportController` con endpoints:
     - `GET /api/contacts/export?format=csv|pdf`
     - `GET /api/deals/export?format=csv`
     - Retornar con headers `Content-Disposition: attachment` apropiados
     - _Requisitos: 8.5_
 
 - [ ] 16. Módulo Settings (integraciones)
-  - [ ] 16.1 Crear `SettingsController` con endpoints de integraciones:
+  - [x] 16.1 Crear `SettingsController` con endpoints de integraciones:
     - `GET /api/settings/integrations` (ADMIN): estado de WhatsApp y Email
     - `POST /api/settings/integrations/whatsapp` (ADMIN): guardar config WhatsApp con verificación previa
     - `DELETE /api/settings/integrations/whatsapp` (ADMIN): desconectar y eliminar credenciales
     - `DELETE /api/settings/integrations/email` (ADMIN): desconectar email (SMTP o Gmail)
     - _Requisitos: 19.1–19.4, 35.1–35.4_
-  - [ ]* 16.2 Escribir tests unitarios para `SettingsService`
+  - [x] 16.2 Escribir tests unitarios para `SettingsService`
     - Casos: guardar WhatsApp con verificación fallida → 422, listar integraciones sin exponer tokens, acceso no-ADMIN → 403
     - _Requisitos: 19.3, 19.4, 35.4_
 
-- [ ] 17. Checkpoint — Verificar módulos Task + Analytics + Export + Settings
+- [x] 17. Checkpoint — Verificar módulos Task + Analytics + Export + Settings
   - Asegurar que todos los tests pasan. Consultar al usuario si hay dudas antes de continuar.
 
 
