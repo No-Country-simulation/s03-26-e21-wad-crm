@@ -338,7 +338,7 @@ Cada tarea construye sobre la anterior; al final todos los módulos quedan integ
     - Simular payload de Meta, verificar creación de contacto + mensaje + notificación WebSocket
     - Verificar idempotencia con mismo externalId
     - _Requisitos: 20.1–20.6_
-  - [~] 19.4 Escribir tests de integración para el módulo Deal + pipeline summary
+  - [x] 19.4 Escribir tests de integración para el módulo Deal + pipeline summary
     - Crear deals en distintas etapas, verificar que el summary coincide con la suma aritmética
     - **Propiedad 8: invariante de valor del pipeline**
     - _Requisitos: 17.1, 18.1–18.4_
