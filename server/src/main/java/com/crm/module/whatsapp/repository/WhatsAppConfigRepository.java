@@ -11,4 +11,7 @@ import java.util.UUID;
 public interface WhatsAppConfigRepository extends JpaRepository<WhatsAppConfig, UUID> {
 
     Optional<WhatsAppConfig> findByWorkspaceIdAndActiveTrue(UUID workspaceId);
+
+    /** Req 20.1: resolver workspace a partir del phone_number_id del metadata del webhook. */
+    Optional<WhatsAppConfig> findByPhoneNumberIdAndActiveTrue(String phoneNumberId);
 }

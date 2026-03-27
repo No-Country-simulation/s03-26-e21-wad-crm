@@ -29,6 +29,10 @@ public class WhatsAppConfig extends AuditableEntity {
     @Column(name = "webhook_verify_token", nullable = false, columnDefinition = "TEXT")
     private String webhookVerifyToken;
 
+    /** App Secret de Meta para verificar firma HMAC-SHA256 del webhook. Req 20.1, 20.5 */
+    @Column(name = "app_secret", columnDefinition = "TEXT")
+    private String appSecret;
+
     @Column(name = "connected_at")
     private LocalDateTime connectedAt;
 
