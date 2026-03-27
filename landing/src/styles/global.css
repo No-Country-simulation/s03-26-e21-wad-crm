@@ -1,0 +1,58 @@
+@import "tailwindcss";
+
+/* --bg-deep: #070711;
+  --bg-secondary: #0f1021;
+  --bg-elevated: #171831;
+  --accent: #875dff;
+  --accent-2: #c84dff;
+  --text-main: #f7f8ff;
+  --text-soft: #b9bdd8; */
+
+@theme {
+  /* Primary Colors */
+  --primary-50: #edebfb;
+  --primary-100: #dcd8f8;
+  --primary-200: #cac4f4;
+  --primary-300: #b8b0f0;
+  --primary-400: #a79ded;
+  --primary-500: #8a63ff;
+  --primary-600: #6655df;
+  --primary-700: #3c27d0;
+  --primary-800: #2d1d9c;
+  --primary-900: #1e1368;
+
+  --max-width: 1564px;
+}
+
+@theme inline {
+  --font-sans: var(--font-dm-sans);
+}
+
+@layer base {
+  :root {
+    interpolate-size: allow-keywords;
+  }
+
+  html {
+    scrollbar-width: thin;
+    @apply scroll-pt-32 scroll-smooth;
+  }
+
+  :is(h1, h2, h3, h4, h5, h6) {
+    @apply text-balance font-medium;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-neutral-50 text-neutral-950 border-neutral-50;
+  }
+
+  .btn-secondary {
+    @apply bg-neutral-950 text-neutral-50 border-neutral-950;
+  }
+}
+
+@utility bg-glass {
+  @apply bg-[#141414]/20 backdrop-blur-[10px];
+}

@@ -1,0 +1,23 @@
+---
+import Background from "@components/layout/Background.astro";
+import Footer from "@components/layout/Footer.astro";
+import Header from "@components/layout/Header.astro";
+import Policies from "@components/sections/policies/Policies.astro";
+import { legal } from "@data/data.json";
+import Layout from "@layouts/Layout.astro";
+
+const title = "Política de privacidad | Nexo CRM";
+const description =
+  "Conoce cómo Nexo CRM recopila, utiliza, protege y gestiona los datos personales en su sitio y plataforma.";
+
+const { privacy } = legal;
+---
+
+<Layout title={title} description={description}>
+  <Background class="brightness-50" hasGlass />
+  <Header />
+  <main class="flex-1 flex flex-col items-center gap-32 px-4">
+    <Policies policy={privacy} />
+  </main>
+  <Footer />
+</Layout>

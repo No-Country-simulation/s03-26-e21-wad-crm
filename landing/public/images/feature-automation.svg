@@ -1,0 +1,49 @@
+<svg width="960" height="560" viewBox="0 0 960 560" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="960" y2="560" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#12132A"/>
+      <stop offset="1" stop-color="#1C1E3B"/>
+    </linearGradient>
+    <linearGradient id="node" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#8A63FF"/>
+      <stop offset="1" stop-color="#C556FF"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="16" y="16" width="928" height="528" rx="26" fill="url(#bg)" stroke="#ffffff22"/>
+
+  <rect x="48" y="56" width="864" height="64" rx="18" fill="#ffffff0E" stroke="#ffffff20"/>
+  <rect x="76" y="82" width="220" height="14" rx="7" fill="#ffffff2A"/>
+  <rect x="742" y="74" width="142" height="28" rx="12" fill="url(#node)"/>
+
+  <rect x="76" y="176" width="220" height="94" rx="18" fill="#ffffff11" stroke="#ffffff22"/>
+  <rect x="102" y="206" width="112" height="12" rx="6" fill="#ffffff2D"/>
+  <rect x="102" y="228" width="162" height="10" rx="5" fill="#ffffff1E"/>
+
+  <rect x="370" y="176" width="220" height="94" rx="18" fill="url(#node)"/>
+  <rect x="396" y="206" width="140" height="12" rx="6" fill="#ffffffCC"/>
+  <rect x="396" y="228" width="158" height="10" rx="5" fill="#ffffffB2"/>
+
+  <rect x="664" y="176" width="220" height="94" rx="18" fill="#ffffff11" stroke="#ffffff22"/>
+  <rect x="690" y="206" width="136" height="12" rx="6" fill="#ffffff2D"/>
+  <rect x="690" y="228" width="156" height="10" rx="5" fill="#ffffff1E"/>
+
+  <rect x="76" y="336" width="220" height="94" rx="18" fill="#ffffff11" stroke="#ffffff22"/>
+  <rect x="102" y="366" width="118" height="12" rx="6" fill="#ffffff2D"/>
+  <rect x="102" y="388" width="152" height="10" rx="5" fill="#ffffff1E"/>
+
+  <rect x="370" y="336" width="220" height="94" rx="18" fill="#ffffff11" stroke="#ffffff22"/>
+  <rect x="396" y="366" width="128" height="12" rx="6" fill="#ffffff2D"/>
+  <rect x="396" y="388" width="160" height="10" rx="5" fill="#ffffff1E"/>
+
+  <rect x="664" y="336" width="220" height="94" rx="18" fill="url(#node)"/>
+  <rect x="690" y="366" width="132" height="12" rx="6" fill="#ffffffCC"/>
+  <rect x="690" y="388" width="168" height="10" rx="5" fill="#ffffffB2"/>
+
+  <path d="M296 223H370" stroke="#ffffff3A" stroke-width="4" stroke-linecap="round"/>
+  <path d="M590 223H664" stroke="#ffffff3A" stroke-width="4" stroke-linecap="round"/>
+  <path d="M480 270V336" stroke="#ffffff3A" stroke-width="4" stroke-linecap="round"/>
+  <path d="M186 270V336" stroke="#ffffff2A" stroke-width="4" stroke-linecap="round"/>
+  <path d="M774 270V336" stroke="#ffffff2A" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="480" cy="303" r="12" fill="#9F66FF"/>
+</svg>

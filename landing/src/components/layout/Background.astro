@@ -1,0 +1,20 @@
+---
+interface Props {
+  class?: string;
+  hasGlass?: boolean;
+}
+
+const { class: className, hasGlass } = Astro.props;
+---
+
+<div class:list={["fixed inset-0 -z-10", hasGlass && "before:absolute before:inset-0 before:bg-glass before:z-1"]}>
+  <video
+    class:list={["w-full h-full object-cover", className]}
+    poster="/images/background_poster_img.webp"
+    muted
+    autoplay
+    loop
+  >
+    <source src="/videos/hero.mp4" />
+  </video>
+</div>

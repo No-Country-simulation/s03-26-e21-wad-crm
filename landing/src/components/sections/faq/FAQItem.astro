@@ -1,0 +1,36 @@
+---
+interface Props {
+  faq: {
+    question: string;
+    answer: string;
+  };
+  name?: string;
+}
+
+const { faq, name } = Astro.props;
+const { question, answer } = faq;
+---
+
+<details
+  name={name}
+  class="group border-b border-neutral-50
+  details-content:h-0 details-content:overflow-y-clip
+  details-content:[transition:content-visibility_500ms_allow-discrete,height_500ms]
+  open:details-content:h-auto"
+>
+  <summary class="flex items-center justify-between gap-4 cursor-pointer px-4 py-4 font-normal">
+    {question}
+
+    <div
+      class="relative w-4 h-px bg-neutral-50
+             before:absolute before:inset-0 before:bg-neutral-50 before:rotate-90
+             before:transition-transform before:duration-300
+             group-open:before:rotate-0"
+    >
+    </div>
+  </summary>
+
+  <div class="p-4 pt-0 flex justify-end">
+    <p class="md:w-1/2 text-base">{answer}</p>
+  </div>
+</details>

@@ -1,0 +1,276 @@
+{
+  "basics": {
+    "name": "Nexo CRM",
+    "title": "Menos fricción. Más cierres.",
+    "badge": "WhatsApp + Email + Automatización",
+    "description": "Gestiona leads activos y clientes en seguimiento en una sola bandeja. Etiqueta, segmenta y automatiza cada contacto sin perder contexto.",
+    "stats": [
+      { "label": "Tasa de respuesta", "value": "+34%" },
+      { "label": "Tiempo de seguimiento", "value": "-42%" },
+      { "label": "Mensajes por agente", "value": "3.1k" }
+    ],
+    "socialNetworks": [
+      {
+        "network": "Whatsapp",
+        "url": "https://wa.me/50688888888"
+      },
+      {
+        "network": "Facebook",
+        "url": "https://www.facebook.com/nexoflowcrm"
+      },
+      {
+        "network": "Instagram",
+        "url": "https://www.instagram.com/nexoflowcrm"
+      }
+    ]
+  },
+  "sections": {
+    "integrations": {
+      "badge": "Integraciones listas para usar",
+      "title": "Conecta tus herramientas favoritas con facilidad",
+      "description": "Integra WhatsApp, correo y tus flujos clave en pocos pasos para trabajar desde un solo lugar."
+    },
+    "features": {
+      "items": [
+        {
+          "title": "Gestión",
+          "description": "Centraliza leads activos y clientes en seguimiento en una sola vista operativa, con filtros guardados, etiquetas por prioridad y trazabilidad por canal para que cada conversación avance con intención y sin pérdida de historial.",
+          "image": {
+            "url": "/images/feature-management.svg",
+            "alt": "CRM management board with segmented contacts, labels, and funnel status"
+          },
+          "cta": {
+            "href": "/#plans",
+            "target": "_self",
+            "label": "Ver planes"
+          }
+        },
+        {
+          "title": "Comunicación",
+          "description": "Unifica WhatsApp Cloud API y correo en una bandeja colaborativa para responder más rápido con plantillas, snippets y registro completo por contacto, manteniendo sincronía entre ventas, soporte y seguimiento comercial.",
+          "image": {
+            "url": "/images/feature-communication.svg",
+            "alt": "Unified inbox for WhatsApp and email collaboration"
+          },
+          "cta": {
+            "href": "https://wa.me/50688888888?text=Hola%20NexoFlow%2C%20quiero%20saber%20m%C3%A1s%20sobre%20el%20CRM",
+            "target": "_blank",
+            "label": "Solicitar demo"
+          }
+        },
+        {
+          "title": "Automatización",
+          "description": "Configura recordatorios por SLA, disparadores por cambio de etapa y secuencias multicanal sin código para que tu equipo no dependa de memoria manual, reduzca tiempos muertos y sostenga un seguimiento constante en todo el embudo.",
+          "image": {
+            "url": "/images/feature-automation.svg",
+            "alt": "Automation workflow with triggers, tasks, and follow-ups"
+          },
+          "cta": {
+            "href": "/#integrations",
+            "target": "_self",
+            "label": "Ver integraciones"
+          }
+        },
+        {
+          "title": "Analítica",
+          "description": "Visualiza rendimiento por canal, agente y segmento con métricas claras, exportaciones en CSV o PDF y señales de oportunidad para decidir más rápido, detectar cuellos de botella y mejorar la tasa de respuesta de forma sostenida.",
+          "image": {
+            "url": "/images/feature-analytics.svg",
+            "alt": "CRM analytics dashboard with KPIs and exportable reports"
+          },
+          "cta": {
+            "href": "/#faqs",
+            "target": "_self",
+            "label": "Resolver dudas"
+          }
+        }
+      ]
+    },
+    "plans": {
+      "title": "Planes que crecen con tu equipo",
+      "description": "Opciones claras para empezar, escalar y operar con mayor control según tu etapa.",
+      "items": [
+        {
+          "name": "Starter",
+          "description": "Comienza con las funciones clave para personas independientes y equipos pequeños.",
+          "features": [
+            "Hasta 3 usuarios",
+            "Panel esencial",
+            "Gestión básica de tareas",
+            "Chat en tiempo real",
+            "1 GB de almacenamiento seguro"
+          ],
+          "isPrincipal": false
+        },
+        {
+          "name": "Pro",
+          "description": "Más capacidad para equipos en crecimiento que necesitan avanzar con velocidad.",
+          "price": {
+            "amount": 49.99,
+            "period": "mes"
+          },
+          "features": [
+            "Hasta 10 usuarios",
+            "Panel avanzado",
+            "Automatizaciones de seguimiento",
+            "Chat en tiempo real",
+            "20 GB de almacenamiento seguro"
+          ],
+          "isPrincipal": true
+        },
+        {
+          "name": "Enterprise",
+          "description": "Solución integral para operaciones complejas con soporte prioritario y personalización.",
+          "price": {
+            "amount": 99.99,
+            "period": "mes"
+          },
+          "features": [
+            "Usuarios ilimitados",
+            "Panel ejecutivo",
+            "Automatizaciones avanzadas",
+            "Integraciones personalizadas",
+            "Almacenamiento escalable"
+          ],
+          "isPrincipal": false
+        }
+      ]
+    },
+    "faqs": {
+      "title": "Resolvemos tus dudas",
+      "items": [
+        {
+          "question": "¿Se puede usar por equipos de ventas y soporte al mismo tiempo?",
+          "answer": "Sí. NexoFlow CRM está pensado para trabajo colaborativo entre roles con permisos, vistas y filtros personalizados."
+        },
+        {
+          "question": "¿Qué tan rápido es implementar WhatsApp y correo?",
+          "answer": "La configuración guiada conecta WhatsApp Cloud API y SMTP/Brevo en minutos, con plantillas listas para usar."
+        },
+        {
+          "question": "¿Puedo exportar datos para reportes internos?",
+          "answer": "Sí. Puedes exportar contactos, actividades y KPIs en CSV o PDF por rango de fechas y segmento."
+        },
+        {
+          "question": "¿Qué tipo de automatizaciones puedo crear sin código?",
+          "answer": "Puedes configurar recordatorios, alertas y secuencias multicanal basadas en cambios de estado o inactividad."
+        },
+        {
+          "question": "¿Cómo se comparan los planes y precios?",
+          "answer": "El plan Starter es ideal para personas independientes, Pro para equipos en crecimiento y Enterprise para necesidades avanzadas y personalización."
+        }
+      ]
+    }
+  },
+  "legal": {
+    "terms": {
+      "title": "Términos de uso del sitio y la plataforma",
+      "sections": [
+        {
+          "title": "Alcance y aceptación del uso",
+          "paragraphs": [
+            "El acceso al sitio web de Nexo CRM, así como el uso de formularios, recursos, demos y funcionalidades de la plataforma, se encuentra sujeto a la aceptación expresa de estos términos. Al navegar, registrarte o utilizar cualquier funcionalidad, declaras que has leído este documento completo y que comprendes las obligaciones que asumes como usuario o cliente.",
+            "Nos reservamos el derecho de actualizar estos términos cuando sea necesario por cambios legales, operativos o de producto. La versión vigente será la publicada en esta página y su uso posterior implicará aceptación de las modificaciones, salvo que una norma aplicable exija un mecanismo adicional de consentimiento."
+          ]
+        },
+        {
+          "title": "Uso de la plataforma y cuentas",
+          "paragraphs": [
+            "Para acceder a funciones protegidas por autenticación, debes proporcionar datos de registro exactos, mantenerlos actualizados y custodiar tus credenciales con un nivel razonable de seguridad. Cada cuenta es personal para el equipo o entidad que la contrata y no debe compartirse de manera indiscriminada fuera de los usuarios autorizados.",
+            "Eres responsable por la actividad realizada dentro de tu espacio de trabajo, incluyendo acciones de tus colaboradores con permisos asignados. Si detectas accesos no autorizados, incidentes o uso anómalo, debes notificarlo de inmediato para permitir medidas de contención y preservar la integridad de la operación."
+          ]
+        },
+        {
+          "title": "Propiedad intelectual y licencias",
+          "paragraphs": [
+            "Todo el contenido y tecnología de Nexo CRM, incluyendo diseño, interfaces, flujos, textos, marca, documentación, código y elementos visuales, pertenece a Nexo CRM o a sus licenciantes y se encuentra protegido por leyes de propiedad intelectual y normas conexas. El acceso al servicio no implica cesión de titularidad sobre ninguno de estos activos.",
+            "Se concede únicamente una licencia limitada, revocable y no exclusiva para utilizar la plataforma conforme al plan contratado. Queda prohibido copiar, redistribuir, descompilar, crear obras derivadas o explotar comercialmente el servicio fuera de los usos expresamente permitidos por estos términos o por una autorización escrita."
+          ]
+        },
+        {
+          "title": "Uso aceptable y restricciones",
+          "paragraphs": [
+            "Debes utilizar el sitio y la plataforma de manera lícita, respetando derechos de terceros y evitando cualquier conducta que comprometa la seguridad, disponibilidad o reputación del servicio. Esto incluye abstenerte de ejecutar automatizaciones abusivas, enviar contenido engañoso, distribuir código malicioso o intentar eludir controles de acceso.",
+            "Nexo CRM podrá investigar señales de uso indebido y adoptar medidas proporcionales, como limitar funcionalidades, suspender accesos o cancelar cuentas en casos graves o reiterados. Estas medidas buscan proteger a los usuarios, a la infraestructura y al ecosistema de integraciones que permite la operación del producto."
+          ]
+        },
+        {
+          "title": "Planes, facturación y disponibilidad",
+          "paragraphs": [
+            "Las características, límites y precios de los planes pueden variar con el tiempo para reflejar mejoras del producto, costos de infraestructura o cambios regulatorios. El valor aplicable será el vigente al momento de la contratación o renovación y cualquier ajuste material será comunicado mediante canales razonables de notificación.",
+            "Aunque trabajamos para mantener continuidad operativa, no garantizamos disponibilidad absoluta ni ausencia total de errores. Podrán existir mantenimientos, interrupciones de terceros o incidencias técnicas que afecten temporalmente funcionalidades, sin que ello constituya por sí mismo incumplimiento, siempre que actuemos con diligencia para restablecer el servicio."
+          ]
+        },
+        {
+          "title": "Exención de garantías y límite de responsabilidad",
+          "paragraphs": [
+            "El servicio se ofrece en modalidad \"tal cual\" y \"según disponibilidad\", dentro de los límites permitidos por la legislación aplicable. Nexo CRM no garantiza que la plataforma sea completamente ininterrumpida o apta para finalidades no documentadas, ni que esté libre de fallos derivados de factores externos o configuraciones del cliente.",
+            "En la máxima medida permitida por la ley, no seremos responsables por daños indirectos, lucro cesante, pérdida de datos o interrupción de negocio derivados del uso del servicio. Cuando proceda responsabilidad, el monto total acumulado se limitará a los pagos efectivamente realizados por el cliente en los tres meses anteriores al evento que origine la reclamación."
+          ]
+        },
+        {
+          "title": "Duración, terminación y ley aplicable",
+          "paragraphs": [
+            "Puedes dejar de usar la plataforma en cualquier momento y solicitar cierre de cuenta conforme al proceso de soporte. Nexo CRM también podrá suspender o terminar accesos cuando exista incumplimiento relevante, riesgo de seguridad, fraude o mandato legal, procurando preservar evidencia y trazabilidad para una gestión ordenada del caso.",
+            "Estos términos se interpretarán conforme a la legislación aplicable del país o jurisdicción que corresponda según la relación contractual con cada cliente. Antes de iniciar acciones formales, las partes intentarán resolver cualquier controversia mediante negociación de buena fe durante un plazo razonable. Si no se alcanza acuerdo, la disputa se someterá a los tribunales competentes de la jurisdicción aplicable, salvo pacto escrito distinto entre las partes."
+          ]
+        }
+      ]
+    },
+    "privacy": {
+      "title": "Política de privacidad",
+
+      "sections": [
+        {
+          "title": "Alcance de esta política",
+          "paragraphs": [
+            "Esta política aplica al tratamiento de datos personales realizado por Nexo CRM en el sitio web, formularios de contacto, solicitudes comerciales, procesos de onboarding y uso de la plataforma. También abarca información derivada de interacciones de soporte y de actividades operativas necesarias para la prestación del servicio.",
+            "Al utilizar nuestros canales, aceptas que tus datos sean tratados conforme a esta política y a la normativa aplicable. Si no estás de acuerdo con estas condiciones, debes abstenerte de usar el sitio o los servicios que requieren tratamiento de información personal."
+          ]
+        },
+        {
+          "title": "Datos que recopilamos",
+          "paragraphs": [
+            "Recopilamos datos de identificación y contacto como nombre, correo electrónico, empresa, cargo y teléfono cuando completas formularios, solicitas una demo o creas una cuenta. En la operación de la plataforma también tratamos datos técnicos y de uso, como eventos de sesión, configuraciones, métricas de actividad y registros de seguridad.",
+            "Cuando activas integraciones con proveedores externos, podemos recibir metadatos indispensables para sincronización y funcionamiento de funciones de mensajería, correo o automatización. El alcance de esos datos depende de la configuración de cada integración y de las autorizaciones que otorgues al conectar servicios de terceros."
+          ]
+        },
+        {
+          "title": "Finalidades y bases legales",
+          "paragraphs": [
+            "Tratamos datos para ejecutar el contrato de servicio, habilitar acceso a la plataforma, gestionar suscripciones, ofrecer soporte, mejorar estabilidad y prevenir usos abusivos. También utilizamos información agregada o seudonimizada para análisis internos orientados a rendimiento, calidad de producto y continuidad operativa.",
+            "Las bases legales pueden incluir ejecución contractual, cumplimiento de obligaciones legales, interés legítimo y consentimiento cuando corresponda. Si un tratamiento se basa en consentimiento, podrás retirarlo en cualquier momento sin afectar la licitud de los tratamientos realizados con anterioridad."
+          ]
+        },
+        {
+          "title": "Compartición y transferencias",
+          "paragraphs": [
+            "No comercializamos datos personales. Compartimos información solo con proveedores que apoyan infraestructura, pagos, analítica, mensajería o soporte, bajo contratos que establecen deberes de confidencialidad, seguridad y uso limitado según nuestras instrucciones.",
+            "Algunos de estos proveedores pueden operar fuera de tu jurisdicción. En esos casos aplicamos salvaguardas razonables, como cláusulas contractuales y controles organizativos, para proteger la información en transferencias internacionales y reducir riesgos de acceso no autorizado."
+          ]
+        },
+        {
+          "title": "Cookies, conservación y seguridad",
+          "paragraphs": [
+            "Utilizamos cookies y tecnologías similares para funciones esenciales, autenticación, análisis de uso y mejora de experiencia. Puedes gestionar preferencias desde tu navegador, teniendo en cuenta que ciertas restricciones pueden afectar funcionalidades del sitio o de la plataforma.",
+            "Conservamos datos durante el tiempo necesario para cumplir finalidades legítimas, obligaciones legales y resolución de disputas. Además, aplicamos medidas técnicas y organizativas razonables para proteger la información frente a pérdida, alteración, divulgación o acceso indebido, aunque ningún sistema puede garantizar riesgo cero."
+          ]
+        },
+        {
+          "title": "Derechos de las personas usuarias",
+          "paragraphs": [
+            "De acuerdo con la legislación aplicable, puedes solicitar acceso, rectificación, actualización, portabilidad, oposición, limitación del tratamiento o eliminación de tus datos cuando corresponda. Atenderemos cada solicitud dentro de plazos razonables y conforme a requisitos de verificación de identidad.",
+            "Si consideras que no hemos gestionado adecuadamente tus derechos, podrás presentar una reclamación ante la autoridad competente de protección de datos. Recomendamos contactarnos primero para intentar una solución directa, rápida y documentada de cualquier incidencia relacionada con privacidad."
+          ]
+        },
+        {
+          "title": "Actualizaciones de la política",
+          "paragraphs": [
+            "Podemos modificar esta política para reflejar cambios normativos, técnicos u operativos. La versión vigente estará disponible en esta página con su fecha de última actualización para que puedas revisar fácilmente qué disposiciones aplican en cada momento.",
+            "Cuando el cambio sea material y la norma lo requiera, podremos comunicarlo por medios adicionales. El uso continuado del sitio o la plataforma después de la entrada en vigor de la versión actualizada implicará aceptación de sus términos, en la medida permitida por la ley."
+          ]
+        }
+      ]
+    }
+  }
+}

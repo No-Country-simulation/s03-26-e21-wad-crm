@@ -1,0 +1,18 @@
+---
+import { sections } from "@data/data.json";
+import FeatureCard from "./FeatureCard.astro";
+
+const { features: featuresSection } = sections;
+const { items } = featuresSection;
+---
+
+<section
+  id="features"
+  class="relative flex flex-col items-center px-4 w-full bg-neutral-950
+  before:absolute before:bottom-full before:bg-neutral-950 before:w-full before:h-32
+  after:absolute after:top-full after:bg-neutral-950 after:w-full after:h-32"
+>
+  <div class="flex flex-col items-center gap-16 w-[min(1160px,100%)]">
+    {items.map((feature, index) => <FeatureCard feature={feature} reverse={index % 2 !== 0} />)}
+  </div>
+</section>

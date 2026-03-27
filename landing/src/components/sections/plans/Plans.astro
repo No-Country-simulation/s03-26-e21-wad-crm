@@ -1,0 +1,24 @@
+---
+import { sections } from "@data/data.json";
+import PlanCard from "./PlanCard.astro";
+
+const { plans: plansSection } = sections;
+const { title, description, items } = plansSection;
+---
+
+<section
+  id="plans"
+  class="relative flex flex-col items-center gap-16 px-4 w-full after:absolute after:inset-0 after:bg-linear-to-b after:from-neutral-950 after:to-transparent after:-z-10"
+>
+  <header class="flex flex-col items-center gap-2 text-center w-[min(1160px,100%)]">
+    <h2 class="text-5xl">{title}</h2>
+    <p>{description}</p>
+  </header>
+  <div class="grid grid-cols-1 sm:grid-cols-[repeat(auto-fit,minmax(320px,1fr))] gap-4 w-[min(1160px,100%)]">
+    {
+      items.map(({ name, description, price, features, isPrincipal }) => (
+        <PlanCard name={name} description={description} price={price} features={features} isPrincipal={isPrincipal} />
+      ))
+    }
+  </div>
+</section>

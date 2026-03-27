@@ -1,0 +1,46 @@
+---
+import Link from "@components/ui/Link.astro";
+import { Image } from "astro:assets";
+
+interface Props {
+  feature: {
+    title: string;
+    description: string;
+    image: {
+      url: string;
+      alt: string;
+    };
+    cta: {
+      href: string;
+      target: string;
+      label: string;
+    };
+  };
+  reverse: boolean;
+}
+
+const { feature, reverse } = Astro.props;
+const { title, description, image, cta } = feature;
+---
+
+<article
+  class:list={[
+    "flex flex-col gap-4 w-full md:flex-row md:items-center md:justify-between",
+    reverse && "md:flex-row-reverse",
+  ]}
+>
+  <header class="flex flex-1 flex-col items-start gap-2">
+    <h3 class="text-3xl max-w-[20ch]">{title}</h3>
+    <p class="max-w-[50ch] mb-2">{description}</p>
+    <Link href={cta.href} target={cta.target}>{cta.label}</Link>
+  </header>
+  <figure class="flex-1">
+    <Image
+      src={image.url}
+      width={100}
+      height={100}
+      alt={image.alt}
+      class:list={["w-full h-auto md:max-w-md", !reverse && "md:ml-auto"]}
+    />
+  </figure>
+</article>
