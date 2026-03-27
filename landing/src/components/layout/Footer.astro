@@ -1,0 +1,90 @@
+---
+import FacebookIcon from "@components/icons/Facebook.astro";
+import InstagramIcon from "@components/icons/Instagram.astro";
+import WhatsappIcon from "@components/icons/Whatsapp.astro";
+import Logo from "@components/ui/Logo.astro";
+import { basics } from "@data/data.json";
+import { Image } from "astro:assets";
+
+const SOCIAL_NETWORKS: Record<string, string | any> = {
+  Whatsapp: WhatsappIcon,
+  Facebook: FacebookIcon,
+  Instagram: InstagramIcon,
+};
+
+const { name, title, socialNetworks } = basics;
+const year = new Date().getFullYear();
+
+const footerLinks = [
+  {
+    title: "Empresa",
+    links: [
+      { label: "Funciones", href: "/#functions" },
+      { label: "Integraciones", href: "/#integrations" },
+      { label: "Planes", href: "/#plans" },
+      { label: "FAQ", href: "/#faqs" },
+    ],
+  },
+  {
+    title: "Legal",
+    links: [
+      { label: "Términos de Servicio", href: "/terms" },
+      { label: "Política de Privacidad", href: "/privacy" },
+    ],
+  },
+];
+---
+
+<footer class="flex flex-col items-center gap-6 w-full p-4 py-16 bg-neutral-950">
+  <section class="w-[min(var(--max-width),100%)] flex flex-col gap-8 sm:flex-row sm:justify-between sm:gap-16">
+    <div class="flex flex-col items-center gap-4 sm:items-start">
+      <a href="/#" class="transition-opacity hover:opacity-80">
+        <Logo width={131.25} height={32} class="h-16" />
+      </a>
+      <p class="font-normal text-center sm:text-start">{title}</p>
+    </div>
+    <nav class="flex flex-col items-center gap-8 text-center sm:flex-row sm:items-start sm:gap-16 sm:text-left">
+      {
+        footerLinks.map((section) => (
+          <div class="flex flex-col gap-4">
+            <h2>{section.title}</h2>
+            <ul class="flex flex-col gap-2">
+              {section.links.map((item) => (
+                <li class="opacity-80 text-base">
+                  <a href={item.href} class="transition-opacity hover:opacity-80">
+                    {item.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))
+      }
+    </nav>
+  </section>
+  <div class="w-[min(var(--max-width),100%)] h-px bg-neutral-800"></div>
+  <section class="w-[min(var(--max-width),100%)] flex flex-col justify-between items-center gap-8 sm:flex-row">
+    <span class="text-base text-center sm:text-start">&copy; {year} {name}. Hecho para equipos de startups.</span>
+    <ul class="flex items-center gap-4">
+      {
+        socialNetworks.map(({ network, url }) => {
+          const Icon = SOCIAL_NETWORKS[network];
+          return (
+            <li>
+              <a
+                href={url}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="transition-opacity hover:opacity-80"
+                aria-label={`Seguir a ${name} en ${network}`}
+                title={`Seguir a ${name} en ${network}`}
+              >
+                <Icon width={24} color="var(--neutral-50)" />
+              </a>
+            </li>
+          );
+        })
+      }
+    </ul>
+  </section>
+</footer>

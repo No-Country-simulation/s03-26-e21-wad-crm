@@ -1,0 +1,50 @@
+<svg width="960" height="560" viewBox="0 0 960 560" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="960" y2="560" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#11152D"/>
+      <stop offset="1" stop-color="#191E3D"/>
+    </linearGradient>
+    <linearGradient id="bubble" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#8D63FF"/>
+      <stop offset="1" stop-color="#C054FF"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="16" y="16" width="928" height="528" rx="26" fill="url(#bg)" stroke="#ffffff24"/>
+
+  <rect x="48" y="56" width="268" height="452" rx="20" fill="#ffffff0E" stroke="#ffffff20"/>
+  <rect x="74" y="86" width="152" height="14" rx="7" fill="#ffffff2C"/>
+  <rect x="74" y="112" width="118" height="10" rx="5" fill="#ffffff1E"/>
+
+  <rect x="74" y="150" width="216" height="64" rx="14" fill="#ffffff14"/>
+  <circle cx="98" cy="182" r="10" fill="#7D62FF"/>
+  <rect x="116" y="172" width="118" height="10" rx="5" fill="#ffffff2A"/>
+  <rect x="116" y="190" width="94" height="10" rx="5" fill="#ffffff1C"/>
+
+  <rect x="74" y="226" width="216" height="64" rx="14" fill="#ffffff14"/>
+  <circle cx="98" cy="258" r="10" fill="#9F66FF"/>
+  <rect x="116" y="248" width="130" height="10" rx="5" fill="#ffffff2A"/>
+  <rect x="116" y="266" width="102" height="10" rx="5" fill="#ffffff1C"/>
+
+  <rect x="74" y="302" width="216" height="64" rx="14" fill="#ffffff14"/>
+  <circle cx="98" cy="334" r="10" fill="#C65CFF"/>
+  <rect x="116" y="324" width="136" height="10" rx="5" fill="#ffffff2A"/>
+  <rect x="116" y="342" width="88" height="10" rx="5" fill="#ffffff1C"/>
+
+  <rect x="342" y="56" width="570" height="452" rx="20" fill="#ffffff0D" stroke="#ffffff20"/>
+
+  <rect x="374" y="92" width="182" height="14" rx="7" fill="#ffffff2B"/>
+  <rect x="374" y="118" width="126" height="10" rx="5" fill="#ffffff1A"/>
+
+  <rect x="374" y="162" width="336" height="58" rx="18" fill="#ffffff12"/>
+  <rect x="398" y="186" width="240" height="10" rx="5" fill="#ffffff2A"/>
+
+  <rect x="508" y="236" width="372" height="62" rx="18" fill="url(#bubble)"/>
+  <rect x="536" y="262" width="260" height="10" rx="5" fill="#ffffffC0"/>
+
+  <rect x="374" y="316" width="356" height="62" rx="18" fill="#ffffff14"/>
+  <rect x="398" y="342" width="248" height="10" rx="5" fill="#ffffff33"/>
+
+  <rect x="760" y="396" width="120" height="32" rx="12" fill="#ffffff1D"/>
+  <rect x="778" y="407" width="72" height="10" rx="5" fill="#ffffff36"/>
+</svg>

@@ -1,0 +1,91 @@
+spring:
+  application:
+    name: startup-crm
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}
+
+  # Datasource (overridden per profile)
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/crm_db}
+    username: ${DB_USERNAME:crm_user}
+    password: ${DB_PASSWORD:crm_pass}
+    driver-class-name: org.postgresql.Driver
+
+  # JPA
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    open-in-view: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+
+  # Flyway
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+
+  # Redis
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+
+  # Mail
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+  # WebSocket / STOMP
+  websocket:
+    allowed-origins: ${CORS_ORIGINS:http://localhost:3000}
+
+# App config
+app:
+  jwt:
+    secret: ${JWT_SECRET:your-256-bit-secret-key-here-change-in-production}
+    access-token-expiry: 900000      # 15 minutes in ms
+    refresh-token-expiry: 604800000  # 7 days in ms
+  cors:
+    allowed-origins: ${CORS_ORIGINS:http://localhost:3000}
+  encryption:
+    key: ${ENCRYPTION_KEY:your-aes-256-key-here-change-in-production}
+
+# Actuator
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when-authorized
+
+# SpringDoc (disabled by default, enabled in dev profile)
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+
+# Server
+server:
+  port: ${PORT:8080}
+
+# Logging
+logging:
+  level:
+    root: INFO
+    com.crm: DEBUG

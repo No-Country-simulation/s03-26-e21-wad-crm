@@ -1,0 +1,16 @@
+---
+import { sections } from "@data/data.json";
+import FAQItem from "./FAQItem.astro";
+
+const { faqs: faqsSection } = sections;
+const { title, items } = faqsSection;
+---
+
+<section id="faqs" class="flex flex-col justify-between gap-8 px-4 w-[min(1160px,100%)] md:flex-row">
+  <header class="flex-1 flex flex-col items-center md:items-start">
+    <h2 class="text-6xl text-center max-w-[15ch] md:text-start">{title}</h2>
+  </header>
+  <div class="flex-[1.5]">
+    {items.map((faq) => <FAQItem name="faqs" faq={faq} />)}
+  </div>
+</section>

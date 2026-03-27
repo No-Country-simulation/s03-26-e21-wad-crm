@@ -1,0 +1,48 @@
+---
+import BrevoIcon from "@components/icons/Brevo.astro";
+import GmailIcon from "@components/icons/Gmail.astro";
+import PDFIcon from "@components/icons/PDF.astro";
+import StarsIcon from "@components/icons/Stars.astro";
+import WhatsappIcon from "@components/icons/Whatsapp.astro";
+import Badge from "@components/ui/Badge.astro";
+import Link from "@components/ui/Link.astro";
+import { sections } from "@data/data.json";
+import IntegrationCard from "./IntegrationCard.astro";
+
+const integrations = [
+  [null, null, null, null, null, null, null, GmailIcon, null, null, null, null, null, null, null],
+  [null, null, null, null, null, null, null, WhatsappIcon, BrevoIcon, null, null, null, null, null, null, null],
+  [null, null, null, null, null, null, null, PDFIcon, null, null, null, null, null, null, null],
+];
+
+const { integrations: integrationsSection } = sections;
+const { badge, title, description } = integrationsSection;
+---
+
+<section
+  id="integrations"
+  class="relative flex flex-col-reverse items-center gap-16 w-full px-4 after:absolute after:inset-0 after:bg-linear-to-b after:from-transparent after:to-neutral-950 after:-z-10"
+>
+  <header class="flex flex-col items-center gap-4 w-[min(1160px,100%)]">
+    <Badge>
+      <StarsIcon width={16} class="text-neutral-50" />
+      {badge}
+    </Badge>
+    <div class="flex flex-col items-center gap-2 text-center">
+      <h2 class="text-5xl max-w-[30ch]">{title}</h2>
+      <p class="max-w-[70ch]">{description}</p>
+    </div>
+    <Link href="https://google.com" target="_blank" class="mt-4">Explorar más</Link>
+  </header>
+  <div class="flex flex-col items-center w-[min(1160px,100%)] py-5">
+    {
+      integrations.map((integration) => (
+        <div class="flex gap-16">
+          {integration.map((item) => (
+            <IntegrationCard integration={item} />
+          ))}
+        </div>
+      ))
+    }
+  </div>
+</section>

@@ -1,0 +1,82 @@
+---
+import CloseIcon from "@components/icons/Close.astro";
+import MenuIcon from "@components/icons/Menu.astro";
+import Link from "@components/ui/Link.astro";
+import Logo from "@components/ui/Logo.astro";
+import { basics } from "@data/data.json";
+
+const { name } = basics;
+
+const navItems = [
+  { label: "Integraciones", href: "/#integrations" },
+  { label: "Funciones", href: "/#features" },
+  { label: "Planes", href: "/#plans" },
+];
+---
+
+<header class="sticky top-0 left-0 flex justify-center w-full z-40">
+  <nav class="flex items-center justify-between w-[min(var(--max-width),100%)] px-4 py-4 lg:gap-18">
+    <a href="/#" class="transition-opacity hover:opacity-80">
+      <Logo width={131.25} height={32} />
+    </a>
+    <ul class="items-center p-2 pl-6 bg-glass rounded-full font-medium lg:gap-16 hidden lg:flex">
+      {
+        navItems.map(({ href, label }) => (
+          <li class="text-base">
+            <a href={href} class="transition-opacity hover:opacity-80">
+              {label}
+            </a>
+          </li>
+        ))
+      }
+      <li>
+        <Link href="https://google.com" target="_blank">Login</Link>
+      </li>
+    </ul>
+    <button
+      class="cursor-pointer rounded-full p-2.75 bg-neutral-50 lg:opacity-0 lg:pointer-events-none transition-opacity hover:opacity-80"
+      popovertarget="nav-open"
+      aria-label="Abrir menú de navegación"
+      title="Abrir menú de navegación"
+    >
+      <MenuIcon width={24} height={24} class="text-neutral-950" />
+    </button>
+  </nav>
+
+  <div
+    id="nav-open"
+    class="w-full -translate-y-full open:translate-y-0 transition-[translate,display,overlay,opacity] transition-discrete duration-500 ease-in-out starting:open:-translate-y-full"
+    popover
+  >
+    <nav class="flex flex-col gap-8 bg-neutral-950 text-neutral-50 p-6">
+      <div class="flex items-center justify-between gap-4">
+        <a href="/#" class="transition-opacity hover:opacity-80">
+          <Logo width={131.25} height={32} />
+        </a>
+        <button
+          class="cursor-pointer rounded-full p-2.75 bg-neutral-50 transition-opacity hover:opacity-80"
+          popovertarget="nav-open"
+          popovertargetaction="hide"
+          aria-label="Cerrar menú de navegación"
+          title="Cerrar menú de navegación"
+        >
+          <CloseIcon width={24} height={24} class="text-neutral-950" />
+        </button>
+      </div>
+      <ul class="flex flex-col items-start gap-4 font-medium">
+        {
+          navItems.map(({ href, label }) => (
+            <li class="text-base">
+              <a href={href} class="transition-opacity hover:opacity-80">
+                {label}
+              </a>
+            </li>
+          ))
+        }
+        <li class="mt-4">
+          <Link href="https://google.com" target="_blank">Login</Link>
+        </li>
+      </ul>
+    </nav>
+  </div>
+</header>
