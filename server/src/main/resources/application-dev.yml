@@ -1,18 +1,25 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/crm_dev
+    url: jdbc:postgresql://localhost:5432/crm_db
     username: crm_user
     password: crm_pass
-    driver-class-name: org.postgresql.Driver
   jpa:
     show-sql: true
   data:
     redis:
       host: localhost
       port: 6379
-      password: ""
 
-# Swagger habilitado solo en dev
+app:
+  cors:
+    allowed-origins: http://localhost:3000,http://localhost:3001
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,env,beans
+
 springdoc:
   api-docs:
     enabled: true

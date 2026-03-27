@@ -17,11 +17,13 @@
 
 	<properties>
 		<java.version>17</java.version>
+		<lombok.version>1.18.34</lombok.version>
 		<mapstruct.version>1.6.3</mapstruct.version>
 		<jjwt.version>0.12.6</jjwt.version>
 		<springdoc.version>2.6.0</springdoc.version>
 		<opencsv.version>5.9</opencsv.version>
 		<itext.version>8.0.5</itext.version>
+		<jasypt.version>3.0.5</jasypt.version>
 	</properties>
 
 	<dependencies>
@@ -139,6 +141,27 @@
 			<type>pom</type>
 		</dependency>
 
+		<!-- ===== MAPSTRUCT PROCESSOR ===== -->
+		<dependency>
+			<groupId>org.mapstruct</groupId>
+			<artifactId>mapstruct-processor</artifactId>
+			<version>${mapstruct.version}</version>
+			<scope>provided</scope>
+		</dependency>
+
+		<!-- ===== JASYPT ===== -->
+		<dependency>
+			<groupId>com.github.ulisesbocchio</groupId>
+			<artifactId>jasypt-spring-boot-starter</artifactId>
+			<version>${jasypt.version}</version>
+		</dependency>
+
+		<!-- ===== EMAIL TEMPLATES ===== -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-thymeleaf</artifactId>
+		</dependency>
+
 		<!-- ===== UTILITIES ===== -->
 		<dependency>
 			<groupId>org.apache.commons</groupId>
@@ -160,28 +183,21 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
 			<groupId>org.springframework.security</groupId>
 			<artifactId>spring-security-test</artifactId>
 			<scope>test</scope>
 		</dependency>
 
-		<!-- ===== TESTCONTAINERS ===== -->
+		<!-- ===== PROPERTY-BASED TESTING ===== -->
 		<dependency>
-			<groupId>org.testcontainers</groupId>
-			<artifactId>testcontainers</artifactId>
-			<version>1.20.4</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.testcontainers</groupId>
-			<artifactId>postgresql</artifactId>
-			<version>1.20.4</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.testcontainers</groupId>
-			<artifactId>junit-jupiter</artifactId>
-			<version>1.20.4</version>
+			<groupId>net.jqwik</groupId>
+			<artifactId>jqwik</artifactId>
+			<version>1.9.1</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
@@ -198,6 +214,7 @@
 						<path>
 							<groupId>org.projectlombok</groupId>
 							<artifactId>lombok</artifactId>
+							<version>${lombok.version}</version>
 						</path>
 						<path>
 							<groupId>org.mapstruct</groupId>

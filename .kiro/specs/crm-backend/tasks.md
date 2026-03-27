@@ -7,7 +7,7 @@ Cada tarea construye sobre la anterior; al final todos los módulos quedan integ
 
 ## Tareas
 
-- [ ] 1. Configuración del proyecto base
+- [x] 1. Configuración del proyecto base
   - Actualizar `pom.xml`: agregar dependencias faltantes (jjwt 0.12, mapstruct, springdoc-openapi 2.x, jasypt, jte o thymeleaf para templates de email)
   - Renombrar package de `com.crm.startup_crm` a `com.crm` en `StartupCrmApplication.java` y ajustar estructura de carpetas
   - Configurar `application.properties` con perfiles `dev` y `prod`: datasource, redis, jwt secret/expiry, cors origins, actuator endpoints
@@ -16,60 +16,60 @@ Cada tarea construye sobre la anterior; al final todos los módulos quedan integ
   - _Requisitos: NFR-10, NFR-13, NFR-14_
 
 
-- [ ] 2. Infraestructura común
+- [x] 2. Infraestructura común
   - [x] 2.1 Crear `AuditableEntity` base con campos `createdAt`, `updatedAt`, `createdBy`, `workspaceId` usando `@MappedSuperclass` y `@EntityListeners(AuditingEntityListener.class)`
     - Habilitar JPA Auditing con `@EnableJpaAuditing` en clase de configuración
     - _Requisitos: 8.4, 9.1, 10.4_
-  - [ ] 2.2 Implementar `WorkspaceContext` (ThreadLocal) y `WorkspaceFilter` (OncePerRequestFilter)
+  - [x] 2.2 Implementar `WorkspaceContext` (ThreadLocal) y `WorkspaceFilter` (OncePerRequestFilter)
     - El filtro extrae `workspaceId` y `role` del JWT y los inyecta en el contexto antes de llegar al controlador
     - _Requisitos: 7.1, 8.1, 8.2_
-  - [ ] 2.3 Implementar `GlobalExceptionHandler` con `@RestControllerAdvice`
+  - [x] 2.3 Implementar `GlobalExceptionHandler` con `@RestControllerAdvice`
     - Manejar: `MethodArgumentNotValidException` → 400, `EntityNotFoundException` → 404, `DuplicateKeyException` → 409, `AccessDeniedException` → 403, `AuthenticationException` → 401, `Exception` genérica → 500
     - Formato de respuesta: `{ "error": string, "message": string, "timestamp": ISO8601 }`
     - _Requisitos: NFR-9_
-  - [ ] 2.4 Configurar `SecurityConfig`: deshabilitar CSRF, stateless session, rutas públicas (`/api/auth/**`, `/webhooks/**`, `/actuator/health`, `/swagger-ui/**`, `/v3/api-docs/**`), agregar `JwtAuthFilter`
+  - [x] 2.4 Configurar `SecurityConfig`: deshabilitar CSRF, stateless session, rutas públicas (`/api/auth/**`, `/webhooks/**`, `/actuator/health`, `/swagger-ui/**`, `/v3/api-docs/**`), agregar `JwtAuthFilter`
     - _Requisitos: 7.3, NFR-7_
-  - [ ] 2.5 Implementar `EncryptionService` con AES-256 para cifrar/descifrar credenciales de integraciones externas
+  - [x] 2.5 Implementar `EncryptionService` con AES-256 para cifrar/descifrar credenciales de integraciones externas
     - _Requisitos: NFR-6_
-  - [ ] 2.6 Configurar `WebSocketConfig` con STOMP broker relay sobre `/ws`, destination prefix `/app`, broker prefix `/topic` y `/queue`
+  - [x] 2.6 Configurar `WebSocketConfig` con STOMP broker relay sobre `/ws`, destination prefix `/app`, broker prefix `/topic` y `/queue`
     - _Requisitos: 30.1_
 
 
-- [ ] 3. Módulo Auth
-  - [ ] 3.1 Crear entidades `User` y `Workspace` con sus repositorios JPA
+- [x] 3. Módulo Auth
+  - [x] 3.1 Crear entidades `User` y `Workspace` con sus repositorios JPA
     - `User`: id (UUID), email, passwordHash, name, phone, timezone, role (enum ADMIN/MANAGER/SALES), isActive, workspaceId, createdAt, updatedAt
     - `Workspace`: id (UUID), name, timezone, plan, createdAt
     - `RefreshToken`: id, tokenHash, userId, expiresAt, revokedAt
     - _Requisitos: 1.1, 1.6_
-  - [ ] 3.2 Implementar `JwtService`: generar Access_Token (15 min) y Refresh_Token (7 días), validar tokens, extraer claims
+  - [x] 3.2 Implementar `JwtService`: generar Access_Token (15 min) y Refresh_Token (7 días), validar tokens, extraer claims
     - Claims del Access_Token: `sub` (userId), `workspaceId`, `role`, `iat`, `exp`
     - _Requisitos: 2.3, 2.5, 4.4_
-  - [ ] 3.3 Implementar `AuthService` con métodos: `register`, `login`, `googleOAuth`, `refresh`, `logout`
+  - [x] 3.3 Implementar `AuthService` con métodos: `register`, `login`, `googleOAuth`, `refresh`, `logout`
     - `register`: validar email único, hashear password con bcrypt cost 10, crear User + Workspace en transacción, emitir tokens
     - `login`: verificar credenciales, emitir tokens, guardar hash del refresh token
     - `refresh`: validar refresh token, rotar (invalidar anterior, emitir nuevo par)
     - `logout`: revocar refresh token del usuario
     - _Requisitos: 1.1–1.6, 2.1–2.5, 4.1–4.4, 5.1–5.3_
-  - [ ] 3.4 Implementar `GoogleOAuthService`: verificar id_token con Google tokeninfo endpoint, obtener email, delegar a `AuthService`
+  - [x] 3.4 Implementar `GoogleOAuthService`: verificar id_token con Google tokeninfo endpoint, obtener email, delegar a `AuthService`
     - _Requisitos: 3.1–3.4_
-  - [ ] 3.5 Crear `AuthController` con endpoints: `POST /api/auth/register`, `POST /api/auth/login`, `POST /api/auth/google`, `POST /api/auth/refresh`, `POST /api/auth/logout`
+  - [x] 3.5 Crear `AuthController` con endpoints: `POST /api/auth/register`, `POST /api/auth/login`, `POST /api/auth/google`, `POST /api/auth/refresh`, `POST /api/auth/logout`
     - _Requisitos: 1.1, 2.1, 3.1, 4.1, 5.1_
-  - [ ]* 3.6 Escribir test de propiedad: round-trip de claims JWT
+  - [x] 3.6 Escribir test de propiedad: round-trip de claims JWT
     - **Propiedad 1: Round-trip de claims** — `decode(generate(user)).workspaceId == user.workspaceId`
     - **Valida: Requisito 2.3**
-  - [ ]* 3.7 Escribir test de propiedad: invariante de expiración de tokens
+  - [x] 3.7 Escribir test de propiedad: invariante de expiración de tokens
     - **Propiedad 2: `accessToken.exp < refreshToken.exp` siempre verdadero**
     - **Valida: Requisito 2.5**
-  - [ ]* 3.8 Escribir tests unitarios para `AuthService` y `JwtService`
+  - [x] 3.8 Escribir tests unitarios para `AuthService` y `JwtService`
     - Casos: registro exitoso, email duplicado, password corta, login inválido, refresh con token revocado, logout idempotente
     - _Requisitos: 1.2, 1.3, 2.2, 4.2, 5.2_
 
-- [ ] 4. Checkpoint — Verificar que el contexto de seguridad funciona end-to-end
+- [x] 4. Checkpoint — Verificar que el contexto de seguridad funciona end-to-end
   - Asegurar que todos los tests pasan. Consultar al usuario si hay dudas antes de continuar.
 
 
 - [ ] 5. Módulo User + Workspace
-  - [ ] 5.1 Implementar `UserService` con métodos: `listByWorkspace`, `inviteUser`, `updateRole`, `deactivate`, `updateProfile`, `changePassword`
+  - [-] 5.1 Implementar `UserService` con métodos: `listByWorkspace`, `inviteUser`, `updateRole`, `deactivate`, `updateProfile`, `changePassword`
     - `deactivate`: soft delete (isActive = false), garantizar que quede al menos un ADMIN activo
     - `updateRole`: validar que no se elimine el último ADMIN del workspace
     - _Requisitos: 6.1–6.6, 32.1–32.4, 34.1–34.3_
