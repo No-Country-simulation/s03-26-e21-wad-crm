@@ -69,47 +69,47 @@ Cada tarea construye sobre la anterior; al final todos los módulos quedan integ
 
 
 - [ ] 5. Módulo User + Workspace
-  - [-] 5.1 Implementar `UserService` con métodos: `listByWorkspace`, `inviteUser`, `updateRole`, `deactivate`, `updateProfile`, `changePassword`
+  - [x] 5.1 Implementar `UserService` con métodos: `listByWorkspace`, `inviteUser`, `updateRole`, `deactivate`, `updateProfile`, `changePassword`
     - `deactivate`: soft delete (isActive = false), garantizar que quede al menos un ADMIN activo
     - `updateRole`: validar que no se elimine el último ADMIN del workspace
     - _Requisitos: 6.1–6.6, 32.1–32.4, 34.1–34.3_
-  - [ ] 5.2 Crear `UserController` con endpoints:
+  - [x] 5.2 Crear `UserController` con endpoints:
     - `GET /api/users` (ADMIN), `POST /api/users/invite` (ADMIN), `PATCH /api/users/{id}` (ADMIN), `DELETE /api/users/{id}` (ADMIN)
     - `PATCH /api/users/me`, `PATCH /api/users/me/password`
     - _Requisitos: 6.1–6.5, 32.1–32.4_
-  - [ ] 5.3 Crear `WorkspaceController` con endpoints: `GET /api/settings/workspace`, `PATCH /api/settings/workspace` (ADMIN)
+  - [x] 5.3 Crear `WorkspaceController` con endpoints: `GET /api/settings/workspace`, `PATCH /api/settings/workspace` (ADMIN)
     - _Requisitos: 33.1–33.3_
-  - [ ]* 5.4 Escribir test de propiedad: aislamiento de workspace
+  - [x] 5.4 Escribir test de propiedad: aislamiento de workspace
     - **Propiedad 4: ningún recurso de u1 tiene workspaceId == u2.workspaceId cuando u1.workspaceId != u2.workspaceId**
     - **Valida: Requisito 8.2, 8.5**
-  - [ ]* 5.5 Escribir tests unitarios para `UserService`
+  - [x] 5.5 Escribir tests unitarios para `UserService`
     - Casos: invitar usuario, cambiar rol, intentar eliminar último ADMIN, cambiar password con contraseña incorrecta
     - _Requisitos: 6.6, 34.2, 32.3_
 
 
 - [ ] 6. Módulo Contact + Company + Tags
-  - [ ] 6.1 Crear entidades `Contact`, `Company`, `Tag`, `ContactTag` con sus repositorios
+  - [x] 6.1 Crear entidades `Contact`, `Company`, `Tag`, `ContactTag` con sus repositorios
     - `Contact`: id (UUID), name, email, phone, jobTitle, status (enum NEW/CONTACTED/QUALIFIED/LOST/CONVERTED), assignedTo, companyId, workspaceId, isDeleted, createdAt, updatedAt
     - `Company`: id, name, domain, workspaceId, createdAt, updatedAt
     - `Tag`: id, name, color, workspaceId
     - `ContactTag`: contactId, tagId (tabla de unión)
     - _Requisitos: 9.1, 9.4, 8.4_
-  - [ ] 6.2 Implementar `ContactService` con métodos: `create`, `update`, `findById`, `search`, `listWithFilters`, `addNote`, `listNotes`
+  - [x] 6.2 Implementar `ContactService` con métodos: `create`, `update`, `findById`, `search`, `listWithFilters`, `addNote`, `listNotes`
     - `search`: búsqueda case-insensitive por name, email, phone, company con paginación
     - `listWithFilters`: filtros combinados (AND) por status, tagIds, assignedTo; ordenamiento por createdAt/name/updatedAt
     - _Requisitos: 9.1–9.5, 10.1–10.4, 11.1–11.4, 12.1–12.4, 13.1–13.4_
-  - [ ] 6.3 Crear `ContactController` con endpoints:
+  - [x] 6.3 Crear `ContactController` con endpoints:
     - `POST /api/contacts`, `GET /api/contacts`, `GET /api/contacts/{id}`, `PATCH /api/contacts/{id}`
     - `GET /api/contacts/{id}/notes`, `POST /api/contacts/{id}/notes`
     - _Requisitos: 9.1, 10.1, 11.1, 12.1, 13.1, 13.2_
-  - [ ] 6.4 Crear `CompanyController`: `POST /api/companies`, `GET /api/companies`, `GET /api/companies/{id}`, `PATCH /api/companies/{id}`
+  - [x] 6.4 Crear `CompanyController`: `POST /api/companies`, `GET /api/companies`, `GET /api/companies/{id}`, `PATCH /api/companies/{id}`
     - _Requisitos: 9.4_
-  - [ ] 6.5 Crear `TagController`: `GET /api/tags`, `POST /api/tags`, `DELETE /api/tags/{id}`
+  - [x] 6.5 Crear `TagController`: `GET /api/tags`, `POST /api/tags`, `DELETE /api/tags/{id}`
     - _Requisitos: 12.2_
-  - [ ]* 6.6 Escribir test de propiedad: unicidad de email por workspace
+  - [x] 6.6 Escribir test de propiedad: unicidad de email por workspace
     - **Propiedad 5: ∀ c1, c2 ∈ contacts(W): c1.id != c2.id → c1.email != c2.email**
     - **Valida: Requisito 9.2**
-  - [ ]* 6.7 Escribir test de propiedad: invariante de soft delete
+  - [-] 6.7 Escribir test de propiedad: invariante de soft delete
     - **Propiedad 6: contacto con isDeleted=true nunca aparece en listados activos**
     - **Valida: Requisito 11.1**
   - [ ]* 6.8 Escribir test de propiedad: metamórfica de filtros combinados
