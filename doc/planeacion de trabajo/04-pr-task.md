@@ -1,4 +1,4 @@
-# task/contacts/list: Lista de contactos con filtros
+/# task/contacts/list: Lista de contactos con filtros
 
 ## 📸 Screenshot
 ![Contacts List](https://i.imgur.com/ejemplo.png)

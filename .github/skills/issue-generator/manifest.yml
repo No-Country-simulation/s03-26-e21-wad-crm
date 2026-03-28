@@ -1,0 +1,7 @@
+name: GitHub Issue Generator
+description: Crea Epics, Modules, Tasks y PRs estructurados para proyectos
+repository: https://github.com/No-Country-simulation/s03-26-e21-wad-crm
+versions:
+  - version: 1.0.0
+    date: 2026-03-21
+    description: Initial release
