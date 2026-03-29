@@ -109,73 +109,73 @@ Cada tarea construye sobre la anterior; al final todos los módulos quedan integ
   - [x] 6.6 Escribir test de propiedad: unicidad de email por workspace
     - **Propiedad 5: ∀ c1, c2 ∈ contacts(W): c1.id != c2.id → c1.email != c2.email**
     - **Valida: Requisito 9.2**
-  - [-] 6.7 Escribir test de propiedad: invariante de soft delete
+  - [x] 6.7 Escribir test de propiedad: invariante de soft delete
     - **Propiedad 6: contacto con isDeleted=true nunca aparece en listados activos**
     - **Valida: Requisito 11.1**
-  - [ ]* 6.8 Escribir test de propiedad: metamórfica de filtros combinados
+  - [x] 6.8 Escribir test de propiedad: metamórfica de filtros combinados
     - **Propiedad 7: filter(A AND B) ⊆ filter(A) y filter(A AND B) ⊆ filter(B)**
     - **Valida: Requisito 12.3**
-  - [ ]* 6.9 Escribir tests unitarios para `ContactService`
+  - [x] 6.9 Escribir tests unitarios para `ContactService`
     - Casos: crear contacto con email duplicado en mismo workspace, buscar sin resultados, filtros combinados, paginación
     - _Requisitos: 9.2, 11.2, 11.3, 12.3_
 
-- [ ] 7. Checkpoint — Verificar módulos Auth + User + Contact
+- [x] 7. Checkpoint — Verificar módulos Auth + User + Contact
   - Asegurar que todos los tests pasan. Consultar al usuario si hay dudas antes de continuar.
 
 
-- [ ] 8. Módulo Deal + Pipeline
-  - [ ] 8.1 Crear entidades `Pipeline`, `Stage`, `Deal`, `DealStageHistory` con sus repositorios
+- [x] 8. Módulo Deal + Pipeline
+  - [x] 8.1 Crear entidades `Pipeline`, `Stage`, `Deal`, `DealStageHistory` con sus repositorios
     - `Pipeline`: id, name, workspaceId, isDefault
     - `Stage`: id, name, order, isWon, isLost, pipelineId, workspaceId
     - `Deal`: id, name, value (BigDecimal), contactId, stageId, assignedTo, workspaceId, isDeleted, createdAt, updatedAt
     - `DealStageHistory`: id, dealId, fromStageId, toStageId, changedBy, changedAt
     - _Requisitos: 14.4, 15.4, 17.4_
-  - [ ] 8.2 Implementar `DealService` con métodos: `create`, `update`, `moveStage`, `list`, `getPipelineSummary`
+  - [x] 8.2 Implementar `DealService` con métodos: `create`, `update`, `moveStage`, `list`, `getPipelineSummary`
     - `moveStage`: validar que stageId pertenece al mismo workspace, registrar historial
     - `getPipelineSummary`: agrupar por etapa con count y suma de valores; calcular totales won/lost
     - _Requisitos: 14.1–14.5, 15.1–15.4, 16.1–16.4, 17.1–17.4, 18.1–18.4_
-  - [ ] 8.3 Crear `DealController` con endpoints:
+  - [x] 8.3 Crear `DealController` con endpoints:
     - `POST /api/deals`, `GET /api/deals`, `PATCH /api/deals/{id}`, `PATCH /api/deals/{id}/stage`
     - `GET /api/deals/pipeline/summary` (ADMIN/MANAGER)
     - _Requisitos: 14.1, 15.1, 16.1, 17.1, 18.1_
-  - [ ]* 8.4 Escribir test de propiedad: invariante de valor del pipeline
+  - [x] 8.4 Escribir test de propiedad: invariante de valor del pipeline
     - **Propiedad 8: summary.total == Σ deal.value ∀ deal: !deal.isDeleted**
     - **Valida: Requisito 18.1, 18.4**
-  - [ ]* 8.5 Escribir test de propiedad: consistencia de etapas
+  - [x] 8.5 Escribir test de propiedad: consistencia de etapas
     - **Propiedad 9: deal.stageId siempre referencia una etapa del mismo workspace**
     - **Valida: Requisito 15.2**
-  - [ ]* 8.6 Escribir test de propiedad: metamórfica de mover etapas
+  - [x] 8.6 Escribir test de propiedad: metamórfica de mover etapas
     - **Propiedad 10: mover A→B→C produce el mismo estado final que mover A→C**
     - **Valida: Requisito 15.1**
-  - [ ]* 8.7 Escribir tests unitarios para `DealService`
+  - [x] 8.7 Escribir tests unitarios para `DealService`
     - Casos: crear deal sin etapa (asigna primera), mover a etapa de otro workspace, valor negativo, deal eliminado excluido de summary
     - _Requisitos: 14.2, 14.4, 15.2, 16.2, 17.4_
 
 
-- [ ] 9. Módulo WhatsApp (Meta Cloud API)
-  - [ ] 9.1 Crear entidad `WhatsAppConfig` con campos: phoneNumberId, accessToken (encriptado), webhookVerifyToken (encriptado), workspaceId, connectedAt
+- [x] 9. Módulo WhatsApp (Meta Cloud API)
+  - [x] 9.1 Crear entidad `WhatsAppConfig` con campos: phoneNumberId, accessToken (encriptado), webhookVerifyToken (encriptado), workspaceId, connectedAt
     - _Requisitos: 19.1, NFR-6_
-  - [ ] 9.2 Implementar `WhatsAppProvider` (interfaz + implementación `MetaCloudApiProvider`)
+  - [x] 9.2 Implementar `WhatsAppProvider` (interfaz + implementación `MetaCloudApiProvider`)
     - `sendMessage(phoneNumber, body)`: llamada a `https://graph.facebook.com/v19.0/{phoneNumberId}/messages`
     - `verifyWebhookSignature(payload, signature)`: validar HMAC-SHA256 con `X-Hub-Signature-256`
     - `verifyConnection(config)`: llamada de prueba a Meta API para validar credenciales
     - _Requisitos: 19.2, 19.3, 20.1, 20.5, 21.1_
-  - [ ] 9.3 Implementar `WhatsAppWebhookService`: procesar payload entrante de Meta
+  - [x] 9.3 Implementar `WhatsAppWebhookService`: procesar payload entrante de Meta
     - Identificar contacto por teléfono en el workspace; si no existe, crear contacto nuevo con estado NEW
     - Delegar persistencia del mensaje a `ConversationService`
     - Idempotencia: verificar `externalId` antes de insertar (ignorar duplicados)
     - _Requisitos: 20.2, 20.3, 20.4, 20.6_
-  - [ ] 9.4 Crear `WhatsAppWebhookController` con endpoints:
+  - [x] 9.4 Crear `WhatsAppWebhookController` con endpoints:
     - `GET /webhooks/whatsapp`: verificación de Meta (hub.challenge)
     - `POST /webhooks/whatsapp`: recepción de mensajes (validar firma, retornar 200 inmediato)
     - _Requisitos: 20.1, 20.5, 20.6_
-  - [ ] 9.5 Crear `WhatsAppController` con endpoint `POST /api/whatsapp/send`
+  - [x] 9.5 Crear `WhatsAppController` con endpoint `POST /api/whatsapp/send`
     - Enviar mensaje vía `WhatsAppProvider`, registrar con estado SENDING → SENT/FAILED
     - _Requisitos: 21.1–21.5_
-  - [ ]* 9.6 Escribir test de propiedad: idempotencia de webhook
+  - [x] 9.6 Escribir test de propiedad: idempotencia de webhook
     - **Propiedad 13: procesar el mismo payload dos veces (mismo externalId) crea exactamente un mensaje**
     - **Valida: Requisito 20.4**
-  - [ ]* 9.7 Escribir tests unitarios para `WhatsAppWebhookService` y `MetaCloudApiProvider`
+  - [x] 9.7 Escribir tests unitarios para `WhatsAppWebhookService` y `MetaCloudApiProvider`
     - Casos: firma inválida → 403, contacto nuevo creado automáticamente, mensaje duplicado ignorado, fallo de Meta API → estado FAILED
     - _Requisitos: 20.1, 20.3, 20.5, 21.3_
 
