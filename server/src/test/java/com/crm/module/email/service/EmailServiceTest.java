@@ -194,12 +194,12 @@ class EmailServiceTest {
     @Test
     void resolveTemplate_replacesCompanyName() {
         Company company = new Company();
+        company.setId(UUID.randomUUID());
         company.setName("Acme Corp");
-        UUID companyId = UUID.randomUUID();
-        contact.setCompanyId(companyId);
+        contact.setCompany(company);
 
         when(contactRepository.findById(contactId)).thenReturn(Optional.of(contact));
-        when(companyRepository.findByWorkspaceIdAndId(workspaceId, companyId))
+        when(companyRepository.findByWorkspaceIdAndId(workspaceId, company.getId()))
                 .thenReturn(Optional.of(company));
 
         String result = emailService.resolveTemplate("Empresa: {{company_name}}", contactId);
@@ -209,7 +209,7 @@ class EmailServiceTest {
 
     @Test
     void resolveTemplate_withNoCompany_replacesWithEmptyString() {
-        contact.setCompanyId(null);
+        contact.setCompany(null);
         when(contactRepository.findById(contactId)).thenReturn(Optional.of(contact));
 
         String result = emailService.resolveTemplate("Empresa: {{company_name}}", contactId);

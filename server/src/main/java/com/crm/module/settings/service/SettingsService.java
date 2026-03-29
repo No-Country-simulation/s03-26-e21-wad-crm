@@ -80,8 +80,9 @@ public class SettingsService {
         config.setActive(true);
 
         // Requisito 19.2: verify connection with Meta Cloud API before saving
-        boolean connectionOk = whatsAppProvider.verifyConnection();
-        if (!connectionOk) {
+        try {
+            whatsAppProvider.verifyConnection(config);
+        } catch (Exception e) {
             throw new WhatsAppVerificationException(
                     "No se pudo verificar la conexión con Meta Cloud API. " +
                     "Verifique que el phoneNumberId y accessToken sean correctos.");

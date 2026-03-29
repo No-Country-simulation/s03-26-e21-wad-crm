@@ -1,5 +1,6 @@
 package com.crm.module.whatsapp.service;
 
+import com.crm.common.security.EncryptionService;
 import com.crm.module.contact.entity.Contact;
 import com.crm.module.contact.entity.ContactStatus;
 import com.crm.module.contact.repository.ContactRepository;
@@ -10,6 +11,7 @@ import com.crm.module.conversation.entity.MessageDirection;
 import com.crm.module.conversation.repository.MessageRepository;
 import com.crm.module.conversation.service.ConversationService;
 import com.crm.module.whatsapp.entity.WhatsAppConfig;
+import com.crm.module.whatsapp.provider.MetaCloudApiProvider;
 import com.crm.module.whatsapp.repository.WhatsAppConfigRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -18,23 +20,20 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
-import java.security.MessageDigest;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.util.HexFormat;
 import java.util.Optional;
 import java.util.UUID;
 
 /**
  * Procesa los payloads entrantes del webhook de Meta Cloud API.
- * - Identifica contacto por teléfono en el workspace
- * - Crea contacto nuevo si no existe (estado NEW)
- * - Delega persistencia del mensaje a ConversationService
- * - Garantiza idempotencia por externalId
- * Requisitos: 20.1–20.5
+ * - Identifica contacto por teléfono en el workspace (Req 20.2)
+ * - Crea contacto nuevo con estado NEW si no existe (Req 20.3)
+ * - Delega persistencia del mensaje a ConversationService (Req 20.4)
+ * - Garantiza idempotencia por externalId (Req 20.4)
+ * - Verifica firma HMAC-SHA256 (Req 20.5)
+ * Requisitos: 20.1–20.6
  */
 @Slf4j
 @Service
@@ -45,11 +44,14 @@ public class WhatsAppWebhookService {
     private final ContactRepository contactRepository;
     private final ConversationService conversationService;
     private final MessageRepository messageRepository;
+    private final MetaCloudApiProvider metaCloudApiProvider;
+    private final EncryptionService encryptionService;
     private final ObjectMapper objectMapper;
 
     /**
      * Req 20.5: verifica la firma HMAC-SHA256 del payload.
      * Extrae el phone_number_id del payload para resolver el workspace y obtener el app_secret.
+     * El appSecret se descifra antes de usarlo para la verificación HMAC.
      */
     public boolean verifySignature(String payload, String signature) {
         try {
@@ -64,11 +66,10 @@ public class WhatsAppWebhookService {
                     .findByPhoneNumberIdAndActiveTrue(phoneNumberId);
             if (configOpt.isEmpty() || configOpt.get().getAppSecret() == null) return false;
 
-            String appSecret = configOpt.get().getAppSecret();
-            Mac mac = Mac.getInstance("HmacSHA256");
-            mac.init(new SecretKeySpec(appSecret.getBytes(), "HmacSHA256"));
-            String expected = "sha256=" + HexFormat.of().formatHex(mac.doFinal(payload.getBytes()));
-            return MessageDigest.isEqual(expected.getBytes(), signature.getBytes());
+            // Decrypt appSecret before HMAC verification (NFR-6)
+            String appSecret = encryptionService.decrypt(configOpt.get().getAppSecret());
+            return metaCloudApiProvider.verifyWebhookSignature(payload, signature, appSecret);
+
         } catch (Exception e) {
             log.error("Error verifying webhook signature", e);
             return false;
@@ -80,6 +81,7 @@ public class WhatsAppWebhookService {
      * Req 20.2: identifica contacto por teléfono dentro del workspace.
      * Req 20.3: crea contacto nuevo con status NEW si no existe.
      * Req 20.4: registra mensaje con externalId, dirección INBOUND, canal WHATSAPP.
+     * Idempotencia: verifica externalId antes de insertar (ignora duplicados).
      */
     @Transactional
     public void processPayload(String payloadJson) {
@@ -121,21 +123,23 @@ public class WhatsAppWebhookService {
                         if (externalId == null || fromPhone == null) continue;
 
                         // Req 20.4: idempotencia — skip if already processed
-                        if (messageRepository.findByExternalIdAndChannel(externalId, MessageChannel.WHATSAPP).isPresent()) {
+                        if (messageRepository.findByExternalIdAndChannel(
+                                externalId, MessageChannel.WHATSAPP).isPresent()) {
                             log.info("Duplicate webhook message ignored: externalId={}", externalId);
                             continue;
                         }
 
                         // Req 20.2: find contact by phone within workspace
+                        // Req 20.3: create new contact with status NEW if not found
                         Contact contact = contactRepository
-                                .findByWorkspaceIdAndPhoneAndDeletedFalse(workspaceId, fromPhone)
+                                .findByWorkspaceIdAndPhoneAndIsDeletedFalse(workspaceId, fromPhone)
                                 .orElseGet(() -> createContact(workspaceId, fromPhone));
 
-                        // findOrCreate conversation
+                        // findOrCreate conversation (Req 21.4)
                         Conversation conversation = conversationService.findOrCreate(
                                 contact.getId(), MessageChannel.WHATSAPP, workspaceId);
 
-                        // Req 20.4: persist message
+                        // Req 20.4: persist message with INBOUND direction
                         LocalDateTime sentAt = tsEpoch > 0
                                 ? LocalDateTime.ofInstant(Instant.ofEpochSecond(tsEpoch), ZoneOffset.UTC)
                                 : LocalDateTime.now();

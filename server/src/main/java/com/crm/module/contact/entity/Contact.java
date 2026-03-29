@@ -56,4 +56,9 @@ public class Contact extends AuditableEntity {
     @Builder.Default
     @Column(name = "is_deleted", nullable = false)
     private boolean isDeleted = false;
+
+    /** Convenience accessor used by services that only need the company FK. */
+    public java.util.UUID getCompanyId() {
+        return company != null ? company.getId() : null;
+    }
 }

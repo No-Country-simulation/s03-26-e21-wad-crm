@@ -73,7 +73,7 @@ class SettingsServiceTest {
     @DisplayName("saveWhatsAppConfig: verificación Meta falla — lanza WhatsAppVerificationException")
     void saveWhatsAppConfig_metaVerificationFails_throwsVerificationException() {
         // Arrange
-        when(whatsAppProvider.verifyConnection()).thenReturn(false);
+        doThrow(new RuntimeException("Meta API error")).when(whatsAppProvider).verifyConnection(any());
         WhatsAppConfigRequest request = new WhatsAppConfigRequest(
                 "123456789", "meta-access-token", "verify-token-secret");
 
@@ -90,7 +90,7 @@ class SettingsServiceTest {
     @DisplayName("saveWhatsAppConfig: verificación Meta falla — no persiste la configuración")
     void saveWhatsAppConfig_metaVerificationFails_doesNotPersistConfig() {
         // Arrange
-        when(whatsAppProvider.verifyConnection()).thenReturn(false);
+        doThrow(new RuntimeException("Meta API error")).when(whatsAppProvider).verifyConnection(any());
         WhatsAppConfigRequest request = new WhatsAppConfigRequest(
                 "123456789", "meta-access-token", "verify-token-secret");
 
@@ -110,7 +110,7 @@ class SettingsServiceTest {
     @DisplayName("saveWhatsAppConfig: verificación Meta exitosa — persiste la configuración")
     void saveWhatsAppConfig_metaVerificationSucceeds_persistsConfig() {
         // Arrange
-        when(whatsAppProvider.verifyConnection()).thenReturn(true);
+        doNothing().when(whatsAppProvider).verifyConnection(any());
         when(whatsAppConfigRepository.findByWorkspaceIdAndActiveTrue(workspaceId))
                 .thenReturn(Optional.empty());
         when(whatsAppConfigRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
@@ -143,7 +143,7 @@ class SettingsServiceTest {
         existing.setWebhookVerifyToken("old-verify");
         existing.setActive(true);
 
-        when(whatsAppProvider.verifyConnection()).thenReturn(true);
+        doNothing().when(whatsAppProvider).verifyConnection(any());
         when(whatsAppConfigRepository.findByWorkspaceIdAndActiveTrue(workspaceId))
                 .thenReturn(Optional.of(existing));
         when(whatsAppConfigRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
