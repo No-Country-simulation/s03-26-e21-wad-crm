@@ -123,6 +123,19 @@ public class UserService {
     }
 
     // -------------------------------------------------------------------------
+    // Req 32.0 – get own profile
+    // -------------------------------------------------------------------------
+
+    /**
+     * Returns the profile of the authenticated user.
+     */
+    public UserDto getProfile(UUID userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User", userId));
+        return UserDto.from(user);
+    }
+
+    // -------------------------------------------------------------------------
     // Req 32.1 – update own profile
     // -------------------------------------------------------------------------
 

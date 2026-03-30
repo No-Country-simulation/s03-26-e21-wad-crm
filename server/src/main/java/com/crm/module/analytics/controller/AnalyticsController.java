@@ -1,5 +1,6 @@
 package com.crm.module.analytics.controller;
 
+import com.crm.common.security.WorkspaceContext;
 import com.crm.module.analytics.dto.DashboardDto;
 import com.crm.module.analytics.service.AnalyticsService;
 import lombok.RequiredArgsConstructor;
@@ -9,10 +10,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.security.Principal;
-import java.util.Map;
-import java.util.UUID;
 
 /**
  * Controlador de métricas y KPIs del dashboard.
@@ -34,30 +31,8 @@ public class AnalyticsController {
      */
     @GetMapping("/dashboard")
     public ResponseEntity<DashboardDto> getDashboard(
-            @RequestParam(required = false, defaultValue = "30d") String period,
-            Principal principal) {
-
-        UUID workspaceId = extractWorkspaceId(principal);
-        DashboardDto dashboard = analyticsService.getDashboard(workspaceId, period);
+            @RequestParam(required = false, defaultValue = "30d") String period) {
+        DashboardDto dashboard = analyticsService.getDashboard(WorkspaceContext.getWorkspaceId(), period);
         return ResponseEntity.ok(dashboard);
-    }
-
-    // ── Private helpers ──────────────────────────────────────────────────────
-
-    private UUID extractWorkspaceId(Principal principal) {
-        if (principal == null) {
-            throw new IllegalStateException("Usuario no autenticado");
-        }
-        try {
-            var auth = (org.springframework.security.core.Authentication) principal;
-            Object details = auth.getDetails();
-            if (details instanceof Map<?, ?> map && map.containsKey("workspaceId")) {
-                return UUID.fromString(map.get("workspaceId").toString());
-            }
-        } catch (Exception ignored) {
-            // fall through
-        }
-        throw new IllegalStateException(
-                "'workspaceId' no disponible en el contexto. Asegúrese de que WorkspaceFilter esté configurado.");
     }
 }

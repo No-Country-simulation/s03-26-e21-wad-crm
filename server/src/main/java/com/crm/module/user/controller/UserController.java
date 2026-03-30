@@ -76,6 +76,16 @@ public class UserController {
     }
 
     // -------------------------------------------------------------------------
+    // Req 32.0 – get own profile
+    // -------------------------------------------------------------------------
+
+    @GetMapping("/me")
+    public ResponseEntity<UserDto> getProfile(Authentication authentication) {
+        UUID userId = (UUID) authentication.getPrincipal();
+        return ResponseEntity.ok(userService.getProfile(userId));
+    }
+
+    // -------------------------------------------------------------------------
     // Req 32.1 – update own profile
     // -------------------------------------------------------------------------
 

@@ -6,10 +6,9 @@ spring:
 
   # Datasource (overridden per profile)
   datasource:
-    datasource:
-      url: jdbc:postgresql://localhost:5432/crm_db,
-      username: postgres,
-      password: Pino2026!
+    url: jdbc:postgresql://localhost:5432/crm_db
+    username: postgres
+    password: "Pino2026!"
   # JPA
   jpa:
     hibernate:

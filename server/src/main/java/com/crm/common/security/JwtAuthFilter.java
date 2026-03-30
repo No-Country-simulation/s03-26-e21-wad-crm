@@ -33,18 +33,22 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                                     FilterChain filterChain) throws ServletException, IOException {
         String header = request.getHeader("Authorization");
         if (header != null && header.startsWith("Bearer ")) {
-            String token = header.substring(7);
-            if (jwtService.isTokenValid(token)) {
-                UUID userId = jwtService.extractUserId(token);
-                UUID workspaceId = jwtService.extractWorkspaceId(token);
-                String role = jwtService.extractRole(token);
+            try {
+                String token = header.substring(7);
+                if (jwtService.isTokenValid(token)) {
+                    UUID userId = jwtService.extractUserId(token);
+                    UUID workspaceId = jwtService.extractWorkspaceId(token);
+                    String role = jwtService.extractRole(token);
 
-                UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
-                        userId, null,
-                        List.of(new SimpleGrantedAuthority("ROLE_" + role))
-                );
-                auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(auth);
+                    UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
+                            userId, null,
+                            List.of(new SimpleGrantedAuthority("ROLE_" + role))
+                    );
+                    auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(auth);
+                }
+            } catch (Exception e) {
+                // Token inválido pero dejamos pasar la request (los endpoints protegidos requieren auth)
             }
         }
         filterChain.doFilter(request, response);

@@ -26,7 +26,7 @@ public class Note {
     @Column(name = "workspace_id", nullable = false)
     private UUID workspaceId;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
+    @Column(name = "body", nullable = false, columnDefinition = "TEXT")
     private String content;
 
     @Column(name = "created_by")

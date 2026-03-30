@@ -53,10 +53,17 @@ public class AuthService {
             throw new ConflictException("Email already registered: " + request.getEmail());
         }
 
-        // Create workspace named after the registering user
+        // Create workspace - use companyName if provided, otherwise use user's name
+        String workspaceName = request.getCompanyName() != null && !request.getCompanyName().isBlank()
+                ? request.getCompanyName()
+                : request.getName() + "'s Workspace";
+        String slug = workspaceName.toLowerCase().replaceAll("[^a-z0-9]", "-") + "-" + UUID.randomUUID().toString().substring(0, 8);
         Workspace workspace = workspaceRepository.save(
                 Workspace.builder()
-                        .name(request.getName() + "'s Workspace")
+                        .name(workspaceName)
+                        .slug(slug)
+                        .plan("FREE")
+                        .timezone("UTC")
                         .build()
         );
 
@@ -67,6 +74,7 @@ public class AuthService {
                 .name(request.getName())
                 .role(UserRole.ADMIN)
                 .isActive(true)
+                .timezone("UTC")
                 .build();
         user.setWorkspaceId(workspace.getId());
 

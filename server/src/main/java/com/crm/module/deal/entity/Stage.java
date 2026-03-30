@@ -7,7 +7,7 @@ import lombok.*;
 import java.util.UUID;
 
 @Entity
-@Table(name = "stages")
+@Table(name = "pipeline_stages")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -18,7 +18,7 @@ public class Stage extends AuditableEntity {
     @Column(nullable = false)
     private String name;
 
-    @Column(name = "stage_order", nullable = false)
+    @Column(name = "position", nullable = false)
     private int order;
 
     @Column(name = "is_won", nullable = false)

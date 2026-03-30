@@ -23,6 +23,8 @@ public class Workspace {
     @Column(nullable = false)
     private String name;
 
+    private String slug;
+
     private String timezone;
 
     private String plan;
