@@ -1,8 +1,8 @@
 spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/crm_db
-    username: ${DB_USERNAME:postgres}
-    password: ${DB_PASSWORD:}
+    username: postgres
+    password: "Pino2026!"
   jpa:
     show-sql: true
   data:
