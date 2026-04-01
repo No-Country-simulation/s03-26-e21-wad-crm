@@ -33,6 +33,11 @@
     @apply scroll-smooth font-sans;
   }
 
+  a,
+  button {
+    @apply cursor-pointer;
+  }
+
   :is(h1, h2, h3, h4, h5, h6) {
     @apply text-balance font-medium;
   }

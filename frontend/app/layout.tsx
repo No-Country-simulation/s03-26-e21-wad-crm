@@ -4,10 +4,10 @@ import "./globals.css";
 
 const dmSans = DM_Sans({
   variable: "--font-dm-sans",
-  display: "swap",
+  display: "swap",  
   preload: true,
   style: ["normal"],
-  weight: ["400", "500", "700"],
+  weight: ["300", "400", "500", "600", "700"],
   subsets: ["latin"],
   fallback: ["ui-sans-serif", "system-ui", "-apple-system", "BlinkMacSystemFont", "sans-serif"],
 });
