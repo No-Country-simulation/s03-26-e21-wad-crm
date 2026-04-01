@@ -1,26 +1,52 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  /* Primary Colors */
+  --primary-50: #edebfb;
+  --primary-100: #dcd8f8;
+  --primary-200: #cac4f4;
+  --primary-300: #b8b0f0;
+  --primary-400: #a79ded;
+  --primary-500: #9589e9;
+  --primary-600: #6655df;
+  --primary-700: #3c27d0;
+  --primary-800: #2d1d9c;
+  --primary-900: #1e1368;
+
+  --max-width: 1542px;
+
+  /* Animations */
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
+@layer base {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    interpolate-size: allow-keywords;
+  }
+
+  html {
+    scrollbar-width: thin;
+    @apply scroll-smooth font-sans;
+  }
+
+  :is(h1, h2, h3, h4, h5, h6) {
+    @apply text-balance font-medium;
+  }
+
+  .root {
+    @apply flex flex-col min-h-dvh overflow-clip;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer components {
+  .btn-primary {
+    @apply bg-(--primary-500) text-neutral-50 border border-(--primary-500) transition;
+  }
+
+  .btn-secondary {
+    @apply border border-neutral-50;
+  }
+}
+
+@utility bg-glass {
+  @apply bg-[#141414]/20 backdrop-blur-[10px];
 }
