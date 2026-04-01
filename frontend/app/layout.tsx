@@ -1,15 +1,15 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { DM_Sans } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const dmSans = DM_Sans({
+  variable: "--font-dm-sans",
+  display: "swap",
+  preload: true,
+  style: ["normal"],
+  weight: ["400", "500", "700"],
   subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+  fallback: ["ui-sans-serif", "system-ui", "-apple-system", "BlinkMacSystemFont", "sans-serif"],
 });
 
 export const metadata: Metadata = {
@@ -23,10 +23,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-      <body className="text-pretty bg-neutral-950 text-neutral-50">
-        <div className="relative min-h-screen flex flex-col overflow-clip">{children}</div>
-      </body>
+    <html lang="en" className={`${dmSans.variable} antialiased`}>
+      <body className="text-pretty bg-neutral-950 text-neutral-50 font-dm-sans">{children}</body>
     </html>
   );
 }
