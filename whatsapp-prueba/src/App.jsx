@@ -320,14 +320,14 @@ function SendPanel({ config, templates, crmConfig }) {
         }
       }
 
+      const apiBase = window.location.hostname === 'localhost' ? '' : (crmConfig.baseUrl || '')
       const res = await axios.post(
-        `${crmConfig.baseUrl}/api/whatsapp/send`,
+        `${apiBase}/api/whatsapp/send`,
         payload,
         {
           headers: {
             Authorization: `Bearer ${crmConfig.token}`,
             'Content-Type': 'application/json',
-            'X-Workspace-Id': crmConfig.workspaceId || '',
           },
         }
       )
@@ -989,14 +989,17 @@ function CrmPanel({ crmConfig, onSave, onClear }) {
     setTesting(true)
     setTestResult(null)
     try {
-      const res = await axios.get(`${form.baseUrl}/api/auth/me`, {
+      // Use proxy when running on localhost
+      const apiBase = window.location.hostname === 'localhost' ? '' : form.baseUrl
+      const res = await axios.get(`${apiBase}/api/auth/me`, {
         headers: { Authorization: `Bearer ${form.token}` },
       })
       setTestResult({ ok: true, msg: `Conectado — ${res.data.email || res.data.name || 'OK'}` })
     } catch (err) {
       // Try actuator health as fallback
       try {
-        const health = await axios.get(`${form.baseUrl}/actuator/health`)
+        const apiBase = window.location.hostname === 'localhost' ? '' : form.baseUrl
+        const health = await axios.get(`${apiBase}/actuator/health`)
         setTestResult({ ok: true, msg: `Backend UP (${health.data.status}), pero /api/auth/me falló — verificá el token` })
       } catch {
         const msg = err.response?.data?.message || err.message
@@ -1085,15 +1088,18 @@ function ConversationsPanel({ crmConfig }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
 
+  // Use proxy URL when running on same host, direct URL otherwise
+  const apiBase = window.location.hostname === 'localhost' ? '' : (crmConfig?.baseUrl || '')
+
   async function fetchConversations() {
-    if (!crmConfig?.baseUrl || !crmConfig?.token) {
+    if (!crmConfig?.token) {
       setError('Configurá el CRM primero')
       return
     }
     setLoading(true)
     setError(null)
     try {
-      const res = await axios.get(`${crmConfig.baseUrl}/api/conversations?page=0&size=50`, {
+      const res = await axios.get(`${apiBase}/api/conversations?page=0&size=50`, {
         headers: { Authorization: `Bearer ${crmConfig.token}` },
       })
       setConversations(res.data.content || [])
@@ -1105,9 +1111,9 @@ function ConversationsPanel({ crmConfig }) {
   }
 
   async function fetchMessages(convId) {
-    if (!crmConfig?.baseUrl || !crmConfig?.token) return
+    if (!crmConfig?.token) return
     try {
-      const res = await axios.get(`${crmConfig.baseUrl}/api/conversations/${convId}/messages?page=0&size=100`, {
+      const res = await axios.get(`${apiBase}/api/conversations/${convId}/messages?page=0&size=100`, {
         headers: { Authorization: `Bearer ${crmConfig.token}` },
       })
       setMessages(res.data.content || [])
@@ -1227,28 +1233,45 @@ function ConversationsPanel({ crmConfig }) {
 
 // ─── LogsPanel ───────────────────────────────────────────────────────────────
 
-function LogsPanel() {
+function LogsPanel({ crmConfig }) {
   const [logs, setLogs] = useState([])
   const [autoRefresh, setAutoRefresh] = useState(false)
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     if (!autoRefresh) return
-    const interval = setInterval(() => { fetchLogs() }, 3000)
+    const interval = setInterval(() => { fetchLogs() }, 5000)
     return () => clearInterval(interval)
   }, [autoRefresh])
 
   async function fetchLogs() {
+    if (!crmConfig?.token) {
+      setLogs(prev => [{
+        time: new Date().toISOString(), type: 'warn',
+        msg: '⚠️ Configurá el CRM primero (tab CRM) para ver logs del backend',
+      }, ...prev].slice(0, 100))
+      return
+    }
+
+    setLoading(true)
     try {
-      const res = await axios.get(`${API_BASE}/settings/integrations`)
+      const apiBase = window.location.hostname === 'localhost' ? '' : (crmConfig.baseUrl || '')
+      const res = await axios.get(`${apiBase}/api/conversations?page=0&size=10`, {
+        headers: { Authorization: `Bearer ${crmConfig.token}` },
+      })
+      const convs = res.data.content || []
       setLogs(prev => [{
         time: new Date().toISOString(), type: 'info',
-        msg: `Integración: WhatsApp=${res.data.whatsapp?.connected ? '✅' : '❌'} | Email=${res.data.email?.connected ? '✅' : '❌'}`,
-        data: res.data,
+        msg: `📋 Conversaciones: ${convs.length} total${convs.length > 0 ? ` — Última: ${convs[0].contactName || convs[0].contactPhone || 'N/A'} (${convs[0].channel})` : ''}`,
+        data: convs.length > 0 ? { lastConversation: convs[0] } : null,
       }, ...prev].slice(0, 100))
     } catch (err) {
       setLogs(prev => [{
-        time: new Date().toISOString(), type: 'error', msg: `Error fetching status: ${err.message}`,
+        time: new Date().toISOString(), type: 'error',
+        msg: `❌ Error: ${err.response?.data?.message || err.response?.data?.error || err.message}`,
       }, ...prev].slice(0, 100))
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -1260,19 +1283,29 @@ function LogsPanel() {
             <Activity className="w-5 h-5 text-green-400" /> Logs
           </h2>
           <div className="flex gap-2">
-            <button onClick={fetchLogs} className="px-3 py-1.5 rounded-lg bg-slate-700 text-slate-300 text-sm hover:bg-slate-600 transition-colors">Refresh</button>
+            <button onClick={fetchLogs} disabled={loading} className="px-3 py-1.5 rounded-lg bg-slate-700 text-slate-300 text-sm hover:bg-slate-600 disabled:opacity-50 transition-colors">
+              {loading ? 'Cargando...' : 'Refresh'}
+            </button>
             <button onClick={() => setAutoRefresh(!autoRefresh)} className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${autoRefresh ? 'bg-green-600 text-white' : 'bg-slate-700 text-slate-300 hover:bg-slate-600'}`}>
               Auto {autoRefresh ? 'ON' : 'OFF'}
             </button>
             <button onClick={() => setLogs([])} className="px-3 py-1.5 rounded-lg bg-red-600/20 text-red-400 text-sm hover:bg-red-600/30 transition-colors">Limpiar</button>
           </div>
         </div>
+
+        {!crmConfig?.token && (
+          <div className="mb-4 p-3 rounded-lg bg-amber-900/20 text-amber-300 border border-amber-800/50 text-sm">
+            ⚠️ Necesitás configurar el CRM en la tab <strong>CRM</strong> para ver logs del backend.
+          </div>
+        )}
+
         <div className="space-y-2 max-h-96 overflow-y-auto">
           {logs.length === 0 && <p className="text-slate-500 text-center py-8">Sin logs aún. Enviá un mensaje o hacé refresh.</p>}
           {logs.map((log, i) => (
             <div key={i} className={`p-3 rounded-lg text-sm border ${
               log.type === 'error' ? 'bg-red-900/20 border-red-800/50 text-red-300' :
               log.type === 'success' ? 'bg-green-900/20 border-green-800/50 text-green-300' :
+              log.type === 'warn' ? 'bg-amber-900/20 border-amber-800/50 text-amber-300' :
               'bg-slate-900/50 border-slate-700/50 text-slate-300'
             }`}>
               <div className="flex items-center gap-2">
@@ -1566,7 +1599,7 @@ export default function App() {
         {activeTab === TABS.CONFIG && <ConfigPanel config={config} onSave={setConfig} onClear={() => { localStorage.removeItem(STORAGE_KEY); setConfig(null) }} />}
         {activeTab === TABS.CRM && <CrmPanel crmConfig={crmConfig} onSave={setCrmConfig} onClear={() => { localStorage.removeItem(CRM_KEY); setCrmConfig(null) }} />}
         {activeTab === TABS.CONVERSATIONS && <ConversationsPanel crmConfig={crmConfig} />}
-        {activeTab === TABS.LOGS && <LogsPanel />}
+        {activeTab === TABS.LOGS && <LogsPanel crmConfig={crmConfig} />}
         {activeTab === TABS.WEBHOOK && <WebhookSimulator config={config} />}
       </main>
 
