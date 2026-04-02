@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { MessageSquare, Settings, Send, Activity, Webhook, Copy, Check, Trash2, Plus, FileText, Download, Upload, Eye, Pencil, X, ChevronRight, ChevronLeft, Save } from 'lucide-react'
+import { MessageSquare, Settings, Send, Activity, Webhook, Copy, Check, Trash2, Plus, FileText, Download, Upload, Eye, Pencil, X, ChevronRight, ChevronLeft, Save, MessageCircle, Server, Globe } from 'lucide-react'
 import axios from 'axios'
 
 // ─── Constants ───────────────────────────────────────────────────────────────
@@ -7,11 +7,14 @@ import axios from 'axios'
 const API_BASE = '/api'
 const STORAGE_KEY = 'wa-prueba-config'
 const TEMPLATES_KEY = 'wa-prueba-templates'
+const CRM_KEY = 'wa-prueba-crm'
 
 const TABS = {
   SEND: 'send',
   TEMPLATES: 'templates',
   CONFIG: 'config',
+  CRM: 'crm',
+  CONVERSATIONS: 'conversations',
   LOGS: 'logs',
   WEBHOOK: 'webhook',
 }
@@ -176,10 +179,12 @@ function ConfigPanel({ config, onSave, onClear }) {
 
 // ─── SendPanel ───────────────────────────────────────────────────────────────
 
-function SendPanel({ config, templates }) {
+function SendPanel({ config, templates, crmConfig }) {
   const [phone, setPhone] = useState('')
   const [body, setBody] = useState('')
+  const [contactId, setContactId] = useState('')
   const [mode, setMode] = useState('text')
+  const [sendVia, setSendVia] = useState('direct') // 'direct' or 'crm'
   const [selectedTemplateId, setSelectedTemplateId] = useState('')
   const [templateParams, setTemplateParams] = useState('')
   const [sending, setSending] = useState(false)
@@ -188,6 +193,19 @@ function SendPanel({ config, templates }) {
   const selectedTpl = templates.find(t => t.id === selectedTemplateId)
 
   async function handleSend() {
+    if (sendVia === 'crm') {
+      if (!crmConfig?.baseUrl || !crmConfig?.token) {
+        setResult({ ok: false, msg: 'Configurá el CRM primero (tab CRM)' })
+        return
+      }
+      if (!contactId) {
+        setResult({ ok: false, msg: 'Completá el Contact ID' })
+        return
+      }
+      return handleSendViaCrm()
+    }
+
+    // Direct Meta API
     if (!config?.phoneNumberId || !config?.accessToken) {
       setResult({ ok: false, msg: 'Configurá las credenciales primero (tab Configuración)' })
       return
@@ -210,7 +228,6 @@ function SendPanel({ config, templates }) {
           return
         }
 
-        // Build the body text by replacing variables with params
         const bodyComp = selectedTpl.components.find(c => c.type === 'body')
         let finalBody = bodyComp?.text || ''
         const params = templateParams.split(',').map(p => p.trim()).filter(Boolean)
@@ -218,16 +235,12 @@ function SendPanel({ config, templates }) {
           finalBody = finalBody.replace(new RegExp(`\\{\\{${i + 1}\\}\\}`, 'g'), val)
         })
 
-        // Build components array for the API
         const apiComponents = []
-
-        // Header component
         const headerComp = selectedTpl.components.find(c => c.type === 'header')
         if (headerComp) {
           apiComponents.push({ type: 'header', parameters: [] })
         }
 
-        // Body component with parameters
         const varCount = countVariables(bodyComp?.text || '')
         if (varCount > 0) {
           apiComponents.push({
@@ -288,6 +301,48 @@ function SendPanel({ config, templates }) {
     }
   }
 
+  async function handleSendViaCrm() {
+    setSending(true)
+    setResult(null)
+
+    try {
+      const payload = {
+        contactId,
+        body: body || `[Template: ${selectedTpl?.name || 'N/A'}]`,
+      }
+
+      if (mode === 'template' && selectedTpl) {
+        payload.templateName = selectedTpl.name
+        payload.templateLanguage = selectedTpl.language
+        const params = templateParams.split(',').map(p => p.trim()).filter(Boolean)
+        if (params.length > 0) {
+          payload.templateParameters = params.map(p => ({ type: 'text', value: p }))
+        }
+      }
+
+      const res = await axios.post(
+        `${crmConfig.baseUrl}/api/whatsapp/send`,
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${crmConfig.token}`,
+            'Content-Type': 'application/json',
+            'X-Workspace-Id': crmConfig.workspaceId || '',
+          },
+        }
+      )
+
+      setResult({ ok: true, msg: `CRM: Enviado! msgId=${res.data.messageId}, externalId=${res.data.externalId}`, data: res.data })
+      setBody('')
+      setTemplateParams('')
+    } catch (err) {
+      const msg = err.response?.data?.message || err.response?.data?.error || err.message
+      setResult({ ok: false, msg: `CRM Error: ${msg}`, data: err.response?.data })
+    } finally {
+      setSending(false)
+    }
+  }
+
   return (
     <div className="space-y-4">
       <div className="rounded-xl border border-slate-700 bg-slate-800/50 p-6">
@@ -296,6 +351,59 @@ function SendPanel({ config, templates }) {
           Enviar Mensaje
         </h2>
 
+        {/* Send via selector */}
+        <div className="flex gap-2 mb-4">
+          <button
+            onClick={() => setSendVia('direct')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              sendVia === 'direct' ? 'bg-green-600 text-white' : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+            }`}
+          >
+            <Globe className="w-3.5 h-3.5" /> Directo a Meta
+          </button>
+          <button
+            onClick={() => setSendVia('crm')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              sendVia === 'crm' ? 'bg-green-600 text-white' : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+            }`}
+          >
+            <Server className="w-3.5 h-3.5" /> Vía CRM Backend
+          </button>
+        </div>
+
+        {sendVia === 'direct' ? (
+          <>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-slate-300 mb-1">
+                Teléfono destino <span className="text-slate-500">(E.164, sin +)</span>
+              </label>
+              <input
+                type="text"
+                value={phone}
+                onChange={e => setPhone(e.target.value)}
+                placeholder="5491155551234"
+                className="w-full rounded-lg border border-slate-600 bg-slate-900 px-3 py-2 text-white placeholder-slate-500 focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
+              />
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-slate-300 mb-1">
+                Contact ID (UUID del CRM)
+              </label>
+              <input
+                type="text"
+                value={contactId}
+                onChange={e => setContactId(e.target.value)}
+                placeholder="46b432d9-1138-4e12-a262-c82ae17d3d21"
+                className="w-full rounded-lg border border-slate-600 bg-slate-900 px-3 py-2 text-white placeholder-slate-500 focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500 font-mono text-sm"
+              />
+              <p className="text-xs text-slate-500 mt-1">ID del contacto en la base de datos del CRM</p>
+            </div>
+          </>
+        )}
+
         <div className="flex gap-2 mb-4">
           <button onClick={() => setMode('text')} className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${mode === 'text' ? 'bg-green-600 text-white' : 'bg-slate-700 text-slate-300 hover:bg-slate-600'}`}>
             Texto Libre
@@ -303,19 +411,6 @@ function SendPanel({ config, templates }) {
           <button onClick={() => setMode('template')} className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${mode === 'template' ? 'bg-green-600 text-white' : 'bg-slate-700 text-slate-300 hover:bg-slate-600'}`}>
             Template ({templates.length})
           </button>
-        </div>
-
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-slate-300 mb-1">
-            Teléfono destino <span className="text-slate-500">(E.164, sin +)</span>
-          </label>
-          <input
-            type="text"
-            value={phone}
-            onChange={e => setPhone(e.target.value)}
-            placeholder="5491155551234"
-            className="w-full rounded-lg border border-slate-600 bg-slate-900 px-3 py-2 text-white placeholder-slate-500 focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
-          />
         </div>
 
         {mode === 'text' ? (
@@ -379,7 +474,6 @@ function SendPanel({ config, templates }) {
               </div>
             )}
 
-            {/* Preview with params filled in */}
             {selectedTpl && templateParams && (
               <div className="p-3 rounded-lg bg-green-900/10 border border-green-800/30">
                 <div className="text-xs text-green-400 mb-1">Vista previa con parámetros:</div>
@@ -402,7 +496,7 @@ function SendPanel({ config, templates }) {
           className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-green-600 text-white font-medium hover:bg-green-500 disabled:opacity-50 transition-colors"
         >
           <Send className="w-4 h-4" />
-          {sending ? 'Enviando...' : 'Enviar Mensaje'}
+          {sending ? 'Enviando...' : `Enviar ${sendVia === 'crm' ? 'vía CRM' : ''}`}
         </button>
 
         {result && (
@@ -872,6 +966,265 @@ function TemplatesPanel() {
   )
 }
 
+// ─── CRM Config Panel ────────────────────────────────────────────────────────
+
+function CrmPanel({ crmConfig, onSave, onClear }) {
+  const [form, setForm] = useState(crmConfig || {
+    baseUrl: 'http://localhost:8080',
+    token: '',
+    workspaceId: '',
+  })
+  const [testing, setTesting] = useState(false)
+  const [testResult, setTestResult] = useState(null)
+
+  function handleChange(field, value) {
+    setForm(prev => ({ ...prev, [field]: value }))
+  }
+
+  async function testConnection() {
+    if (!form.baseUrl || !form.token) {
+      setTestResult({ ok: false, msg: 'Completá baseUrl y token' })
+      return
+    }
+    setTesting(true)
+    setTestResult(null)
+    try {
+      const res = await axios.get(`${form.baseUrl}/api/auth/me`, {
+        headers: { Authorization: `Bearer ${form.token}` },
+      })
+      setTestResult({ ok: true, msg: `Conectado — ${res.data.email || res.data.name || 'OK'}` })
+    } catch (err) {
+      // Try actuator health as fallback
+      try {
+        const health = await axios.get(`${form.baseUrl}/actuator/health`)
+        setTestResult({ ok: true, msg: `Backend UP (${health.data.status}), pero /api/auth/me falló — verificá el token` })
+      } catch {
+        const msg = err.response?.data?.message || err.message
+        setTestResult({ ok: false, msg })
+      }
+    } finally {
+      setTesting(false)
+    }
+  }
+
+  function handleSave() {
+    localStorage.setItem(CRM_KEY, JSON.stringify(form))
+    onSave(form)
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="rounded-xl border border-slate-700 bg-slate-800/50 p-6">
+        <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+          <Server className="w-5 h-5 text-green-400" />
+          Configuración del CRM
+        </h2>
+        <p className="text-sm text-slate-400 mb-4">
+          Configurá la conexión al backend del CRM para enviar mensajes y ver conversaciones.
+        </p>
+        <div className="grid gap-4">
+          <div>
+            <label className="block text-sm font-medium text-slate-300 mb-1">Backend URL</label>
+            <input
+              type="text"
+              value={form.baseUrl}
+              onChange={e => handleChange('baseUrl', e.target.value)}
+              placeholder="http://localhost:8080"
+              className="w-full rounded-lg border border-slate-600 bg-slate-900 px-3 py-2 text-white placeholder-slate-500 focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-300 mb-1">JWT Token</label>
+            <input
+              type="password"
+              value={form.token}
+              onChange={e => handleChange('token', e.target.value)}
+              placeholder="eyJhbGciOiJIUzI1NiJ9..."
+              className="w-full rounded-lg border border-slate-600 bg-slate-900 px-3 py-2 text-white placeholder-slate-500 focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
+            />
+            <p className="text-xs text-slate-500 mt-1">Obtené el token haciendo login en el CRM</p>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-300 mb-1">Workspace ID (UUID)</label>
+            <input
+              type="text"
+              value={form.workspaceId}
+              onChange={e => handleChange('workspaceId', e.target.value)}
+              placeholder="46b432d9-1138-4e12-a262-c82ae17d3d21"
+              className="w-full rounded-lg border border-slate-600 bg-slate-900 px-3 py-2 text-white placeholder-slate-500 focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500 font-mono text-sm"
+            />
+          </div>
+        </div>
+        <div className="flex gap-3 mt-6">
+          <button onClick={testConnection} disabled={testing} className="px-4 py-2 rounded-lg bg-slate-700 text-white hover:bg-slate-600 disabled:opacity-50 transition-colors">
+            {testing ? 'Probando...' : 'Probar Conexión'}
+          </button>
+          <button onClick={handleSave} className="px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-500 transition-colors">
+            Guardar
+          </button>
+          <button onClick={() => { onClear(); setForm({ baseUrl: 'http://localhost:8080', token: '', workspaceId: '' }); setTestResult(null) }} className="px-4 py-2 rounded-lg bg-red-600/20 text-red-400 hover:bg-red-600/30 transition-colors">
+            <Trash2 className="w-4 h-4" />
+          </button>
+        </div>
+        {testResult && (
+          <div className={`mt-4 p-3 rounded-lg text-sm ${testResult.ok ? 'bg-green-900/30 text-green-300 border border-green-700' : 'bg-red-900/30 text-red-300 border border-red-700'}`}>
+            {testResult.ok ? '✅' : '❌'} {testResult.msg}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// ─── Conversations Panel ─────────────────────────────────────────────────────
+
+function ConversationsPanel({ crmConfig }) {
+  const [conversations, setConversations] = useState([])
+  const [selectedConv, setSelectedConv] = useState(null)
+  const [messages, setMessages] = useState([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
+
+  async function fetchConversations() {
+    if (!crmConfig?.baseUrl || !crmConfig?.token) {
+      setError('Configurá el CRM primero')
+      return
+    }
+    setLoading(true)
+    setError(null)
+    try {
+      const res = await axios.get(`${crmConfig.baseUrl}/api/conversations?page=0&size=50`, {
+        headers: { Authorization: `Bearer ${crmConfig.token}` },
+      })
+      setConversations(res.data.content || [])
+    } catch (err) {
+      setError(err.response?.data?.message || err.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  async function fetchMessages(convId) {
+    if (!crmConfig?.baseUrl || !crmConfig?.token) return
+    try {
+      const res = await axios.get(`${crmConfig.baseUrl}/api/conversations/${convId}/messages?page=0&size=100`, {
+        headers: { Authorization: `Bearer ${crmConfig.token}` },
+      })
+      setMessages(res.data.content || [])
+      setSelectedConv(convId)
+    } catch (err) {
+      setError(err.response?.data?.message || err.message)
+    }
+  }
+
+  useEffect(() => {
+    if (crmConfig?.token) fetchConversations()
+  }, [crmConfig])
+
+  return (
+    <div className="space-y-4">
+      <div className="rounded-xl border border-slate-700 bg-slate-800/50 p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-white flex items-center gap-2">
+            <MessageCircle className="w-5 h-5 text-green-400" />
+            Conversaciones ({conversations.length})
+          </h2>
+          <button onClick={fetchConversations} disabled={loading} className="px-3 py-1.5 rounded-lg bg-slate-700 text-slate-300 text-sm hover:bg-slate-600 disabled:opacity-50 transition-colors">
+            {loading ? 'Cargando...' : 'Refresh'}
+          </button>
+        </div>
+
+        {error && (
+          <div className="mb-4 p-3 rounded-lg bg-red-900/30 text-red-300 border border-red-700 text-sm">
+            ❌ {error}
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Conversation list */}
+          <div className="space-y-2 max-h-96 overflow-y-auto">
+            {conversations.length === 0 && !loading && (
+              <p className="text-slate-500 text-center py-8">Sin conversaciones</p>
+            )}
+            {conversations.map(conv => (
+              <button
+                key={conv.id}
+                onClick={() => fetchMessages(conv.id)}
+                className={`w-full text-left p-3 rounded-lg border transition-colors ${
+                  selectedConv === conv.id
+                    ? 'bg-green-900/20 border-green-700'
+                    : 'bg-slate-900/50 border-slate-700 hover:border-slate-600'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-white truncate">
+                    {conv.contactName || conv.contactPhone || 'Contacto'}
+                  </span>
+                  <span className="text-xs text-slate-500">
+                    {conv.channel}
+                  </span>
+                </div>
+                {conv.lastMessage && (
+                  <p className="text-xs text-slate-400 truncate mt-1">{conv.lastMessage}</p>
+                )}
+              </button>
+            ))}
+          </div>
+
+          {/* Messages */}
+          <div className="bg-slate-900/50 rounded-lg border border-slate-700 p-4 max-h-96 overflow-y-auto">
+            {!selectedConv ? (
+              <p className="text-slate-500 text-center py-8">Seleccioná una conversación</p>
+            ) : messages.length === 0 ? (
+              <p className="text-slate-500 text-center py-8">Sin mensajes</p>
+            ) : (
+              <div className="space-y-2">
+                {messages.map(msg => (
+                  <div
+                    key={msg.id}
+                    className={`p-3 rounded-lg text-sm ${
+                      msg.direction === 'OUTBOUND'
+                        ? 'bg-green-900/20 border border-green-800/30 ml-4'
+                        : 'bg-slate-800/50 border border-slate-700 mr-4'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-1">
+                      <span className={`text-xs font-bold ${
+                        msg.direction === 'OUTBOUND' ? 'text-green-400' : 'text-blue-400'
+                      }`}>
+                        {msg.direction === 'OUTBOUND' ? '→ Enviado' : '← Recibido'}
+                      </span>
+                      <span className="text-xs text-slate-500">
+                        {msg.sentAt ? formatTime(msg.sentAt) : ''}
+                      </span>
+                    </div>
+                    <p className="text-white whitespace-pre-wrap">{msg.body}</p>
+                    {msg.externalId && (
+                      <p className="text-xs text-slate-500 mt-1 font-mono">extId: {msg.externalId}</p>
+                    )}
+                    {msg.status && (
+                      <span className={`inline-block mt-1 text-xs px-2 py-0.5 rounded ${
+                        msg.status === 'SENT' ? 'bg-green-900/30 text-green-300' :
+                        msg.status === 'DELIVERED' ? 'bg-blue-900/30 text-blue-300' :
+                        msg.status === 'READ' ? 'bg-purple-900/30 text-purple-300' :
+                        msg.status === 'FAILED' ? 'bg-red-900/30 text-red-300' :
+                        msg.status === 'SENDING' ? 'bg-yellow-900/30 text-yellow-300' :
+                        'bg-slate-700 text-slate-300'
+                      }`}>
+                        {msg.status}
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ─── LogsPanel ───────────────────────────────────────────────────────────────
 
 function LogsPanel() {
@@ -1126,12 +1479,20 @@ export default function App() {
   const [activeTab, setActiveTab] = useState(TABS.SEND)
   const [config, setConfig] = useState(() => loadConfig())
   const [templates, setTemplates] = useState(() => loadTemplates())
+  const [crmConfig, setCrmConfig] = useState(() => {
+    try {
+      const raw = localStorage.getItem(CRM_KEY)
+      return raw ? JSON.parse(raw) : null
+    } catch { return null }
+  })
   const [copied, setCopied] = useState(false)
 
   const tabs = [
     { id: TABS.SEND, label: 'Enviar', icon: MessageSquare },
     { id: TABS.TEMPLATES, label: 'Templates', icon: FileText },
-    { id: TABS.CONFIG, label: 'Config', icon: Settings },
+    { id: TABS.CONFIG, label: 'Meta Config', icon: Settings },
+    { id: TABS.CRM, label: 'CRM', icon: Server },
+    { id: TABS.CONVERSATIONS, label: 'Conversaciones', icon: MessageCircle },
     { id: TABS.LOGS, label: 'Logs', icon: Activity },
     { id: TABS.WEBHOOK, label: 'Webhook', icon: Webhook },
   ]
@@ -1162,13 +1523,18 @@ export default function App() {
             </div>
             <div>
               <h1 className="text-lg font-bold text-white">WhatsApp Prueba</h1>
-              <p className="text-xs text-slate-400">Meta Cloud API v22.0</p>
+              <p className="text-xs text-slate-400">Meta Cloud API v22.0 + CRM Backend</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
             {config?.phoneNumberId && (
               <span className="flex items-center gap-1 px-2 py-1 rounded-full bg-green-900/30 text-green-400 text-xs border border-green-800/50">
-                <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" /> Conectado
+                <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" /> Meta
+              </span>
+            )}
+            {crmConfig?.token && (
+              <span className="flex items-center gap-1 px-2 py-1 rounded-full bg-blue-900/30 text-blue-400 text-xs border border-blue-800/50">
+                <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" /> CRM
               </span>
             )}
             <button onClick={copyCurl} disabled={!config?.accessToken} className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300 text-xs hover:bg-slate-700 disabled:opacity-40 transition-colors" title="Copiar curl">
@@ -1195,9 +1561,11 @@ export default function App() {
       </div>
 
       <main className="max-w-5xl mx-auto px-4 py-6">
-        {activeTab === TABS.SEND && <SendPanel config={config} templates={templates} />}
+        {activeTab === TABS.SEND && <SendPanel config={config} templates={templates} crmConfig={crmConfig} />}
         {activeTab === TABS.TEMPLATES && <TemplatesPanel />}
         {activeTab === TABS.CONFIG && <ConfigPanel config={config} onSave={setConfig} onClear={() => { localStorage.removeItem(STORAGE_KEY); setConfig(null) }} />}
+        {activeTab === TABS.CRM && <CrmPanel crmConfig={crmConfig} onSave={setCrmConfig} onClear={() => { localStorage.removeItem(CRM_KEY); setCrmConfig(null) }} />}
+        {activeTab === TABS.CONVERSATIONS && <ConversationsPanel crmConfig={crmConfig} />}
         {activeTab === TABS.LOGS && <LogsPanel />}
         {activeTab === TABS.WEBHOOK && <WebhookSimulator config={config} />}
       </main>
@@ -1205,7 +1573,7 @@ export default function App() {
       <footer className="border-t border-slate-800 mt-8">
         <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between text-xs text-slate-500">
           <span>WhatsApp Business API — Prueba & Testing</span>
-          <span>Puerto: 5174 → Proxy: localhost:8081</span>
+          <span>Puerto: 5174 → Proxy: localhost:8080</span>
         </div>
       </footer>
     </div>
