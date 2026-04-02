@@ -1,12 +1,11 @@
 import { Features } from "./components/Features";
-import { Auth } from "./components/Auth";
+import { Login } from "./components/Login";
 
 export default function LoginPage() {
   return (
     <>
+      <Login />
       <Features />
-      <Auth />
-      {/* <Register /> */}
     </>
   );
 }
