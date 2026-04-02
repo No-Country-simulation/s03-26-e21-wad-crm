@@ -10,7 +10,7 @@ public interface WhatsAppProvider {
 
     /**
      * Envía un mensaje de texto a un número de teléfono.
-     * Req 21.1: POST https://graph.facebook.com/v19.0/{phoneNumberId}/messages
+     * Req 21.1: POST https://graph.facebook.com/v22.0/{phoneNumberId}/messages
      *
      * @param phoneNumber número destino (sin prefijo +, ej: "521234567890")
      * @param body        texto del mensaje

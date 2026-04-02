@@ -42,6 +42,8 @@ public class WhatsAppService {
 
     /**
      * Envía un mensaje de WhatsApp a un contacto.
+     * Si templateName está presente, envía un template message (fuera de 24h window).
+     * Si no, envía un mensaje de texto libre (dentro de 24h window).
      * Req 21.1: registra con estado SENDING → SENT/FAILED.
      * Req 21.4: crea conversación si no existe.
      * Req 21.5: actualiza lastMessageAt.
@@ -86,11 +88,23 @@ public class WhatsAppService {
 
         // Send via Meta Cloud API (Req 21.1)
         try {
-            String externalId = metaCloudApiProvider.sendMessage(
-                    contact.getPhone(), request.body(), phoneNumberId, accessToken);
+            String externalId;
+            if (request.templateName() != null && !request.templateName().isBlank()) {
+                // Template message (outside 24h window)
+                externalId = metaCloudApiProvider.sendTemplateMessage(
+                        contact.getPhone(),
+                        request.templateName(),
+                        request.templateLanguage() != null ? request.templateLanguage() : "en",
+                        request.templateParameters(),
+                        phoneNumberId,
+                        accessToken
+                );
+            } else {
+                // Free-form text (within 24h window)
+                externalId = metaCloudApiProvider.sendMessage(
+                        contact.getPhone(), request.body(), phoneNumberId, accessToken);
+            }
 
-            // Update to SENT with externalId (Req 21.2)
-            // Re-add as SENT — the message was already persisted; update via repository directly
             log.info("WhatsApp message sent to contact={}, externalId={}", request.contactId(), externalId);
             return new SendWhatsAppResponse(pendingMsg.id(), externalId, MessageStatus.SENT);
 

@@ -60,6 +60,15 @@ app:
     allowed-origins: ${CORS_ORIGINS:http://localhost:5173,http://localhost:3000,http://127.0.0.1:5173,http://127.0.0.1:3000}
   encryption:
     key: ${ENCRYPTION_KEY:your-aes-256-key-here-change-in-production}
+  whatsapp:
+    api-version: ${WA_API_VERSION:v22.0}
+    webhook-path: /webhooks/whatsapp
+    # Dev credentials loaded from .env
+    access-token: ${WA_ACCESS_TOKEN:}
+    phone-number-id: ${WA_PHONE_NUMBER_ID:}
+    waba-id: ${WA_WABA_ID:}
+    app-secret: ${WA_APP_SECRET:}
+    webhook-verify-token: ${WA_WEBHOOK_VERIFY_TOKEN:}
 
 # Actuator
 management:

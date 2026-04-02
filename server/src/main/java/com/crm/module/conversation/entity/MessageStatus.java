@@ -8,5 +8,6 @@ public enum MessageStatus {
     SENT,
     DELIVERED,
     READ,
-    FAILED
+    FAILED,
+    DELETED
 }
