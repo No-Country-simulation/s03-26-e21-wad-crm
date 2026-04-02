@@ -91,25 +91,32 @@ public class WhatsAppWebhookService {
      */
     @Transactional
     public void processPayload(String payloadJson) {
+        log.info("[WA-WEBHOOK] Incoming payload received, fieldTypes=checking");
         try {
             JsonNode root = objectMapper.readTree(payloadJson);
             JsonNode entries = root.path("entry");
-            if (entries.isMissingNode() || !entries.isArray()) return;
+            if (entries.isMissingNode() || !entries.isArray()) {
+                log.warn("[WA-WEBHOOK] Payload has no entries — ignoring");
+                return;
+            }
 
             for (JsonNode entry : entries) {
                 for (JsonNode change : entry.path("changes")) {
                     JsonNode value = change.path("value");
                     String field = change.path("field").asText();
+                    log.info("[WA-WEBHOOK] Processing field='{}'", field);
 
                     if ("messages".equals(field)) {
                         processInboundMessages(value);
                     } else if ("statuses".equals(field)) {
                         processStatusUpdates(value);
+                    } else {
+                        log.warn("[WA-WEBHOOK] Unknown field type: {}", field);
                     }
                 }
             }
         } catch (Exception e) {
-            log.error("Error processing WhatsApp webhook payload", e);
+            log.error("[WA-WEBHOOK] Error processing payload: {}", e.getMessage(), e);
             throw new RuntimeException("Failed to process webhook payload", e);
         }
     }
@@ -119,31 +126,43 @@ public class WhatsAppWebhookService {
      */
     private void processInboundMessages(JsonNode value) {
         String phoneNumberId = value.path("metadata").path("phone_number_id").asText(null);
-        if (phoneNumberId == null) return;
+        if (phoneNumberId == null) {
+            log.warn("[WA-WEBHOOK-INBOUND] Missing phone_number_id in payload");
+            return;
+        }
 
         // Resolve workspace via phone_number_id
         Optional<WhatsAppConfig> configOpt = whatsAppConfigRepository
                 .findByPhoneNumberIdAndActiveTrue(phoneNumberId);
         if (configOpt.isEmpty()) {
-            log.warn("No active WhatsApp config for phone_number_id={}", phoneNumberId);
+            log.warn("[WA-WEBHOOK-INBOUND] No active WhatsApp config for phone_number_id={}", phoneNumberId);
             return;
         }
         UUID workspaceId = configOpt.get().getWorkspaceId();
+        log.info("[WA-WEBHOOK-INBOUND] phone_number_id={}, workspaceId={}", phoneNumberId, workspaceId);
 
         JsonNode messages = value.path("messages");
-        if (!messages.isArray()) return;
+        if (!messages.isArray()) {
+            log.warn("[WA-WEBHOOK-INBOUND] No messages array in payload");
+            return;
+        }
 
         for (JsonNode msg : messages) {
             String type = msg.path("type").asText();
             String externalId = msg.path("id").asText(null);
             String fromPhone  = msg.path("from").asText(null);
 
-            if (externalId == null || fromPhone == null) continue;
+            if (externalId == null || fromPhone == null) {
+                log.warn("[WA-WEBHOOK-INBOUND] Skipping message with missing externalId or fromPhone: type={}", type);
+                continue;
+            }
+
+            log.info("[WA-WEBHOOK-INBOUND] Processing: externalId={}, from={}, type={}", externalId, fromPhone, type);
 
             // Req 20.4: idempotencia — skip if already processed
             if (messageRepository.findByExternalIdAndChannel(
                     externalId, MessageChannel.WHATSAPP).isPresent()) {
-                log.info("Duplicate webhook message ignored: externalId={}", externalId);
+                log.info("[WA-WEBHOOK-INBOUND] Duplicate ignored: externalId={}", externalId);
                 continue;
             }
 
@@ -151,11 +170,15 @@ public class WhatsAppWebhookService {
             // Req 20.3: create new contact with status NEW if not found
             Contact contact = contactRepository
                     .findByWorkspaceIdAndPhoneAndIsDeletedFalse(workspaceId, fromPhone)
-                    .orElseGet(() -> createContact(workspaceId, fromPhone));
+                    .orElseGet(() -> {
+                        log.info("[WA-WEBHOOK-INBOUND] New contact created: phone={}", fromPhone);
+                        return createContact(workspaceId, fromPhone);
+                    });
 
             // findOrCreate conversation (Req 21.4)
             Conversation conversation = conversationService.findOrCreate(
                     contact.getId(), MessageChannel.WHATSAPP, workspaceId);
+            log.info("[WA-WEBHOOK-INBOUND] Conversation: id={}, contactId={}", conversation.getId(), contact.getId());
 
             long tsEpoch = msg.path("timestamp").asLong(0);
             LocalDateTime sentAt = tsEpoch > 0
@@ -164,7 +187,10 @@ public class WhatsAppWebhookService {
 
             if ("text".equals(type)) {
                 String body = msg.path("text").path("body").asText(null);
-                if (body == null) continue;
+                if (body == null) {
+                    log.warn("[WA-WEBHOOK-INBOUND] Text message with empty body: externalId={}", externalId);
+                    continue;
+                }
 
                 conversationService.addMessage(new AddMessageRequest(
                         conversation.getId(),
@@ -175,6 +201,7 @@ public class WhatsAppWebhookService {
                         externalId,
                         sentAt
                 ), workspaceId);
+                log.info("[WA-WEBHOOK-INBOUND] Text message saved: externalId={}, body='{}', sentAt={}", externalId, body, sentAt);
 
             } else if ("interactive".equals(type)) {
                 // Handle button/list replies
@@ -190,6 +217,9 @@ public class WhatsAppWebhookService {
                             externalId,
                             sentAt
                     ), workspaceId);
+                    log.info("[WA-WEBHOOK-INBOUND] Interactive reply saved: externalId={}, body='{}'", externalId, replyBody);
+                } else {
+                    log.warn("[WA-WEBHOOK-INBOUND] Interactive message with no extractable reply: externalId={}", externalId);
                 }
 
             } else if ("image".equals(type) || "document".equals(type) ||
@@ -208,6 +238,9 @@ public class WhatsAppWebhookService {
                         externalId,
                         sentAt
                 ), workspaceId);
+                log.info("[WA-WEBHOOK-INBOUND] Media message saved: externalId={}, type={}, body='{}'", externalId, type, mediaBody);
+            } else {
+                log.warn("[WA-WEBHOOK-INBOUND] Unsupported message type: type={}, externalId={}", type, externalId);
             }
         }
     }
@@ -218,26 +251,36 @@ public class WhatsAppWebhookService {
      */
     private void processStatusUpdates(JsonNode value) {
         JsonNode statuses = value.path("statuses");
-        if (!statuses.isArray()) return;
+        if (!statuses.isArray()) {
+            log.warn("[WA-WEBHOOK-STATUS] No statuses array in payload");
+            return;
+        }
 
         for (JsonNode status : statuses) {
             String externalId = status.path("id").asText(null);
             String statusValue = status.path("status").asText(null);
             String recipientId = status.path("recipient_id").asText(null);
 
-            if (externalId == null || statusValue == null) continue;
+            if (externalId == null || statusValue == null) {
+                log.warn("[WA-WEBHOOK-STATUS] Skipping status with missing fields: id={}, status={}", externalId, statusValue);
+                continue;
+            }
+
+            log.info("[WA-WEBHOOK-STATUS] Processing: externalId={}, status={}, recipient={}", externalId, statusValue, recipientId);
 
             // Find message by externalId and update status
             messageRepository.findByExternalIdAndChannel(externalId, MessageChannel.WHATSAPP)
-                    .ifPresent(message -> {
+                    .ifPresentOrElse(message -> {
                         MessageStatus newStatus = mapStatusToEnum(statusValue);
                         if (newStatus != null && message.getStatus() != newStatus) {
                             message.setStatus(newStatus);
                             messageRepository.save(message);
-                            log.info("Message {} status updated to {} (recipient: {})",
-                                    externalId, statusValue, recipientId);
+                            log.info("[WA-WEBHOOK-STATUS] Message updated: externalId={}, oldStatus={}, newStatus={}, recipient={}",
+                                    externalId, message.getStatus(), statusValue, recipientId);
+                        } else {
+                            log.info("[WA-WEBHOOK-STATUS] Message status unchanged: externalId={}, status={}", externalId, statusValue);
                         }
-                    });
+                    }, () -> log.warn("[WA-WEBHOOK-STATUS] Message NOT FOUND in DB: externalId={}, status={}", externalId, statusValue));
 
             // Log failures for monitoring
             if ("failed".equals(statusValue)) {
@@ -245,8 +288,8 @@ public class WhatsAppWebhookService {
                 if (errors.isArray() && errors.size() > 0) {
                     String errorCode = errors.get(0).path("code").asText("unknown");
                     String errorMsg = errors.get(0).path("message").asText("unknown");
-                    log.warn("WhatsApp message failed: externalId={}, code={}, message={}",
-                            externalId, errorCode, errorMsg);
+                    log.error("[WA-WEBHOOK-STATUS] Message FAILED: externalId={}, code={}, message={}, recipient={}",
+                            externalId, errorCode, errorMsg, recipientId);
                 }
             }
         }

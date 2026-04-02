@@ -82,22 +82,28 @@ public class WhatsAppWebhookController {
             @RequestBody String payload,
             @RequestHeader(value = "X-Hub-Signature-256", required = false) String signature) {
 
+        log.info("[WA-WEBHOOK] POST received: signature={}, payloadLength={}",
+                signature != null ? "present" : "missing", payload != null ? payload.length() : 0);
+
         if (signature == null || signature.isBlank()) {
-            log.warn("Missing X-Hub-Signature-256 header");
+            log.warn("[WA-WEBHOOK] Missing X-Hub-Signature-256 header — rejecting");
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
         if (!webhookService.verifySignature(payload, signature)) {
-            log.warn("Invalid X-Hub-Signature-256 — rejecting webhook");
+            log.warn("[WA-WEBHOOK] Invalid X-Hub-Signature-256 — rejecting");
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
+
+        log.info("[WA-WEBHOOK] Signature verified OK — processing payload");
 
         // Process asynchronously-safe: return 200 immediately, process in transaction
         try {
             webhookService.processPayload(payload);
+            log.info("[WA-WEBHOOK] Payload processed successfully");
         } catch (Exception e) {
             // Log but still return 200 to prevent Meta retries for processing errors
-            log.error("Error processing webhook payload: {}", e.getMessage(), e);
+            log.error("[WA-WEBHOOK] Error processing payload: {}", e.getMessage(), e);
         }
 
         return ResponseEntity.ok().build();

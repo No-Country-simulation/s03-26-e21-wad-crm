@@ -50,6 +50,9 @@ public class WhatsAppService {
      */
     @Transactional
     public SendWhatsAppResponse sendMessage(SendWhatsAppRequest request, UUID workspaceId) {
+        log.info("[WA-OUTBOUND] Sending message: contactId={}, workspaceId={}, template={}",
+                request.contactId(), workspaceId, request.templateName());
+
         // Resolve contact
         Contact contact = contactRepository
                 .findByWorkspaceIdAndIdAndIsDeletedFalse(workspaceId, request.contactId())
@@ -60,6 +63,7 @@ public class WhatsAppService {
             throw new IllegalArgumentException(
                     "El contacto no tiene número de teléfono registrado");
         }
+        log.info("[WA-OUTBOUND] Contact resolved: id={}, phone={}", contact.getId(), contact.getPhone());
 
         // Resolve WhatsApp config for workspace
         WhatsAppConfig config = whatsAppConfigRepository
@@ -70,10 +74,12 @@ public class WhatsAppService {
         // Decrypt credentials
         String phoneNumberId = config.getPhoneNumberId();
         String accessToken   = encryptionService.decrypt(config.getAccessToken());
+        log.info("[WA-OUTBOUND] Config resolved: phoneNumberId={}", phoneNumberId);
 
         // findOrCreate conversation (Req 21.4)
         Conversation conversation = conversationService.findOrCreate(
                 contact.getId(), MessageChannel.WHATSAPP, workspaceId);
+        log.info("[WA-OUTBOUND] Conversation: id={}", conversation.getId());
 
         // Persist message with SENDING status first
         var pendingMsg = conversationService.addMessage(new AddMessageRequest(
@@ -85,12 +91,15 @@ public class WhatsAppService {
                 null,
                 LocalDateTime.now()
         ), workspaceId);
+        log.info("[WA-OUTBOUND] Pending message saved: msgId={}, status=SENDING", pendingMsg.id());
 
         // Send via Meta Cloud API (Req 21.1)
         try {
             String externalId;
             if (request.templateName() != null && !request.templateName().isBlank()) {
                 // Template message (outside 24h window)
+                log.info("[WA-OUTBOUND] Sending template: name={}, lang={}",
+                        request.templateName(), request.templateLanguage());
                 externalId = metaCloudApiProvider.sendTemplateMessage(
                         contact.getPhone(),
                         request.templateName(),
@@ -101,16 +110,18 @@ public class WhatsAppService {
                 );
             } else {
                 // Free-form text (within 24h window)
+                log.info("[WA-OUTBOUND] Sending text message: to={}", contact.getPhone());
                 externalId = metaCloudApiProvider.sendMessage(
                         contact.getPhone(), request.body(), phoneNumberId, accessToken);
             }
 
-            log.info("WhatsApp message sent to contact={}, externalId={}", request.contactId(), externalId);
+            log.info("[WA-OUTBOUND] Message SENT successfully: contactId={}, externalId={}, msgId={}",
+                    request.contactId(), externalId, pendingMsg.id());
             return new SendWhatsAppResponse(pendingMsg.id(), externalId, MessageStatus.SENT);
 
         } catch (Exception e) {
             // Req 21.3: update to FAILED on Meta API error
-            log.error("Failed to send WhatsApp message to contact={}: {}", request.contactId(), e.getMessage());
+            log.error("[WA-OUTBOUND] FAILED: contactId={}, error={}", request.contactId(), e.getMessage(), e);
             throw new RuntimeException("Error al enviar mensaje WhatsApp: " + e.getMessage(), e);
         }
     }
