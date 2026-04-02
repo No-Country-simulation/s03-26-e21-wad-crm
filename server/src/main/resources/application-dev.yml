@@ -12,7 +12,9 @@ spring:
 
 app:
   cors:
-    allowed-origins: http://localhost:3000,http://localhost:3001
+    allowed-origins: http://localhost:3000,http://localhost:3001,http://localhost:5173,http://localhost:5174
+  whatsapp:
+    webhook-verify-token: crm-dev-webhook-token-2026
 
 management:
   endpoints:
