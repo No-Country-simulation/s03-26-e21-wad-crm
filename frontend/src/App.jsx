@@ -7,6 +7,8 @@ import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import Contacts from './pages/Contacts';
 import Tasks from './pages/Tasks';
+import Deals from './pages/Deals';
+import Settings from './pages/Settings';
 
 function App() {
   return (
@@ -26,7 +28,9 @@ function App() {
             <Route index element={<Navigate to="/dashboard" replace />} />
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="contacts" element={<Contacts />} />
+            <Route path="deals" element={<Deals />} />
             <Route path="tasks" element={<Tasks />} />
+            <Route path="settings" element={<Settings />} />
           </Route>
         </Routes>
       </AuthProvider>

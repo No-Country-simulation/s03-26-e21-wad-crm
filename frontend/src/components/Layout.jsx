@@ -1,6 +1,6 @@
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LayoutDashboard, Users, CheckSquare, LogOut } from 'lucide-react';
+import { LayoutDashboard, Users, CheckSquare, LogOut, Briefcase, Settings } from 'lucide-react';
 
 export default function Layout() {
   const { user, logout } = useAuth();
@@ -9,7 +9,9 @@ export default function Layout() {
   const navItems = [
     { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { path: '/contacts', label: 'Contacts', icon: Users },
+    { path: '/deals', label: 'Deals', icon: Briefcase },
     { path: '/tasks', label: 'Tasks', icon: CheckSquare },
+    { path: '/settings', label: 'Settings', icon: Settings },
   ];
 
   const isActive = (path) => location.pathname === path;

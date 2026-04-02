@@ -65,4 +65,12 @@ export const workspaceService = {
   update: (data) => api.patch('/api/settings/workspace', data),
 };
 
+export const dealsService = {
+  getAll: () => api.get('/api/deals'),
+  getById: (id) => api.get(`/api/deals/${id}`),
+  create: (data) => api.post('/api/deals', data),
+  update: (id, data) => api.patch(`/api/deals/${id}`, data),
+  delete: (id) => api.delete(`/api/deals/${id}`),
+};
+
 export default api;
