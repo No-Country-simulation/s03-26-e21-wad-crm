@@ -91,6 +91,27 @@ public class ConversationService {
     }
 
     /**
+     * Actualiza el externalId de un mensaje existente.
+     * Usado para asignar el wamid retornado por Meta después de enviar.
+     */
+    @Transactional
+    public MessageDto updateMessageExternalId(UUID messageId, String externalId, UUID workspaceId) {
+        Message message = messageRepository.findById(messageId)
+                .orElseThrow(() -> new EntityNotFoundException("Mensaje no encontrado: " + messageId));
+        
+        // Verificar que el mensaje pertenece al workspace
+        if (!message.getWorkspaceId().equals(workspaceId)) {
+            throw new IllegalArgumentException("El mensaje no pertenece a este workspace");
+        }
+        
+        message.setExternalId(externalId);
+        message = messageRepository.save(message);
+        
+        log.info("[CONVERSATION] Updated externalId for message {}: {}", messageId, externalId);
+        return toMessageDto(message);
+    }
+
+    /**
      * Lista conversaciones del workspace ordenadas por lastMessageAt desc. Req 22.4
      */
     @Transactional(readOnly = true)
