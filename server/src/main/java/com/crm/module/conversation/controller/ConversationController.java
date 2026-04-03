@@ -1,12 +1,9 @@
 package com.crm.module.conversation.controller;
 
 import com.crm.common.security.WorkspaceContext;
-import com.crm.module.conversation.dto.AddMessageRequest;
 import com.crm.module.conversation.dto.ConversationDto;
 import com.crm.module.conversation.dto.MessageDto;
 import com.crm.module.conversation.entity.Conversation;
-import com.crm.module.conversation.entity.MessageChannel;
-import com.crm.module.conversation.entity.MessageDirection;
 import com.crm.module.conversation.repository.ConversationRepository;
 import com.crm.module.conversation.service.ConversationService;
 import com.crm.module.whatsapp.dto.SendWhatsAppRequest;
@@ -60,7 +57,7 @@ public class ConversationController {
                 .findByIdAndWorkspaceId(conversationId, workspaceId)
                 .orElseThrow(() -> new IllegalArgumentException("Conversación no encontrada: " + conversationId));
 
-        // 2. Send via WhatsApp API (Meta)
+        // 2. Send via WhatsApp API (Meta) - esto YA persiste el mensaje en la BD
         SendWhatsAppRequest waRequest = new SendWhatsAppRequest(
                 conversation.getContactId(),
                 request.body(),
@@ -68,20 +65,15 @@ public class ConversationController {
         );
         SendWhatsAppResponse waResponse = whatsAppService.sendMessage(waRequest, workspaceId);
 
-        // 3. Save message to DB with externalId from Meta response
-        AddMessageRequest addRequest = new AddMessageRequest(
-                conversationId,
-                request.body(),
-                MessageDirection.OUTBOUND,
-                MessageChannel.WHATSAPP,
-                null,
-                waResponse.externalId(),
-                null
-        );
-        MessageDto savedMessage = conversationService.addMessage(addRequest, workspaceId);
+        // 3. Obtener el mensaje guardado por WhatsAppService y retornarlo
+        // Nota: WhatsAppService.sendMessage() ya guarda el mensaje con estado SENT
+        // NO llamamos addMessage() de nuevo para evitar duplicados
+        PageRequest pageable = PageRequest.of(0, 1, Sort.by(Sort.Direction.DESC, "sentAt"));
+        Page<MessageDto> messagesPage = conversationService.listMessages(conversationId, workspaceId, pageable);
+        MessageDto sentMessage = messagesPage.getContent().get(0);
 
         log.info("[CONVERSATION] Mensaje enviado a conversationId={}, waId={}", conversationId, waResponse.externalId());
-        return ResponseEntity.ok(savedMessage);
+        return ResponseEntity.ok(sentMessage);
     }
 
     // DTO for sending message
