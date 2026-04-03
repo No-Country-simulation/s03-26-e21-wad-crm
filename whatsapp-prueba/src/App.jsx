@@ -1279,14 +1279,14 @@ function ConversationsPanel({ crmConfig }) {
     }
   }, [messages])
 
-  // Short polling: check for new messages every 30 segundos (aceptable para Vercel)
+  // Short polling: check for new messages every 10 segundos (for Vercel deployment without WebSocket)
   useEffect(() => {
     if (!crmConfig?.token || !selectedConv) return
 
     const interval = setInterval(() => {
       fetchConversations()
       fetchMessages(selectedConv)
-    }, 30000) // 30 segundos - aceptable para no sobrecargar
+    }, 10000) // 10 segundos - good balance for Vercel
 
     return () => clearInterval(interval)
   }, [crmConfig?.token, selectedConv])
