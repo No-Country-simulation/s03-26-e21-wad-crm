@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -55,6 +56,7 @@ public class WhatsAppWebhookService {
     private final MetaCloudApiProvider metaCloudApiProvider;
     private final EncryptionService encryptionService;
     private final ObjectMapper objectMapper;
+    private final SimpMessagingTemplate messagingTemplate;
 
     /**
      * Req 20.5: verifica la firma HMAC-SHA256 del payload.
@@ -304,12 +306,24 @@ public class WhatsAppWebhookService {
                     .ifPresentOrElse(message -> {
                         MessageStatus newStatus = mapStatusToEnum(statusValue);
                         if (newStatus != null && message.getStatus() != newStatus) {
+                            MessageStatus oldStatus = message.getStatus();
                             message.setStatus(newStatus);
-                            messageRepository.save(message);
+                            // Set deliveredAt/readAt timestamps
+                            if (newStatus == MessageStatus.DELIVERED && message.getDeliveredAt() == null) {
+                                message.setDeliveredAt(LocalDateTime.now());
+                            } else if (newStatus == MessageStatus.READ && message.getReadAt() == null) {
+                                message.setReadAt(LocalDateTime.now());
+                            }
+                            message = messageRepository.save(message);
+                            
+                            // Notify via WebSocket about status change
+                            notifyMessageStatusChange(message);
+                            
                             log.info("[WA-WEBHOOK-STATUS] Message updated: externalId={}, oldStatus={}, newStatus={}, recipient={}",
-                                    externalId, message.getStatus(), statusValue, recipientId);
+                                    externalId, oldStatus, newStatus, recipientId);
                         } else {
-                            log.info("[WA-WEBHOOK-STATUS] Message status unchanged: externalId={}, status={}", externalId, statusValue);
+                            log.info("[WA-WEBHOOK-STATUS] Message status unchanged: externalId={}, currentStatus={}, newStatus={}", 
+                                    externalId, message.getStatus(), statusValue);
                         }
                     }, () -> log.warn("[WA-WEBHOOK-STATUS] Message NOT FOUND in DB: externalId={}, status={}", externalId, statusValue));
 
@@ -369,5 +383,26 @@ public class WhatsAppWebhookService {
         contact.setPhone(phone);
         contact.setStatus(ContactStatus.NEW);
         return contactRepository.save(contact);
+    }
+
+    /**
+     * Notifica cambio de estado de mensaje vía WebSocket.
+     * El frontend puede escuchar para actualizar iconos en tiempo real.
+     */
+    private void notifyMessageStatusChange(Message message) {
+        try {
+            String topic = "/topic/workspace/" + message.getWorkspaceId() + "/messages";
+            messagingTemplate.convertAndSend(topic, java.util.Map.of(
+                "type", "STATUS_CHANGE",
+                "messageId", message.getId(),
+                "status", message.getStatus().name(),
+                "deliveredAt", message.getDeliveredAt(),
+                "readAt", message.getReadAt()
+            ));
+            log.debug("[WA-WEBHOOK-WS] Notified status change: msgId={}, status={}", 
+                    message.getId(), message.getStatus());
+        } catch (Exception e) {
+            log.warn("[WA-WEBHOOK-WS] Failed to send WebSocket notification: {}", e.getMessage());
+        }
     }
 }
