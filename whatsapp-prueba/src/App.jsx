@@ -1299,11 +1299,14 @@ function ConversationsPanel({ crmConfig }) {
 
   function formatMsgTime(dateStr) {
     if (!dateStr) return ''
-    const d = new Date(dateStr)
+    // El backend ya envía la hora en timezone configurada (America/Guayaquil)
+    // Parseamos el string como fecha local sin conversión automática de timezone
+    const d = new Date(dateStr.replace(' ', 'T'))
+    if (isNaN(d.getTime())) return dateStr
     const now = new Date()
     const isToday = d.toDateString() === now.toDateString()
-    if (isToday) return d.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })
-    return d.toLocaleDateString('es-AR', { day: '2-digit', month: 'short' }) + ' ' + d.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })
+    if (isToday) return d.toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit' })
+    return d.toLocaleDateString('es-EC', { day: '2-digit', month: 'short' }) + ' ' + d.toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit' })
   }
 
   const selectedConvData = conversations.find(c => c.id === selectedConv)
