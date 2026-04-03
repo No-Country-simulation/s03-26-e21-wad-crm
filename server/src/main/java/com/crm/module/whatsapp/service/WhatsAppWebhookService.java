@@ -206,11 +206,11 @@ public class WhatsAppWebhookService {
             log.info("[WA-WEBHOOK-INBOUND] Conversation: id={}, contactId={}", conversation.getId(), contact.getId());
 
             long tsEpoch = msg.path("timestamp").asLong(0);
-            // Meta sends UTC, convert to Argentina timezone (UTC-3, or UTC-3/-4 depending on DST)
-            ZoneId argentinaZone = ZoneId.of("America/Argentina/Buenos_Aires");
+            // Meta sends UTC, convert to Ecuador timezone (UTC-5, no DST)
+            ZoneId ecuadorZone = ZoneId.of("America/Guayaquil");
             LocalDateTime sentAt = tsEpoch > 0
-                    ? LocalDateTime.ofInstant(Instant.ofEpochSecond(tsEpoch), argentinaZone)
-                    : LocalDateTime.now(argentinaZone);
+                    ? LocalDateTime.ofInstant(Instant.ofEpochSecond(tsEpoch), ecuadorZone)
+                    : LocalDateTime.now(ecuadorZone);
 
             if ("text".equals(type)) {
                 String body = msg.path("text").path("body").asText(null);
