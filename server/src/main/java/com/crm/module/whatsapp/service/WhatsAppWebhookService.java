@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,6 +44,9 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class WhatsAppWebhookService {
+
+    @Value("${app.timezone:America/Guayaquil}")
+    private String appTimezone;
 
     private final WhatsAppConfigRepository whatsAppConfigRepository;
     private final ContactRepository contactRepository;
@@ -206,11 +210,11 @@ public class WhatsAppWebhookService {
             log.info("[WA-WEBHOOK-INBOUND] Conversation: id={}, contactId={}", conversation.getId(), contact.getId());
 
             long tsEpoch = msg.path("timestamp").asLong(0);
-            // Meta sends UTC, convert to Ecuador timezone (UTC-5, no DST)
-            ZoneId ecuadorZone = ZoneId.of("America/Guayaquil");
+            // Meta sends UTC, convert to timezone from app configuration
+            ZoneId zone = ZoneId.of(appTimezone);
             LocalDateTime sentAt = tsEpoch > 0
-                    ? LocalDateTime.ofInstant(Instant.ofEpochSecond(tsEpoch), ecuadorZone)
-                    : LocalDateTime.now(ecuadorZone);
+                    ? LocalDateTime.ofInstant(Instant.ofEpochSecond(tsEpoch), zone)
+                    : LocalDateTime.now(zone);
 
             if ("text".equals(type)) {
                 String body = msg.path("text").path("body").asText(null);

@@ -18,6 +18,10 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+
+# Application-wide config
+app:
+  timezone: America/Guayaquil  # Ecuador (UTC-5), can be overridden via env var
         format_sql: true
 
   # Flyway
