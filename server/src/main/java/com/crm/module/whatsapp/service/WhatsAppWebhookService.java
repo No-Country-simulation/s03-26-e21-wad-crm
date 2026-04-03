@@ -24,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
@@ -205,9 +206,11 @@ public class WhatsAppWebhookService {
             log.info("[WA-WEBHOOK-INBOUND] Conversation: id={}, contactId={}", conversation.getId(), contact.getId());
 
             long tsEpoch = msg.path("timestamp").asLong(0);
+            // Meta sends UTC, convert to Argentina timezone (UTC-3, or UTC-3/-4 depending on DST)
+            ZoneId argentinaZone = ZoneId.of("America/Argentina/Buenos_Aires");
             LocalDateTime sentAt = tsEpoch > 0
-                    ? LocalDateTime.ofInstant(Instant.ofEpochSecond(tsEpoch), ZoneOffset.UTC)
-                    : LocalDateTime.now();
+                    ? LocalDateTime.ofInstant(Instant.ofEpochSecond(tsEpoch), argentinaZone)
+                    : LocalDateTime.now(argentinaZone);
 
             if ("text".equals(type)) {
                 String body = msg.path("text").path("body").asText(null);
