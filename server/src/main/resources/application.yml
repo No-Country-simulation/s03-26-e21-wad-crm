@@ -19,11 +19,6 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
 
-# Application-wide config
-app:
-  timezone: America/Guayaquil  # Ecuador (UTC-5), can be overridden via env var
-        format_sql: true
-
   # Flyway
   flyway:
     enabled: true
@@ -54,12 +49,14 @@ app:
   websocket:
     allowed-origins: ${CORS_ORIGINS:http://localhost:3000}
 
-# App config
+# App config - all in one section
 app:
+  timezone: America/Guayaquil
+  format_sql: true
   jwt:
     secret: ${JWT_SECRET:your-256-bit-secret-key-here-change-in-production}
     access-token-expiry: 86400000      # 24 horas
-    refresh-token-expiry: 604800000  # 7 days in ms
+    refresh-token-expiry: 604800000    # 7 days in ms
   cors:
     allowed-origins: ${CORS_ORIGINS:http://localhost:5173,http://localhost:3000,http://127.0.0.1:5173,http://127.0.0.1:3000}
   encryption:
