@@ -65,14 +65,13 @@ public class ConversationController {
         );
         SendWhatsAppResponse waResponse = whatsAppService.sendMessage(waRequest, workspaceId);
 
-        // 3. Obtener el mensaje guardado por WhatsAppService y retornarlo
-        // Nota: WhatsAppService.sendMessage() ya guarda el mensaje con estado SENT
-        // NO llamamos addMessage() de nuevo para evitar duplicados
+        // 3. Obtener el mensaje actualizado (con status SENT y externalId) y retornarlo
         PageRequest pageable = PageRequest.of(0, 1, Sort.by(Sort.Direction.DESC, "sentAt"));
         Page<MessageDto> messagesPage = conversationService.listMessages(conversationId, workspaceId, pageable);
         MessageDto sentMessage = messagesPage.getContent().get(0);
 
-        log.info("[CONVERSATION] Mensaje enviado a conversationId={}, waId={}", conversationId, waResponse.externalId());
+        log.info("[CONVERSATION] Mensaje enviado a conversationId={}, waId={}, status={}", 
+                conversationId, waResponse.externalId(), sentMessage.status());
         return ResponseEntity.ok(sentMessage);
     }
 

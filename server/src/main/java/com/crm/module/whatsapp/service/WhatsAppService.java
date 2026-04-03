@@ -118,8 +118,10 @@ public class WhatsAppService {
             log.info("[WA-OUTBOUND] Message SENT successfully: contactId={}, externalId={}, msgId={}",
                     request.contactId(), externalId, pendingMsg.id());
 
-            // Update message with externalId from Meta (enables status tracking)
+            // Update message with externalId and status from Meta (enables status tracking)
             conversationService.updateMessageExternalId(pendingMsg.id(), externalId, workspaceId);
+            // Also update status to SENT
+            conversationService.updateMessageStatus(pendingMsg.id(), MessageStatus.SENT, workspaceId);
 
             return new SendWhatsAppResponse(pendingMsg.id(), externalId, MessageStatus.SENT);
 

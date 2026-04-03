@@ -112,6 +112,33 @@ public class ConversationService {
     }
 
     /**
+     * Actualiza el status de un mensaje existente.
+     * Usado para actualizar a SENT/DELIVERED/READ cuando Meta notifica.
+     */
+    @Transactional
+    public MessageDto updateMessageStatus(UUID messageId, MessageStatus status, UUID workspaceId) {
+        Message message = messageRepository.findById(messageId)
+                .orElseThrow(() -> new EntityNotFoundException("Mensaje no encontrado: " + messageId));
+        
+        if (!message.getWorkspaceId().equals(workspaceId)) {
+            throw new IllegalArgumentException("El mensaje no pertenece a este workspace");
+        }
+        
+        message.setStatus(status);
+        // Also set timestamp for delivered/read
+        if (status == MessageStatus.DELIVERED && message.getDeliveredAt() == null) {
+            message.setDeliveredAt(LocalDateTime.now());
+        } else if (status == MessageStatus.READ && message.getReadAt() == null) {
+            message.setReadAt(LocalDateTime.now());
+        }
+        
+        message = messageRepository.save(message);
+        
+        log.info("[CONVERSATION] Updated status for message {}: {}", messageId, status);
+        return toMessageDto(message);
+    }
+
+    /**
      * Lista conversaciones del workspace ordenadas por lastMessageAt desc. Req 22.4
      */
     @Transactional(readOnly = true)
