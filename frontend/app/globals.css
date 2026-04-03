@@ -24,12 +24,17 @@
 }
 
 @layer base {
+  *,
+  *::before,
+  *::after {
+    scrollbar-width: thin;
+  }
+
   :root {
     interpolate-size: allow-keywords;
   }
 
   html {
-    scrollbar-width: thin;
     @apply scroll-smooth font-sans;
   }
 
@@ -57,6 +62,10 @@
   }
 }
 
-@utility bg-glass {
+@utility bg-glass-dark {
   @apply bg-[#141414]/20 backdrop-blur-[10px];
+}
+
+@utility bg-glass-light {
+  @apply bg-white/20 backdrop-blur-[10px];
 }

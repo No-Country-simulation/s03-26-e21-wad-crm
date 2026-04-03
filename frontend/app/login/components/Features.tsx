@@ -2,14 +2,14 @@ import Image from "@node_modules/next/image";
 
 export const Features = () => {
   return (
-    <section className="flex-2 flex flex-col font-light justify-center items-center p-8">
+    <section className="flex-1 flex flex-col justify-center items-center p-8 bg-red-50">
       <Image
-        src="/logo.png"
+        src="/images/bg.jpeg"
         alt="Logo"
-        width={200}
-        height={100}
+        width={1200}
+        height={500}
         loading="eager"
-        className="w-[min(100%,700px)] h-auto object-contain"
+        className="w-full h-full object-cover rounded-3xl"
       />
     </section>
   );
