@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import javax.crypto.Mac;
@@ -82,6 +83,17 @@ public class MetaCloudApiProvider implements WhatsAppProvider {
             }
             log.info("WhatsApp message sent to {}, externalId={}", phoneNumber, externalId);
             return externalId;
+        } catch (HttpClientErrorException e) {
+            // Mejor manejo de errores HTTP específicos
+            if (e.getStatusCode() == HttpStatus.UNAUTHORIZED) {
+                log.error("Token de WhatsApp expirado o inválido: {}", e.getMessage());
+                throw new RuntimeException("Token de acceso expirado. Por favor actualizá las credenciales en Settings > WhatsApp.", e);
+            } else if (e.getStatusCode() == HttpStatus.FORBIDDEN) {
+                log.error("Sin permisos para enviar mensaje: {}", e.getMessage());
+                throw new RuntimeException("Sin permisos. Verificá que el token tenga permisos de envío.", e);
+            }
+            log.error("Error HTTP al enviar WhatsApp message to {}: {}", phoneNumber, e.getMessage());
+            throw new RuntimeException("Error al enviar mensaje WhatsApp: " + e.getMessage(), e);
         } catch (Exception e) {
             log.error("Error sending WhatsApp message to {}: {}", phoneNumber, e.getMessage());
             throw new RuntimeException("Error al enviar mensaje WhatsApp: " + e.getMessage(), e);
@@ -144,6 +156,16 @@ public class MetaCloudApiProvider implements WhatsAppProvider {
             }
             log.info("WhatsApp template '{}' sent to {}, externalId={}", templateName, phoneNumber, externalId);
             return externalId;
+        } catch (HttpClientErrorException e) {
+            if (e.getStatusCode() == HttpStatus.UNAUTHORIZED) {
+                log.error("Token de WhatsApp expirado o inválido: {}", e.getMessage());
+                throw new RuntimeException("Token de acceso expirado. Por favor actualizá las credenciales en Settings > WhatsApp.", e);
+            } else if (e.getStatusCode() == HttpStatus.FORBIDDEN) {
+                log.error("Sin permisos para enviar mensaje: {}", e.getMessage());
+                throw new RuntimeException("Sin permisos. Verificá que el token tenga permisos de envío.", e);
+            }
+            log.error("Error HTTP al enviar WhatsApp template a {}: {}", phoneNumber, e.getMessage());
+            throw new RuntimeException("Error al enviar template WhatsApp: " + e.getMessage(), e);
         } catch (Exception e) {
             log.error("Error sending WhatsApp template to {}: {}", phoneNumber, e.getMessage());
             throw new RuntimeException("Error al enviar template WhatsApp: " + e.getMessage(), e);
