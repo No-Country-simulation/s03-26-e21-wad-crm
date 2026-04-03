@@ -12,6 +12,7 @@ import com.crm.module.conversation.repository.ConversationRepository;
 import com.crm.module.conversation.repository.MessageRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -25,6 +26,7 @@ import java.util.UUID;
  * Servicio de conversaciones y mensajes.
  * Requisitos: 21.4, 21.5, 22.1–22.4
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ConversationService {
@@ -89,6 +91,16 @@ public class ConversationService {
     }
 
     /**
+     * Lista conversaciones del workspace ordenadas por lastMessageAt desc. Req 22.4
+     */
+    @Transactional(readOnly = true)
+    public Page<ConversationDto> listConversations(UUID workspaceId, Pageable pageable) {
+        return conversationRepository
+                .findByWorkspaceIdOrderByLastMessageAtDesc(workspaceId, pageable)
+                .map(this::toConversationDto);
+    }
+
+    /**
      * Lista mensajes de una conversación paginados, ordenados por sentAt asc. Req 22.1, 22.3
      */
     @Transactional(readOnly = true)
@@ -105,28 +117,23 @@ public class ConversationService {
     }
 
     /**
-     * Lista conversaciones del workspace ordenadas por lastMessageAt desc. Req 22.4
-     */
-    @Transactional(readOnly = true)
-    public Page<ConversationDto> listConversations(UUID workspaceId, Pageable pageable) {
-        return conversationRepository
-                .findByWorkspaceIdOrderByLastMessageAtDesc(workspaceId, pageable)
-                .map(this::toConversationDto);
-    }
-
-    /**
      * Publica notificación WebSocket al topic del workspace. Req 21.5
+     * Si falla el WebSocket, el mensaje YA fue guardado en BD — solo se loggea el error.
      */
-    public void notifyViaWebSocket(Conversation conversation, Message message) {
-        ConversationNotification notification = new ConversationNotification(
-                conversation.getId(),
-                toMessageDto(message),
-                conversation.getWorkspaceId()
-        );
-        messagingTemplate.convertAndSend(
-                "/topic/workspace/" + conversation.getWorkspaceId() + "/conversations",
-                notification
-        );
+    private void notifyViaWebSocket(Conversation conversation, Message message) {
+        try {
+            ConversationNotification notification = new ConversationNotification(
+                    conversation.getId(),
+                    toMessageDto(message),
+                    conversation.getWorkspaceId()
+            );
+            messagingTemplate.convertAndSend(
+                    "/topic/workspace/" + conversation.getWorkspaceId() + "/conversations",
+                    notification
+            );
+        } catch (Exception e) {
+            log.error("Failed to send WebSocket notification for conversation {}", conversation.getId(), e);
+        }
     }
 
     // ── Mappers manuales ──────────────────────────────────────────────────────

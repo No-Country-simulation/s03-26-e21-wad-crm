@@ -1,6 +1,7 @@
 package com.crm.config;
 
 import com.crm.common.security.JwtAuthFilter;
+import com.crm.common.security.WorkspaceFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -26,15 +27,22 @@ import java.util.List;
 public class SecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter;
+    private final WorkspaceFilter workspaceFilter;
     private final AppProperties appProperties;
 
     private static final String[] PUBLIC_PATHS = {
             "/api/auth/**",
             "/webhooks/**",
             "/actuator/health",
+            "/actuator/**",
             "/swagger-ui/**",
             "/swagger-ui.html",
-            "/v3/api-docs/**"
+            "/swagger-ui/index.html",
+            "/swagger-resources/**",
+            "/v3/api-docs/**",
+            "/v3/api-docs.yaml",
+            "/v3/api-docs/swagger-config",
+            "/webjars/**"
     };
 
     @Bean
@@ -48,6 +56,7 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterAfter(workspaceFilter, JwtAuthFilter.class)
                 .build();
     }
 
@@ -55,7 +64,14 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         List<String> origins = appProperties.getCors().getAllowedOrigins();
-        config.setAllowedOrigins(origins != null ? origins : List.of("http://localhost:3000"));
+
+        // Dev mode: wildcard "*" uses allowedOriginPatterns (works with allowCredentials)
+        if (origins != null && origins.contains("*")) {
+            config.setAllowedOriginPatterns(List.of("*"));
+        } else {
+            config.setAllowedOrigins(origins != null ? origins : List.of("http://localhost:3000"));
+        }
+
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);

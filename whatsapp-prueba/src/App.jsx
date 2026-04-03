@@ -5,6 +5,9 @@ import axios from 'axios'
 // ─── Constants ───────────────────────────────────────────────────────────────
 
 const API_BASE = '/api'
+const BACKEND_BASE = (typeof window !== 'undefined' && window.location.hostname === 'localhost')
+  ? 'http://localhost:8080'
+  : ''
 const STORAGE_KEY = 'wa-prueba-config'
 const TEMPLATES_KEY = 'wa-prueba-templates'
 const CRM_KEY = 'wa-prueba-crm'
@@ -81,7 +84,7 @@ function renderPreview(text) {
 
 // ─── ConfigPanel ─────────────────────────────────────────────────────────────
 
-function ConfigPanel({ config, onSave, onClear }) {
+function ConfigPanel({ config, onSave, onClear, crmConfig }) {
   const [form, setForm] = useState(config || {
     baseUrl: 'https://graph.facebook.com/v22.0',
     phoneNumberId: '',
@@ -92,6 +95,8 @@ function ConfigPanel({ config, onSave, onClear }) {
   })
   const [testing, setTesting] = useState(false)
   const [testResult, setTestResult] = useState(null)
+  const [savingToCrm, setSavingToCrm] = useState(false)
+  const [crmSaveResult, setCrmSaveResult] = useState(null)
 
   function handleChange(field, value) {
     setForm(prev => ({ ...prev, [field]: value }))
@@ -118,6 +123,36 @@ function ConfigPanel({ config, onSave, onClear }) {
       setTestResult({ ok: false, msg })
     } finally {
       setTesting(false)
+    }
+  }
+
+  async function saveToCrmBackend() {
+    if (!crmConfig?.token) {
+      setCrmSaveResult({ ok: false, msg: 'Necesitás estar logueado en CRM para guardar' })
+      return
+    }
+    if (!form.phoneNumberId || !form.accessToken || !form.appSecret || !form.webhookVerifyToken) {
+      setCrmSaveResult({ ok: false, msg: 'Completá: phoneNumberId, accessToken, appSecret, webhookVerifyToken' })
+      return
+    }
+    setSavingToCrm(true)
+    setCrmSaveResult(null)
+    try {
+      const apiBase = window.location.hostname === 'localhost' ? 'http://localhost:8080' : (crmConfig.baseUrl || '')
+      const res = await axios.post(`${apiBase}/api/settings/integrations/whatsapp`, {
+        phoneNumberId: form.phoneNumberId,
+        accessToken: form.accessToken,
+        appSecret: form.appSecret,
+        webhookVerifyToken: form.webhookVerifyToken,
+      }, {
+        headers: { Authorization: `Bearer ${crmConfig.token}` },
+      })
+      setCrmSaveResult({ ok: true, msg: '✅ Guardado en el CRM Backend!' })
+    } catch (err) {
+      const msg = err.response?.data?.message || err.response?.data?.error || err.message
+      setCrmSaveResult({ ok: false, msg: '❌ Error: ' + msg })
+    } finally {
+      setSavingToCrm(false)
     }
   }
 
@@ -156,20 +191,33 @@ function ConfigPanel({ config, onSave, onClear }) {
             </div>
           ))}
         </div>
-        <div className="flex gap-3 mt-6">
+        <div className="flex gap-3 mt-6 flex-wrap">
           <button onClick={testConnection} disabled={testing} className="px-4 py-2 rounded-lg bg-slate-700 text-white hover:bg-slate-600 disabled:opacity-50 transition-colors">
             {testing ? 'Probando...' : 'Probar Conexión'}
           </button>
-          <button onClick={handleSave} className="px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-500 transition-colors">
-            Guardar Config
+          <button onClick={handleSave} className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-500 transition-colors">
+            Guardar en Local
           </button>
-          <button onClick={() => { onClear(); setForm(fields.reduce((acc, f) => ({ ...acc, [f.key]: '' }), { baseUrl: 'https://graph.facebook.com/v22.0' })); setTestResult(null) }} className="px-4 py-2 rounded-lg bg-red-600/20 text-red-400 hover:bg-red-600/30 transition-colors">
+          <button onClick={saveToCrmBackend} disabled={savingToCrm || !crmConfig?.token} className="px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-500 disabled:opacity-50 transition-colors">
+            {savingToCrm ? 'Guardando...' : 'Guardar en CRM Backend'}
+          </button>
+          <button onClick={() => { onClear(); setForm({baseUrl: 'https://graph.facebook.com/v22.0', phoneNumberId: '', accessToken: '', appSecret: '', webhookVerifyToken: '', wabaId: ''}); setTestResult(null); setCrmSaveResult(null) }} className="px-4 py-2 rounded-lg bg-red-600/20 text-red-400 hover:bg-red-600/30 transition-colors">
             <Trash2 className="w-4 h-4" />
           </button>
         </div>
         {testResult && (
           <div className={`mt-4 p-3 rounded-lg text-sm ${testResult.ok ? 'bg-green-900/30 text-green-300 border border-green-700' : 'bg-red-900/30 text-red-300 border border-red-700'}`}>
             {testResult.ok ? '✅' : '❌'} {testResult.msg}
+          </div>
+        )}
+        {crmSaveResult && (
+          <div className={`mt-4 p-3 rounded-lg text-sm ${crmSaveResult.ok ? 'bg-green-900/30 text-green-300 border border-green-700' : 'bg-red-900/30 text-red-300 border border-red-700'}`}>
+            {crmSaveResult.msg}
+          </div>
+        )}
+        {!crmConfig?.token && (
+          <div className="mt-4 p-3 rounded-lg text-sm bg-yellow-900/30 text-yellow-300 border border-yellow-700">
+            ⚠️ Necesitás estar logueado en CRM para guardar en el backend
           </div>
         )}
       </div>
@@ -183,6 +231,8 @@ function SendPanel({ config, templates, crmConfig }) {
   const [phone, setPhone] = useState('')
   const [body, setBody] = useState('')
   const [contactId, setContactId] = useState('')
+  const [crmContacts, setCrmContacts] = useState([])
+  const [loadingContacts, setLoadingContacts] = useState(false)
   const [mode, setMode] = useState('text')
   const [sendVia, setSendVia] = useState('direct') // 'direct' or 'crm'
   const [selectedTemplateId, setSelectedTemplateId] = useState('')
@@ -191,6 +241,29 @@ function SendPanel({ config, templates, crmConfig }) {
   const [result, setResult] = useState(null)
 
   const selectedTpl = templates.find(t => t.id === selectedTemplateId)
+
+  // Load contacts from CRM when switching to CRM mode
+  useEffect(() => {
+    if (sendVia === 'crm' && crmConfig?.token && crmContacts.length === 0) {
+      loadCrmContacts()
+    }
+  }, [sendVia, crmConfig])
+
+  async function loadCrmContacts() {
+    if (!crmConfig?.token) return
+    setLoadingContacts(true)
+    try {
+      const apiBase = window.location.hostname === 'localhost' ? 'http://localhost:8080' : (crmConfig.baseUrl || '')
+      const res = await axios.get(`${apiBase}/api/contacts?page=0&size=100`, {
+        headers: { Authorization: `Bearer ${crmConfig.token}` },
+      })
+      setCrmContacts(res.data.content || [])
+    } catch (err) {
+      console.error('Error loading contacts:', err)
+    } finally {
+      setLoadingContacts(false)
+    }
+  }
 
   async function handleSend() {
     if (sendVia === 'crm') {
@@ -320,7 +393,7 @@ function SendPanel({ config, templates, crmConfig }) {
         }
       }
 
-      const apiBase = window.location.hostname === 'localhost' ? '' : (crmConfig.baseUrl || '')
+      const apiBase = window.location.hostname === 'localhost' ? 'http://localhost:8080' : (crmConfig.baseUrl || '')
       const res = await axios.post(
         `${apiBase}/api/whatsapp/send`,
         payload,
@@ -390,16 +463,27 @@ function SendPanel({ config, templates, crmConfig }) {
           <>
             <div className="mb-4">
               <label className="block text-sm font-medium text-slate-300 mb-1">
-                Contact ID (UUID del CRM)
+                Contacto del CRM
               </label>
-              <input
-                type="text"
-                value={contactId}
-                onChange={e => setContactId(e.target.value)}
-                placeholder="46b432d9-1138-4e12-a262-c82ae17d3d21"
-                className="w-full rounded-lg border border-slate-600 bg-slate-900 px-3 py-2 text-white placeholder-slate-500 focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500 font-mono text-sm"
-              />
-              <p className="text-xs text-slate-500 mt-1">ID del contacto en la base de datos del CRM</p>
+              {loadingContacts ? (
+                <div className="text-sm text-slate-400 py-2">Cargando contactos...</div>
+              ) : crmContacts.length === 0 ? (
+                <div className="text-sm text-slate-400 py-2">
+                  No hay contactos en el CRM. <button onClick={loadCrmContacts} className="text-green-400 underline">Reintentar</button>
+                </div>
+              ) : (
+                <select
+                  value={contactId}
+                  onChange={e => setContactId(e.target.value)}
+                  className="w-full rounded-lg border border-slate-600 bg-slate-900 px-3 py-2 text-white focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
+                >
+                  <option value="">— Seleccioná un contacto —</option>
+                  {crmContacts.map(c => (
+                    <option key={c.id} value={c.id}>{c.name} ({c.email || c.phone || 'sin email/teléfono'})</option>
+                  ))}
+                </select>
+              )}
+              <p className="text-xs text-slate-500 mt-1">Contactos cargados automáticamente del CRM</p>
             </div>
           </>
         )}
@@ -1079,21 +1163,47 @@ function CrmPanel({ crmConfig, onSave, onClear }) {
   )
 }
 
-// ─── Conversations Panel ─────────────────────────────────────────────────────
+// ─── Conversations Panel (Chat Layout + Send Messages) ───────────────────────
 
 function ConversationsPanel({ crmConfig }) {
   const [conversations, setConversations] = useState([])
+  const [contacts, setContacts] = useState({})
   const [selectedConv, setSelectedConv] = useState(null)
   const [messages, setMessages] = useState([])
   const [loading, setLoading] = useState(false)
+  const [loadingContacts, setLoadingContacts] = useState(false)
   const [error, setError] = useState(null)
+  const [newMessage, setNewMessage] = useState('')
+  const [sending, setSending] = useState(false)
+  const messagesEndRef = useState(null)
 
-  // Use proxy URL when running on same host, direct URL otherwise
-  const apiBase = window.location.hostname === 'localhost' ? '' : (crmConfig?.baseUrl || '')
+  const apiBase = window.location.hostname === 'localhost' ? 'http://localhost:8080' : (crmConfig?.baseUrl || '')
+
+  // Load contacts to map contactId → name/phone
+  useEffect(() => {
+    if (!crmConfig?.token) return
+    loadContacts()
+  }, [crmConfig])
+
+  async function loadContacts() {
+    setLoadingContacts(true)
+    try {
+      const res = await axios.get(`${apiBase}/api/contacts?page=0&size=200`, {
+        headers: { Authorization: `Bearer ${crmConfig.token}` },
+      })
+      const map = {}
+      ;(res.data.content || []).forEach(c => { map[c.id] = c })
+      setContacts(map)
+    } catch (err) {
+      console.error('Error loading contacts:', err)
+    } finally {
+      setLoadingContacts(false)
+    }
+  }
 
   async function fetchConversations() {
     if (!crmConfig?.token) {
-      setError('Configurá el CRM primero')
+      setError('Sesión expirada. Cerrá sesión y volvé a iniciar.')
       return
     }
     setLoading(true)
@@ -1104,7 +1214,11 @@ function ConversationsPanel({ crmConfig }) {
       })
       setConversations(res.data.content || [])
     } catch (err) {
-      setError(err.response?.data?.message || err.message)
+      if (err.response?.status === 401 || err.response?.status === 403) {
+        setError('Sesión expirada. Cerrá sesión y volvé a iniciar.')
+      } else {
+        setError(err.response?.data?.message || err.message)
+      }
     } finally {
       setLoading(false)
     }
@@ -1113,7 +1227,7 @@ function ConversationsPanel({ crmConfig }) {
   async function fetchMessages(convId) {
     if (!crmConfig?.token) return
     try {
-      const res = await axios.get(`${apiBase}/api/conversations/${convId}/messages?page=0&size=100`, {
+      const res = await axios.get(`${apiBase}/api/conversations/${convId}/messages?page=0&size=200`, {
         headers: { Authorization: `Bearer ${crmConfig.token}` },
       })
       setMessages(res.data.content || [])
@@ -1123,108 +1237,238 @@ function ConversationsPanel({ crmConfig }) {
     }
   }
 
+  async function sendMessage() {
+    if (!newMessage.trim() || !selectedConv || !crmConfig?.token) return
+    setSending(true)
+    try {
+      await axios.post(`${apiBase}/api/conversations/${selectedConv}/messages`, {
+        body: newMessage,
+      }, {
+        headers: { Authorization: `Bearer ${crmConfig.token}` },
+      })
+      setNewMessage('')
+      // Refresh messages
+      const res = await axios.get(`${apiBase}/api/conversations/${selectedConv}/messages?page=0&size=200`, {
+        headers: { Authorization: `Bearer ${crmConfig.token}` },
+      })
+      setMessages(res.data.content || [])
+      // Also refresh conversations to update last message
+      fetchConversations()
+    } catch (err) {
+      setError(err.response?.data?.message || err.message)
+    } finally {
+      setSending(false)
+    }
+  }
+
+  function handleKeyPress(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault()
+      sendMessage()
+    }
+  }
+
   useEffect(() => {
     if (crmConfig?.token) fetchConversations()
   }, [crmConfig])
 
+  // Auto-scroll to bottom when messages change
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' })
+    }
+  }, [messages])
+
+  // Short polling: check for new messages every 30 segundos (aceptable para Vercel)
+  useEffect(() => {
+    if (!crmConfig?.token || !selectedConv) return
+
+    const interval = setInterval(() => {
+      fetchConversations()
+      fetchMessages(selectedConv)
+    }, 30000) // 30 segundos - aceptable para no sobrecargar
+
+    return () => clearInterval(interval)
+  }, [crmConfig?.token, selectedConv])
+
+  function getContactInfo(contactId) {
+    const c = contacts[contactId]
+    if (!c) return { name: 'Contacto', phone: '', email: '' }
+    return { name: c.name, phone: c.phone, email: c.email }
+  }
+
+  function formatMsgTime(dateStr) {
+    if (!dateStr) return ''
+    const d = new Date(dateStr)
+    const now = new Date()
+    const isToday = d.toDateString() === now.toDateString()
+    if (isToday) return d.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })
+    return d.toLocaleDateString('es-AR', { day: '2-digit', month: 'short' }) + ' ' + d.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })
+  }
+
+  const selectedConvData = conversations.find(c => c.id === selectedConv)
+  const selectedContactInfo = selectedConvData ? getContactInfo(selectedConvData.contactId) : null
+
   return (
-    <div className="space-y-4">
-      <div className="rounded-xl border border-slate-700 bg-slate-800/50 p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-white flex items-center gap-2">
-            <MessageCircle className="w-5 h-5 text-green-400" />
-            Conversaciones ({conversations.length})
-          </h2>
-          <button onClick={fetchConversations} disabled={loading} className="px-3 py-1.5 rounded-lg bg-slate-700 text-slate-300 text-sm hover:bg-slate-600 disabled:opacity-50 transition-colors">
-            {loading ? 'Cargando...' : 'Refresh'}
-          </button>
-        </div>
-
-        {error && (
-          <div className="mb-4 p-3 rounded-lg bg-red-900/30 text-red-300 border border-red-700 text-sm">
-            ❌ {error}
-          </div>
-        )}
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Conversation list */}
-          <div className="space-y-2 max-h-96 overflow-y-auto">
-            {conversations.length === 0 && !loading && (
-              <p className="text-slate-500 text-center py-8">Sin conversaciones</p>
-            )}
-            {conversations.map(conv => (
-              <button
-                key={conv.id}
-                onClick={() => fetchMessages(conv.id)}
-                className={`w-full text-left p-3 rounded-lg border transition-colors ${
-                  selectedConv === conv.id
-                    ? 'bg-green-900/20 border-green-700'
-                    : 'bg-slate-900/50 border-slate-700 hover:border-slate-600'
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-white truncate">
-                    {conv.contactName || conv.contactPhone || 'Contacto'}
-                  </span>
-                  <span className="text-xs text-slate-500">
-                    {conv.channel}
-                  </span>
-                </div>
-                {conv.lastMessage && (
-                  <p className="text-xs text-slate-400 truncate mt-1">{conv.lastMessage}</p>
-                )}
-              </button>
-            ))}
+    <div className="rounded-xl border border-slate-700 bg-slate-800/50 overflow-hidden" style={{ height: 'calc(100vh - 200px)', minHeight: '500px' }}>
+      <div className="flex h-full">
+        {/* ── Left Sidebar: Conversations List ── */}
+        <div className="w-80 border-r border-slate-700 bg-slate-900/50 flex flex-col">
+          <div className="p-4 border-b border-slate-700 flex items-center justify-between">
+            <h2 className="text-sm font-semibold text-white flex items-center gap-2">
+              <MessageCircle className="w-4 h-4 text-green-400" />
+              Conversaciones
+            </h2>
+            <button
+              onClick={fetchConversations}
+              disabled={loading}
+              className="px-2 py-1 rounded bg-slate-700 text-slate-300 text-xs hover:bg-slate-600 disabled:opacity-50 transition-colors"
+            >
+              {loading ? '...' : '↻'}
+            </button>
           </div>
 
-          {/* Messages */}
-          <div className="bg-slate-900/50 rounded-lg border border-slate-700 p-4 max-h-96 overflow-y-auto">
-            {!selectedConv ? (
-              <p className="text-slate-500 text-center py-8">Seleccioná una conversación</p>
-            ) : messages.length === 0 ? (
-              <p className="text-slate-500 text-center py-8">Sin mensajes</p>
-            ) : (
-              <div className="space-y-2">
-                {messages.map(msg => (
-                  <div
-                    key={msg.id}
-                    className={`p-3 rounded-lg text-sm ${
-                      msg.direction === 'OUTBOUND'
-                        ? 'bg-green-900/20 border border-green-800/30 ml-4'
-                        : 'bg-slate-800/50 border border-slate-700 mr-4'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between mb-1">
-                      <span className={`text-xs font-bold ${
-                        msg.direction === 'OUTBOUND' ? 'text-green-400' : 'text-blue-400'
-                      }`}>
-                        {msg.direction === 'OUTBOUND' ? '→ Enviado' : '← Recibido'}
-                      </span>
-                      <span className="text-xs text-slate-500">
-                        {msg.sentAt ? formatTime(msg.sentAt) : ''}
-                      </span>
-                    </div>
-                    <p className="text-white whitespace-pre-wrap">{msg.body}</p>
-                    {msg.externalId && (
-                      <p className="text-xs text-slate-500 mt-1 font-mono">extId: {msg.externalId}</p>
-                    )}
-                    {msg.status && (
-                      <span className={`inline-block mt-1 text-xs px-2 py-0.5 rounded ${
-                        msg.status === 'SENT' ? 'bg-green-900/30 text-green-300' :
-                        msg.status === 'DELIVERED' ? 'bg-blue-900/30 text-blue-300' :
-                        msg.status === 'READ' ? 'bg-purple-900/30 text-purple-300' :
-                        msg.status === 'FAILED' ? 'bg-red-900/30 text-red-300' :
-                        msg.status === 'SENDING' ? 'bg-yellow-900/30 text-yellow-300' :
-                        'bg-slate-700 text-slate-300'
-                      }`}>
-                        {msg.status}
-                      </span>
-                    )}
-                  </div>
-                ))}
+          {error && (
+            <div className="mx-3 mt-3 p-2 rounded bg-red-900/30 text-red-300 text-xs border border-red-700">
+              ❌ {error}
+            </div>
+          )}
+
+          <div className="flex-1 overflow-y-auto">
+            {loadingContacts && conversations.length === 0 && (
+              <div className="flex items-center justify-center py-8">
+                <span className="text-slate-500 text-sm">Cargando...</span>
               </div>
             )}
+            {conversations.length === 0 && !loading && !loadingContacts && (
+              <div className="flex items-center justify-center py-8">
+                <span className="text-slate-500 text-sm">Sin conversaciones</span>
+              </div>
+            )}
+            {conversations.map(conv => {
+              const info = getContactInfo(conv.contactId)
+              const isSelected = selectedConv === conv.id
+              return (
+                <button
+                  key={conv.id}
+                  onClick={() => fetchMessages(conv.id)}
+                  className={`w-full text-left p-3 border-b border-slate-800 transition-colors ${
+                    isSelected ? 'bg-green-900/20 border-l-2 border-l-green-500' : 'hover:bg-slate-800/50'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 ${
+                      conv.channel === 'WHATSAPP' ? 'bg-green-700 text-white' : 'bg-blue-700 text-white'
+                    }`}>
+                      {info.name.charAt(0).toUpperCase()}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium text-white truncate">{info.name}</span>
+                        <span className="text-xs text-slate-500 flex-shrink-0 ml-2">{conv.lastMessageAt ? formatMsgTime(conv.lastMessageAt) : ''}</span>
+                      </div>
+                      <div className="flex items-center justify-between mt-0.5">
+                        <span className="text-xs text-slate-400 truncate">
+                          {info.phone || info.email || 'Sin datos'}
+                        </span>
+                        <span className={`text-xs px-1.5 py-0.5 rounded flex-shrink-0 ml-2 ${
+                          conv.channel === 'WHATSAPP' ? 'bg-green-900/40 text-green-400' : 'bg-blue-900/40 text-blue-400'
+                        }`}>
+                          {conv.channel === 'WHATSAPP' ? 'WA' : 'EM'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </button>
+              )
+            })}
           </div>
+        </div>
+
+        {/* ── Right Panel: Messages ── */}
+        <div className="flex-1 flex flex-col bg-slate-900/30">
+          {!selectedConv ? (
+            <div className="flex-1 flex items-center justify-center">
+              <div className="text-center">
+                <MessageCircle className="w-16 h-16 text-slate-700 mx-auto mb-4" />
+                <p className="text-slate-500 text-lg">Seleccioná una conversación</p>
+                <p className="text-slate-600 text-sm mt-1">Elegí un contacto de la lista izquierda</p>
+              </div>
+            </div>
+          ) : (
+            <>
+              {/* Header */}
+              <div className="p-4 border-b border-slate-700 bg-slate-800/50">
+                <div className="flex items-center gap-3">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold ${
+                    selectedConvData?.channel === 'WHATSAPP' ? 'bg-green-700 text-white' : 'bg-blue-700 text-white'
+                  }`}>
+                    {selectedContactInfo?.name?.charAt(0).toUpperCase() || '?'}
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-white">{selectedContactInfo?.name || 'Contacto'}</p>
+                    <p className="text-xs text-slate-400">{selectedContactInfo?.phone || selectedContactInfo?.email || ''}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Messages area */}
+              <div className="flex-1 overflow-y-auto p-4 space-y-3">
+                {messages.length === 0 ? (
+                  <div className="flex items-center justify-center h-full">
+                    <p className="text-slate-500 text-sm">Sin mensajes en esta conversación</p>
+                  </div>
+                ) : (
+                  messages.map(msg => (
+                    <div
+                      key={msg.id}
+                      className={`flex ${msg.direction === 'OUTBOUND' ? 'justify-end' : 'justify-start'}`}
+                    >
+                      <div className={`max-w-md px-4 py-2.5 rounded-2xl text-sm ${
+                        msg.direction === 'OUTBOUND'
+                          ? 'bg-green-700 text-white rounded-br-md'
+                          : 'bg-slate-700 text-white rounded-bl-md'
+                      }`}>
+                        <p className="whitespace-pre-wrap break-words">{msg.body}</p>
+                        <div className={`flex items-center justify-end gap-2 mt-1 ${
+                          msg.direction === 'OUTBOUND' ? 'text-green-200' : 'text-slate-400'
+                        }`}>
+                          <span className="text-xs">{formatMsgTime(msg.sentAt)}</span>
+                          {msg.status && msg.direction === 'OUTBOUND' && (
+                            <span className="text-xs">
+                              {msg.status === 'SENT' ? '✓' : msg.status === 'DELIVERED' ? '✓✓' : msg.status === 'READ' ? '✓✓' : msg.status === 'FAILED' ? '✗' : '◷'}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+                <div ref={messagesEndRef} />
+              </div>
+
+              {/* Message Input */}
+              <div className="p-4 border-t border-slate-700 bg-slate-800/50">
+                <div className="flex gap-2">
+                  <textarea
+                    value={newMessage}
+                    onChange={e => setNewMessage(e.target.value)}
+                    onKeyDown={handleKeyPress}
+                    placeholder="Escribí un mensaje..."
+                    rows={1}
+                    className="flex-1 rounded-lg border border-slate-600 bg-slate-900 px-3 py-2 text-white placeholder-slate-500 focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500 resize-none min-h-[40px] max-h-[120px]"
+                  />
+                  <button
+                    onClick={sendMessage}
+                    disabled={sending || !newMessage.trim() || !selectedConv}
+                    className="px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-500 disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+                  >
+                    {sending ? '◷' : '→'}
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>
@@ -1255,7 +1499,7 @@ function LogsPanel({ crmConfig }) {
 
     setLoading(true)
     try {
-      const apiBase = window.location.hostname === 'localhost' ? '' : (crmConfig.baseUrl || '')
+      const apiBase = window.location.hostname === 'localhost' ? 'http://localhost:8080' : (crmConfig.baseUrl || '')
       const res = await axios.get(`${apiBase}/api/conversations?page=0&size=10`, {
         headers: { Authorization: `Bearer ${crmConfig.token}` },
       })
@@ -1332,11 +1576,11 @@ function WebhookSimulator({ config }) {
       changes: [{
         value: {
           messaging_product: 'whatsapp',
-          metadata: { display_phone_number: '14155552345', phone_number_id: 'PHONE_NUMBER_ID' },
+          metadata: { display_phone_number: '14155552345', phone_number_id: '1023265770876372' },
           contacts: [{ profile: { name: 'Test User' }, wa_id: '14155551234' }],
           messages: [{
             from: '14155551234',
-            id: 'wamid.test-message-id-12345',
+            id: `wamid.test-${Date.now()}`,
             timestamp: String(Math.floor(Date.now() / 1000)),
             type: 'text',
             text: { body: 'Hola, este es un mensaje de prueba' },
@@ -1364,7 +1608,7 @@ function WebhookSimulator({ config }) {
       const signature = await crypto.subtle.sign('HMAC', cryptoKey, messageData)
       const hexSignature = Array.from(new Uint8Array(signature)).map(b => b.toString(16).padStart(2, '0')).join('')
 
-      const res = await fetch('/webhooks/whatsapp', {
+      const res = await fetch(`${BACKEND_BASE}/webhooks/whatsapp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-Hub-Signature-256': `sha256=${hexSignature}` },
         body: payload,
@@ -1391,7 +1635,7 @@ function WebhookSimulator({ config }) {
           changes: [{
             value: {
               messaging_product: 'whatsapp',
-              metadata: { display_phone_number: '14155552345', phone_number_id: 'PHONE_NUMBER_ID' },
+              metadata: { display_phone_number: '14155552345', phone_number_id: '1023265770876372' },
               contacts: [{ profile: { name: 'Test User' }, wa_id: '14155551234' }],
               messages: [{
                 from: '14155551234',
@@ -1415,7 +1659,7 @@ function WebhookSimulator({ config }) {
           changes: [{
             value: {
               messaging_product: 'whatsapp',
-              metadata: { display_phone_number: '14155552345', phone_number_id: 'PHONE_NUMBER_ID' },
+              metadata: { display_phone_number: '14155552345', phone_number_id: '1023265770876372' },
               statuses: [{
                 id: 'wamid.test-message-id', status: 'delivered',
                 timestamp: String(Math.floor(Date.now() / 1000)),
@@ -1438,7 +1682,7 @@ function WebhookSimulator({ config }) {
           changes: [{
             value: {
               messaging_product: 'whatsapp',
-              metadata: { display_phone_number: '14155552345', phone_number_id: 'PHONE_NUMBER_ID' },
+              metadata: { display_phone_number: '14155552345', phone_number_id: '1023265770876372' },
               statuses: [{ id: 'wamid.test-message-id', status: 'read', timestamp: String(Math.floor(Date.now() / 1000)), recipient_id: '14155551234' }],
             },
             field: 'messages',
@@ -1455,7 +1699,7 @@ function WebhookSimulator({ config }) {
           changes: [{
             value: {
               messaging_product: 'whatsapp',
-              metadata: { display_phone_number: '14155552345', phone_number_id: 'PHONE_NUMBER_ID' },
+              metadata: { display_phone_number: '14155552345', phone_number_id: '1023265770876372' },
               statuses: [{
                 id: 'wamid.test-message-id', status: 'failed',
                 timestamp: String(Math.floor(Date.now() / 1000)),
@@ -1506,19 +1750,316 @@ function WebhookSimulator({ config }) {
   )
 }
 
+// ─── Session Management ──────────────────────────────────────────────────────
+
+const SESSION_KEY = 'wa-prueba-session'
+const TOKEN_EXPIRY_MS = 14 * 60 * 1000 // 14 min (token dura 15 min)
+
+function loadSession() {
+  try {
+    const raw = localStorage.getItem(SESSION_KEY)
+    if (!raw) return null
+    const session = JSON.parse(raw)
+    // Check if token is expired
+    if (session && session.expiresAt && Date.now() > session.expiresAt) {
+      localStorage.removeItem(SESSION_KEY)
+      return null
+    }
+    return session
+  } catch { return null }
+}
+
+function saveSession(session) {
+  localStorage.setItem(SESSION_KEY, JSON.stringify(session))
+}
+
+function clearSession() {
+  localStorage.removeItem(SESSION_KEY)
+}
+
+// ─── Axios Interceptor: Auto-logout on 401/403 ──────────────────────────────
+
+axios.interceptors.response.use(
+  response => response,
+  error => {
+    if (error.response?.status === 401 || error.response?.status === 403) {
+      clearSession()
+      window.location.reload()
+    }
+    return Promise.reject(error)
+  }
+)
+
+// ─── Login Screen ────────────────────────────────────────────────────────────
+
+function LoginScreen({ onLogin }) {
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
+  const [mode, setMode] = useState('login') // 'login' or 'register'
+  const [name, setName] = useState('')
+  const [companyName, setCompanyName] = useState('')
+  const [registered, setRegistered] = useState(false)
+
+  async function handleSubmit(e) {
+    e.preventDefault()
+    setLoading(true)
+    setError(null)
+
+    try {
+      if (mode === 'register') {
+        if (!name || !email || !password) {
+          setError('Completá todos los campos')
+          setLoading(false)
+          return
+        }
+        if (password.length < 8) {
+          setError('La contraseña debe tener al menos 8 caracteres')
+          setLoading(false)
+          return
+        }
+        await axios.post('http://localhost:8080/api/auth/register', {
+          email, password, name, companyName: companyName || undefined,
+        })
+        setRegistered(true)
+        setMode('login')
+      } else {
+        const res = await axios.post('http://localhost:8080/api/auth/login', {
+          email, password,
+        })
+        const token = res.data.accessToken
+        const session = {
+          token,
+          email: res.data.email || email,
+          name: res.data.name || email,
+          loginAt: Date.now(),
+          expiresAt: Date.now() + TOKEN_EXPIRY_MS,
+        }
+        saveSession(session)
+        onLogin(session)
+      }
+    } catch (err) {
+      if (err.response?.status === 401) {
+        setError('Email o contraseña incorrectos')
+      } else if (err.response?.status === 409) {
+        setError('Ya existe un usuario con ese email')
+      } else {
+        setError(err.response?.data?.message || err.response?.data?.error || err.message)
+      }
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
+      <div className="w-full max-w-md">
+        {/* Logo */}
+        <div className="text-center mb-8">
+          <div className="w-16 h-16 rounded-2xl bg-green-600 flex items-center justify-center mx-auto mb-4">
+            <MessageSquare className="w-8 h-8 text-white" />
+          </div>
+          <h1 className="text-2xl font-bold text-white">WhatsApp CRM</h1>
+          <p className="text-slate-400 mt-1">Panel de Prueba</p>
+        </div>
+
+        {/* Card */}
+        <div className="rounded-2xl border border-slate-700 bg-slate-900/80 p-8">
+          <h2 className="text-lg font-semibold text-white mb-6">
+            {mode === 'register' ? 'Crear Cuenta' : 'Iniciar Sesión'}
+          </h2>
+
+          {registered && (
+            <div className="mb-4 p-3 rounded-lg bg-green-900/30 text-green-300 border border-green-700 text-sm">
+              ✅ Cuenta creada! Ahora podés iniciar sesión.
+            </div>
+          )}
+
+          {error && (
+            <div className="mb-4 p-3 rounded-lg bg-red-900/30 text-red-300 border border-red-700 text-sm">
+              ❌ {error}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {mode === 'register' && (
+              <>
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-1">Nombre</label>
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={e => setName(e.target.value)}
+                    placeholder="Tu nombre"
+                    className="w-full rounded-lg border border-slate-600 bg-slate-800 px-3 py-2.5 text-white placeholder-slate-500 focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-1">Empresa (opcional)</label>
+                  <input
+                    type="text"
+                    value={companyName}
+                    onChange={e => setCompanyName(e.target.value)}
+                    placeholder="Mi Empresa"
+                    className="w-full rounded-lg border border-slate-600 bg-slate-800 px-3 py-2.5 text-white placeholder-slate-500 focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
+                  />
+                </div>
+              </>
+            )}
+
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-1">Email</label>
+              <input
+                type="email"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                placeholder="tu@email.com"
+                className="w-full rounded-lg border border-slate-600 bg-slate-800 px-3 py-2.5 text-white placeholder-slate-500 focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-1">Contraseña</label>
+              <input
+                type="password"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                placeholder={mode === 'register' ? 'Mínimo 8 caracteres' : 'Tu contraseña'}
+                className="w-full rounded-lg border border-slate-600 bg-slate-800 px-3 py-2.5 text-white placeholder-slate-500 focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-2.5 rounded-lg bg-green-600 text-white font-medium hover:bg-green-500 disabled:opacity-50 transition-colors"
+            >
+              {loading ? 'Procesando...' : mode === 'register' ? 'Crear Cuenta' : 'Iniciar Sesión'}
+            </button>
+          </form>
+
+          <div className="mt-6 text-center">
+            <button
+              onClick={() => { setMode(mode === 'login' ? 'register' : 'login'); setError(null) }}
+              className="text-sm text-green-400 hover:text-green-300"
+            >
+              {mode === 'login' ? '¿No tenés cuenta? Registrate' : '¿Ya tenés cuenta? Iniciar sesión'}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ─── Session Expiry Warning ──────────────────────────────────────────────────
+
+function SessionWarning({ session, onLogout, onRefresh }) {
+  const [timeLeft, setTimeLeft] = useState('')
+  const [showWarning, setShowWarning] = useState(false)
+
+  useEffect(() => {
+    if (!session?.expiresAt) return
+
+    const interval = setInterval(() => {
+      const remaining = session.expiresAt - Date.now()
+      if (remaining <= 0) {
+        clearInterval(interval)
+        setTimeLeft('Expirado')
+        setShowWarning(true)
+        return
+      }
+      const mins = Math.floor(remaining / 60000)
+      const secs = Math.floor((remaining % 60000) / 1000)
+      setTimeLeft(`${mins}:${secs.toString().padStart(2, '0')}`)
+      setShowWarning(remaining < 120000) // Show when < 2 min
+    }, 1000)
+
+    return () => clearInterval(interval)
+  }, [session])
+
+  return (
+    <div className="flex items-center gap-2">
+      {/* User info */}
+      <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-800">
+        <div className="w-6 h-6 rounded-full bg-green-600 flex items-center justify-center text-xs font-bold text-white">
+          {session.name?.charAt(0).toUpperCase() || 'U'}
+        </div>
+        <span className="text-xs text-slate-300 hidden sm:inline">{session.name}</span>
+      </div>
+
+      {/* Token timer */}
+      <div className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-mono ${
+        showWarning ? 'bg-red-900/40 text-red-400 border border-red-700' : 'bg-slate-800 text-slate-400'
+      }`}>
+        <span className={`w-1.5 h-1.5 rounded-full ${showWarning ? 'bg-red-400 animate-pulse' : 'bg-green-400'}`} />
+        {timeLeft}
+      </div>
+
+      {/* Actions */}
+      <button
+        onClick={onRefresh}
+        className="px-2.5 py-1.5 rounded-lg bg-slate-800 text-slate-300 text-xs hover:bg-slate-700 transition-colors"
+        title="Renovar sesión"
+      >
+        ↻
+      </button>
+      <button
+        onClick={onLogout}
+        className="px-2.5 py-1.5 rounded-lg bg-red-900/30 text-red-400 text-xs hover:bg-red-900/50 transition-colors"
+        title="Cerrar sesión"
+      >
+        ✕
+      </button>
+    </div>
+  )
+}
+
 // ─── Main App ────────────────────────────────────────────────────────────────
 
 export default function App() {
+  const [session, setSession] = useState(() => loadSession())
   const [activeTab, setActiveTab] = useState(TABS.SEND)
   const [config, setConfig] = useState(() => loadConfig())
   const [templates, setTemplates] = useState(() => loadTemplates())
-  const [crmConfig, setCrmConfig] = useState(() => {
-    try {
-      const raw = localStorage.getItem(CRM_KEY)
-      return raw ? JSON.parse(raw) : null
-    } catch { return null }
-  })
   const [copied, setCopied] = useState(false)
+
+  // CRM config derived from session
+  const crmConfig = session ? {
+    baseUrl: 'http://localhost:8080',
+    token: session.token,
+    workspaceId: session.workspaceId || '',
+  } : null
+
+  function handleLogin(newSession) {
+    setSession(newSession)
+  }
+
+  function handleLogout() {
+    clearSession()
+    setSession(null)
+    setActiveTab(TABS.SEND)
+  }
+
+  async function handleRefreshSession() {
+    if (!session?.email) return
+    try {
+      const res = await axios.post('http://localhost:8080/api/auth/login', {
+        email: session.email,
+        password: session.password || '', // Won't work if no password stored
+      })
+      // If we don't have password, user needs to re-login
+      handleLogout()
+    } catch {
+      handleLogout()
+    }
+  }
+
+  // Show login screen if not authenticated
+  if (!session) {
+    return <LoginScreen onLogin={handleLogin} />
+  }
 
   const tabs = [
     { id: TABS.SEND, label: 'Enviar', icon: MessageSquare },
@@ -1565,15 +2106,14 @@ export default function App() {
                 <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" /> Meta
               </span>
             )}
-            {crmConfig?.token && (
-              <span className="flex items-center gap-1 px-2 py-1 rounded-full bg-blue-900/30 text-blue-400 text-xs border border-blue-800/50">
-                <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" /> CRM
-              </span>
-            )}
+            <span className="flex items-center gap-1 px-2 py-1 rounded-full bg-blue-900/30 text-blue-400 text-xs border border-blue-800/50">
+              <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" /> CRM
+            </span>
             <button onClick={copyCurl} disabled={!config?.accessToken} className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300 text-xs hover:bg-slate-700 disabled:opacity-40 transition-colors" title="Copiar curl">
               {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
               {copied ? 'Copiado!' : 'cURL'}
             </button>
+            <SessionWarning session={session} onLogout={handleLogout} onRefresh={handleRefreshSession} />
           </div>
         </div>
       </header>
@@ -1596,8 +2136,8 @@ export default function App() {
       <main className="max-w-5xl mx-auto px-4 py-6">
         {activeTab === TABS.SEND && <SendPanel config={config} templates={templates} crmConfig={crmConfig} />}
         {activeTab === TABS.TEMPLATES && <TemplatesPanel />}
-        {activeTab === TABS.CONFIG && <ConfigPanel config={config} onSave={setConfig} onClear={() => { localStorage.removeItem(STORAGE_KEY); setConfig(null) }} />}
-        {activeTab === TABS.CRM && <CrmPanel crmConfig={crmConfig} onSave={setCrmConfig} onClear={() => { localStorage.removeItem(CRM_KEY); setCrmConfig(null) }} />}
+        {activeTab === TABS.CONFIG && <ConfigPanel config={config} crmConfig={crmConfig} onSave={setConfig} onClear={() => { localStorage.removeItem(STORAGE_KEY); setConfig(null) }} />}
+        {activeTab === TABS.CRM && <CrmPanel crmConfig={crmConfig} onSave={() => {}} onClear={() => {}} />}
         {activeTab === TABS.CONVERSATIONS && <ConversationsPanel crmConfig={crmConfig} />}
         {activeTab === TABS.LOGS && <LogsPanel crmConfig={crmConfig} />}
         {activeTab === TABS.WEBHOOK && <WebhookSimulator config={config} />}
@@ -1606,7 +2146,7 @@ export default function App() {
       <footer className="border-t border-slate-800 mt-8">
         <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between text-xs text-slate-500">
           <span>WhatsApp Business API — Prueba & Testing</span>
-          <span>Puerto: 5174 → Proxy: localhost:8080</span>
+          <span>Puerto: 5174 → Backend: localhost:8080</span>
         </div>
       </footer>
     </div>

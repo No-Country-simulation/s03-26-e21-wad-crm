@@ -25,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -127,7 +128,7 @@ public class WhatsAppWebhookService {
     private void processInboundMessages(JsonNode value) {
         String phoneNumberId = value.path("metadata").path("phone_number_id").asText(null);
         if (phoneNumberId == null) {
-            log.warn("[WA-WEBHOOK-INBOUND] Missing phone_number_id in payload");
+            log.warn("[WA-WEBHOOK-INBOUND] Missing phone_number_id in payload — full metadata: {}", value.path("metadata"));
             return;
         }
 
@@ -135,7 +136,14 @@ public class WhatsAppWebhookService {
         Optional<WhatsAppConfig> configOpt = whatsAppConfigRepository
                 .findByPhoneNumberIdAndActiveTrue(phoneNumberId);
         if (configOpt.isEmpty()) {
-            log.warn("[WA-WEBHOOK-INBOUND] No active WhatsApp config for phone_number_id={}", phoneNumberId);
+            log.warn("[WA-WEBHOOK-INBOUND] No active WhatsApp config for phone_number_id='{}' — message will be DROPPED. Check that this phone_number_id exists in whatsapp_configs table with active=true", phoneNumberId);
+            // Log all active configs to help debug
+            List<WhatsAppConfig> allActive = whatsAppConfigRepository.findAll().stream()
+                    .filter(WhatsAppConfig::isActive)
+                    .toList();
+            log.warn("[WA-WEBHOOK-INBOUND] Active configs in DB: {}", allActive.stream()
+                    .map(c -> String.format("id=%s, phone_number_id=%s, workspace=%s", c.getId(), c.getPhoneNumberId(), c.getWorkspaceId()))
+                    .toList());
             return;
         }
         UUID workspaceId = configOpt.get().getWorkspaceId();
@@ -166,13 +174,29 @@ public class WhatsAppWebhookService {
                 continue;
             }
 
+            // Extraer nombre de WhatsApp desde contacts del payload: value.contacts[].profile.name
+            String waName = null;
+            JsonNode contactsNode = value.path("contacts");
+            if (contactsNode.isArray()) {
+                for (JsonNode contact : contactsNode) {
+                    String contactWaId = contact.path("wa_id").asText(null);
+                    if (contactWaId != null && contactWaId.equals(fromPhone)) {
+                        waName = contact.path("profile").path("name").asText(null);
+                        break;
+                    }
+                }
+            }
+
+            // Guardar waName en variable final para usar en lambda
+            final String waNameFinal = waName;
+
             // Req 20.2: find contact by phone within workspace
-            // Req 20.3: create new contact with status NEW if not found
+            // Req 20.3: create new contact with status NEW if not found (guarda nombre de WhatsApp si está disponible)
             Contact contact = contactRepository
                     .findByWorkspaceIdAndPhoneAndIsDeletedFalse(workspaceId, fromPhone)
                     .orElseGet(() -> {
-                        log.info("[WA-WEBHOOK-INBOUND] New contact created: phone={}", fromPhone);
-                        return createContact(workspaceId, fromPhone);
+                        log.info("[WA-WEBHOOK-INBOUND] New contact created: phone={}, waName={}", fromPhone, waNameFinal);
+                        return createContact(workspaceId, fromPhone, waNameFinal);
                     });
 
             // findOrCreate conversation (Req 21.4)
@@ -328,11 +352,13 @@ public class WhatsAppWebhookService {
         };
     }
 
-    /** Req 20.3: crea contacto nuevo con status NEW usando el teléfono como identificador. */
-    private Contact createContact(UUID workspaceId, String phone) {
+    /** Req 20.3: crea contacto nuevo con status NEW usando el teléfono como identificador.
+     * Si tienen nombre de WhatsApp, lo usa como alias. */
+    private Contact createContact(UUID workspaceId, String phone, String waName) {
         Contact contact = new Contact();
         contact.setWorkspaceId(workspaceId);
-        contact.setName(phone);
+        // Si hay nombre de WhatsApp, usarlo; si no, usar el teléfono
+        contact.setName(waName != null && !waName.isBlank() ? waName : phone);
         contact.setPhone(phone);
         contact.setStatus(ContactStatus.NEW);
         return contactRepository.save(contact);

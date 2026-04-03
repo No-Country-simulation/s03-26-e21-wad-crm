@@ -13,6 +13,7 @@ import org.springframework.web.client.RestTemplate;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.security.MessageDigest;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -168,7 +169,7 @@ public class MetaCloudApiProvider implements WhatsAppProvider {
         try {
             Mac mac = Mac.getInstance("HmacSHA256");
             mac.init(new SecretKeySpec(appSecret.getBytes(), "HmacSHA256"));
-            String expected = "sha256=" + HexFormat.of().formatHex(mac.doFinal(payload.getBytes()));
+            String expected = "sha256=" + HexFormat.of().formatHex(mac.doFinal(payload.getBytes(StandardCharsets.UTF_8)));
             return MessageDigest.isEqual(expected.getBytes(), signature.getBytes());
         } catch (Exception e) {
             log.error("Error verifying webhook signature", e);

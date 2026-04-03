@@ -82,6 +82,7 @@ public class DevDataInitializer {
 
         // Verify connection with Meta before saving
         WhatsAppConfig testConfig = new WhatsAppConfig();
+        testConfig.setWorkspaceId(workspaceId);
         testConfig.setPhoneNumberId(wa.getPhoneNumberId());
         testConfig.setAccessToken(wa.getAccessToken());
 

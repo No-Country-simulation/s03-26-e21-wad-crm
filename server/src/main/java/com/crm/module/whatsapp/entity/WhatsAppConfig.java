@@ -6,7 +6,6 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 /**
  * Configuración de WhatsApp Business por workspace.
@@ -17,10 +16,8 @@ import java.util.UUID;
 @Setter
 @Entity
 @Table(name = "whatsapp_configs")
+@AttributeOverride(name = "workspaceId", column = @Column(name = "workspace_id", nullable = false))
 public class WhatsAppConfig extends AuditableEntity {
-
-    @Column(name = "workspace_id", nullable = false)
-    private UUID workspaceId;
 
     @Column(name = "phone_number_id", nullable = false)
     private String phoneNumberId;
