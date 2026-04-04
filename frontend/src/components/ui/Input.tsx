@@ -11,7 +11,7 @@ export const Input = ({ label, id, ...rest }: Props) => {
       <label htmlFor={id} className="text-start font-semibold">
         {label}
       </label>
-      <input id={id} className="p-2 border border-neutral-50 rounded-sm focus:outline-none" placeholder="" {...rest} />
+      <input id={id} className="p-2 border border-neutral-50 w-full rounded-sm focus:outline-none" placeholder="" {...rest} />
     </div>
   );
 };

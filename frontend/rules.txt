@@ -1,4 +1,0 @@
-1. Puede hacer Login
-2. No se va a implementar el Google
-3. Campos para crear una cuenta:  email, password, confirm password, name, company name
-4. No se va a implementar el forgot password

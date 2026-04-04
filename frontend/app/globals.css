@@ -54,7 +54,7 @@
 
 @layer components {
   .btn-primary {
-    @apply bg-neutral-50 text-neutral-950 border border-neutral-50 rounded-full transition;
+    @apply bg-neutral-50 text-neutral-950 border border-neutral-50 rounded-sm transition;
   }
 
   .btn-secondary {
@@ -67,5 +67,6 @@
 }
 
 @utility bg-glass-light {
-  @apply bg-white/20 backdrop-blur-[10px];
+  @apply bg-white/10 backdrop-blur-[10px];
 }
+
