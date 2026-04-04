@@ -11,6 +11,8 @@ import com.crm.module.email.provider.SmtpEmailProvider;
 import com.crm.module.email.repository.EmailConfigRepository;
 import com.crm.module.email.repository.GmailConfigRepository;
 import com.crm.module.email.service.EmailService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,6 +26,7 @@ import java.util.UUID;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
+@Tag(name = "Email", description = "Envío y configuración de integraciones de email")
 public class EmailController {
 
     private final EmailService emailService;
@@ -33,6 +36,7 @@ public class EmailController {
     private final GmailOAuthProvider gmailOAuthProvider;
     private final ContactRepository contactRepository;
 
+    @Operation(summary = "Enviar email a un contacto")
     @PostMapping("/api/email/send")
     public ResponseEntity<Void> sendEmail(@Valid @RequestBody SendEmailRequest request) {
         UUID workspaceId = WorkspaceContext.getWorkspaceId();
@@ -58,6 +62,7 @@ public class EmailController {
         return ResponseEntity.accepted().build();
     }
 
+    @Operation(summary = "Configurar integración de email (SMTP o Gmail OAuth)")
     @PostMapping("/api/settings/integrations/email")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<String, Object>> configureEmailIntegration(
@@ -108,6 +113,7 @@ public class EmailController {
         ));
     }
 
+    @Operation(summary = "Callback OAuth de Gmail (uso interno)")
     @GetMapping("/api/settings/integrations/email/oauth/callback")
     public ResponseEntity<Map<String, Object>> gmailOAuthCallback(
             @RequestParam String code,

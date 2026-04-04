@@ -17,6 +17,7 @@ import com.crm.module.email.repository.EmailConfigRepository;
 import com.crm.module.email.repository.GmailConfigRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -47,8 +48,10 @@ public class EmailService {
     /**
      * Envía un email usando el proveedor activo del workspace (Gmail tiene prioridad sobre SMTP).
      * Registra el mensaje en la conversación del contacto.
+     * Es asíncrono para no bloquear el hilo principal.
      * Requisitos: 25.1–25.4
      */
+    @Async
     @Transactional
     public void send(UUID workspaceId, EmailMessage message) {
         // 1. Resolve active provider — Gmail first, then SMTP

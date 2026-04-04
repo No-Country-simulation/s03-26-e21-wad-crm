@@ -54,7 +54,7 @@ spring:
 app:
   jwt:
     secret: ${JWT_SECRET:your-256-bit-secret-key-here-change-in-production}
-    access-token-expiry: 900000      # 15 minutes in ms
+    access-token-expiry: 86400000   # 24 hours in ms
     refresh-token-expiry: 604800000  # 7 days in ms
   cors:
     allowed-origins: ${CORS_ORIGINS:http://localhost:5173,http://localhost:3000,http://127.0.0.1:5173,http://127.0.0.1:3000}
@@ -74,9 +74,9 @@ management:
 # SpringDoc (disabled by default, enabled in dev profile)
 springdoc:
   api-docs:
-    enabled: false
+    enabled: true
   swagger-ui:
-    enabled: false
+    enabled: true
 
 # Server
 server:

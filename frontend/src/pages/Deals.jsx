@@ -6,6 +6,7 @@ export default function Deals() {
   const [deals, setDeals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     loadDeals();
@@ -14,9 +15,12 @@ export default function Deals() {
   const loadDeals = async () => {
     try {
       const response = await dealsService.getAll();
-      setDeals(response.data);
-    } catch (error) {
-      console.error('Failed to load deals:', error);
+      // Handle Page response (Spring Data Page)
+      const dealsData = response.data.content || response.data;
+      setDeals(Array.isArray(dealsData) ? dealsData : []);
+    } catch (err) {
+      console.error('Failed to load deals:', err);
+      setError(err.message);
     } finally {
       setLoading(false);
     }
@@ -28,8 +32,21 @@ export default function Deals() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-full">
-        <div className="animate-spin text-4xl">⟳</div>
+      <div className="p-6">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-gray-500">Cargando...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-6">
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+          <p className="font-bold">Error</p>
+          <p>{error}</p>
+        </div>
       </div>
     );
   }

@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 
 const api = axios.create({
   baseURL: API_URL,
@@ -71,6 +71,16 @@ export const dealsService = {
   create: (data) => api.post('/api/deals', data),
   update: (id, data) => api.patch(`/api/deals/${id}`, data),
   delete: (id) => api.delete(`/api/deals/${id}`),
+};
+
+export const emailTemplateService = {
+  getAll: () => api.get('/api/email/templates'),
+  getById: (id) => api.get(`/api/email/templates/${id}`),
+  getByCategory: (category) => api.get(`/api/email/templates/category/${category}`),
+  getDefault: () => api.get('/api/email/templates/default'),
+  create: (data) => api.post('/api/email/templates', data),
+  update: (id, data) => api.patch(`/api/email/templates/${id}`, data),
+  delete: (id) => api.delete(`/api/email/templates/${id}`),
 };
 
 export default api;
