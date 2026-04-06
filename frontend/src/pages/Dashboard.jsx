@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { dashboardService } from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import { Users, DollarSign, TrendingUp, Activity } from 'lucide-react';
+import { Users, DollarSign, TrendingUp, Activity, MessageCircle, Mail } from 'lucide-react';
 
 export default function Dashboard() {
   const [stats, setStats] = useState(null);
@@ -33,7 +33,8 @@ export default function Dashboard() {
 
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6">Dashboard</h1>
+      <h1 className="text-2xl font-bold mb-6 text-blue-600">Dashboard</h1>
+
       
       <div className="mb-4 text-gray-600">
         Welcome back, {user?.name}!
@@ -65,17 +66,66 @@ export default function Dashboard() {
           color="orange"
         />
       </div>
-      
-      <div className="mt-8 bg-white rounded-lg shadow p-6">
-        <h2 className="text-lg font-semibold mb-4">Quick Actions</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <QuickAction href="/contacts" label="Add Contact" color="blue" />
-          <QuickAction href="/tasks" label="Create Task" color="green" />
-          <QuickAction href="/contacts" label="View Contacts" color="purple" />
-          <QuickAction href="/tasks" label="View Tasks" color="orange" />
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+        <div className="bg-white rounded-lg shadow p-6">
+          <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+            <MessageCircle className="text-green-600" size={20} />
+            Canales de Comunicación
+          </h2>
+          <div className="grid grid-cols-2 gap-4">
+            <ChannelCard 
+              title="WhatsApp" 
+              description="Configura tu conexión de WhatsApp Business"
+              icon={<MessageCircle className="w-8 h-8" />}
+              color="green"
+              href="/settings"
+            />
+            <ChannelCard 
+              title="Email" 
+              description="Configura SMTP o Gmail OAuth"
+              icon={<Mail className="w-8 h-8" />}
+              color="blue"
+              href="/settings"
+            />
+          </div>
+        </div>
+
+        <div className="bg-white rounded-lg shadow p-6">
+          <h2 className="text-lg font-semibold mb-4">Quick Actions</h2>
+          <div className="grid grid-cols-2 gap-4">
+            <QuickAction href="/contacts" label="Add Contact" color="blue" />
+            <QuickAction href="/deals" label="Create Deal" color="green" />
+            <QuickAction href="/tasks" label="Create Task" color="purple" />
+            <QuickAction href="/email-templates" label="Email Templates" color="orange" />
+          </div>
         </div>
       </div>
     </div>
+  );
+}
+
+function ChannelCard({ title, description, icon, color, href }) {
+  const colors = {
+    green: 'border-green-200 hover:border-green-400',
+    blue: 'border-blue-200 hover:border-blue-400',
+  };
+  const iconColors = {
+    green: 'text-green-600 bg-green-100',
+    blue: 'text-blue-600 bg-blue-100',
+  };
+
+  return (
+    <a 
+      href={href}
+      className={`p-4 border rounded-lg transition ${colors[color]}`}
+    >
+      <div className={`w-12 h-12 rounded-lg flex items-center justify-center mb-2 ${iconColors[color]}`}>
+        {icon}
+      </div>
+      <h3 className="font-semibold text-gray-800">{title}</h3>
+      <p className="text-sm text-gray-500 mt-1">{description}</p>
+    </a>
   );
 }
 

@@ -5,17 +5,13 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="188c2cba-d58d-4c37-a476-ba752f6b98a3" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/server/src/main/java/com/crm/module/email/scheduler/ImapPollingScheduler.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/App.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/App.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/components/Layout.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/components/Layout.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/pages/Deals.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/pages/Deals.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/pages/Contacts.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/pages/Contacts.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/pages/Dashboard.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/pages/Dashboard.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/pages/Settings.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/pages/Settings.jsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/src/services/api.js" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/services/api.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/crm/StartupCrmApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/crm/StartupCrmApplication.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/crm/module/email/controller/EmailController.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/crm/module/email/controller/EmailController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/crm/module/email/repository/EmailConfigRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/crm/module/email/repository/EmailConfigRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/crm/module/email/service/EmailService.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/crm/module/email/service/EmailService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/resources/application.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/crm/module/contact/controller/ContactController.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/crm/module/contact/controller/ContactController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/com/crm/module/contact/service/ContactService.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/com/crm/module/contact/service/ContactService.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

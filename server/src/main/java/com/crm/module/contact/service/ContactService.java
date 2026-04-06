@@ -238,6 +238,20 @@ public class ContactService {
     }
 
     // -------------------------------------------------------------------------
+    // Delete (soft delete)
+    // -------------------------------------------------------------------------
+
+    @Transactional
+    public void delete(UUID contactId) {
+        UUID workspaceId = WorkspaceContext.getWorkspaceId();
+        Contact contact = contactRepository.findByIdAndWorkspaceId(contactId, workspaceId)
+                .orElseThrow(() -> new ResourceNotFoundException("Contact not found"));
+        
+        contact.setDeleted(true);
+        contactRepository.save(contact);
+    }
+
+    // -------------------------------------------------------------------------
     // Sort helper
     // -------------------------------------------------------------------------
 

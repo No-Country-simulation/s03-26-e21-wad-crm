@@ -83,4 +83,8 @@ export const emailTemplateService = {
   delete: (id) => api.delete(`/api/email/templates/${id}`),
 };
 
+export const emailConfigService = {
+  configure: (data) => api.post('/api/settings/integrations/email', data),
+};
+
 export default api;

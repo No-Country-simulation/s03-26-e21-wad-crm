@@ -16,7 +16,7 @@ Frontend React para el CRM de startups con integración WhatsApp + Email.
 ### Prerequisites
 
 - Node.js 18+
-- Backend API corriendo en puerto 8081
+- Backend API corriendo en puerto 8080
 
 ### Installation
 
@@ -43,8 +43,10 @@ npm run build
 Crea un archivo `.env`:
 
 ```env
-VITE_API_URL=http://localhost:8081
+VITE_API_URL=http://localhost:8080
 ```
+
+Si no existe `.env`, el frontend usa `http://localhost:8080` por defecto.
 
 ## Features
 

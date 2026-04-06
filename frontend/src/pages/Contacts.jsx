@@ -162,15 +162,15 @@ export default function Contacts() {
           {contacts.map((contact) => (
             <div 
               key={contact.id} 
-              className="bg-white rounded-xl shadow-md border border-gray-200 p-5 hover:shadow-lg transition-shadow"
+              className="bg-white rounded-xl shadow-md border border-gray-200 p-5 hover:shadow-lg transition-shadow flex flex-col justify-between min-h-[180px]"
             >
               <div className="flex justify-between items-start">
-                <div className="flex items-center gap-3">
-                  <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-full w-12 h-12 flex items-center justify-center text-white font-bold text-lg">
+                <div className="flex items-center gap-3 overflow-hidden">
+                  <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-full w-12 h-12 flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
                     {contact.name.charAt(0).toUpperCase()}
                   </div>
-                  <div>
-                    <h3 className="font-semibold text-lg text-gray-800">{contact.name}</h3>
+                  <div className="overflow-hidden">
+                    <h3 className="font-semibold text-lg text-gray-800 truncate">{contact.name}</h3>
                     <span className={`inline-block px-2 py-0.5 text-xs rounded-full font-medium ${
                       contact.status === 'NEW' ? 'bg-blue-100 text-blue-700 border border-blue-200' :
                       contact.status === 'CONTACTED' ? 'bg-yellow-100 text-yellow-700 border border-yellow-200' :
@@ -184,7 +184,7 @@ export default function Contacts() {
                 </div>
                 <button
                   onClick={() => handleDelete(contact.id)}
-                  className="text-gray-400 hover:text-red-500 hover:bg-red-50 p-2 rounded-lg transition-colors"
+                  className="text-gray-400 hover:text-red-500 hover:bg-red-50 p-2 rounded-lg transition-colors flex-shrink-0"
                 >
                   <Trash2 size={18} />
                 </button>

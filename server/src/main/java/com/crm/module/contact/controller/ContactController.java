@@ -100,4 +100,14 @@ public class ContactController {
         NoteResponse note = contactService.addNote(id, request.content(), userId);
         return ResponseEntity.status(HttpStatus.CREATED).body(note);
     }
+
+    // -------------------------------------------------------------------------
+    // Req 11.3 – soft delete contact
+    // -------------------------------------------------------------------------
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable UUID id) {
+        contactService.delete(id);
+        return ResponseEntity.noContent().build();
+    }
 }
