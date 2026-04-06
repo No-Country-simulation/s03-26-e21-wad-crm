@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   postgres:
@@ -43,13 +43,14 @@ services:
     ports:
       - "8080:8080"
     environment:
-      SPRING_PROFILES_ACTIVE: prod
+      SPRING_PROFILES_ACTIVE: dev
       DB_URL: jdbc:postgresql://postgres:5432/crm_db
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/crm_db
       DB_USERNAME: postgres
       DB_PASSWORD: Pino2026!
       REDIS_HOST: redis
       REDIS_PORT: 6379
-      JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
+      JWT_SECRET: ${JWT_SECRET:-dev-jwt-secret-32-bytes-minimum-key-2026}
       ENCRYPTION_KEY: ${ENCRYPTION_KEY:-change-me-in-production}
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
     depends_on:
