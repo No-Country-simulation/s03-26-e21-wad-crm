@@ -1,0 +1,57 @@
+<svg width="960" height="560" viewBox="0 0 960 560" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="960" y2="560" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#12132A"/>
+      <stop offset="1" stop-color="#1B1D3A"/>
+    </linearGradient>
+    <linearGradient id="bar1" x1="0" y1="0" x2="0" y2="1">
+      <stop stop-color="#C65CFF"/>
+      <stop offset="1" stop-color="#8A63FF"/>
+    </linearGradient>
+    <linearGradient id="line" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#8D63FF"/>
+      <stop offset="1" stop-color="#C054FF"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="16" y="16" width="928" height="528" rx="26" fill="url(#bg)" stroke="#ffffff22"/>
+
+  <rect x="48" y="56" width="864" height="84" rx="18" fill="#ffffff0E" stroke="#ffffff20"/>
+  <rect x="78" y="86" width="188" height="14" rx="7" fill="#ffffff2A"/>
+  <rect x="78" y="110" width="142" height="10" rx="5" fill="#ffffff1C"/>
+
+  <rect x="740" y="78" width="150" height="40" rx="14" fill="#ffffff14"/>
+  <rect x="758" y="93" width="94" height="10" rx="5" fill="#ffffff30"/>
+
+  <rect x="48" y="168" width="568" height="340" rx="22" fill="#ffffff0D" stroke="#ffffff20"/>
+
+  <path d="M92 468H574" stroke="#ffffff1F" stroke-width="2"/>
+  <path d="M92 430H574" stroke="#ffffff17" stroke-width="2"/>
+  <path d="M92 392H574" stroke="#ffffff17" stroke-width="2"/>
+  <path d="M92 354H574" stroke="#ffffff17" stroke-width="2"/>
+  <path d="M92 316H574" stroke="#ffffff17" stroke-width="2"/>
+  <path d="M92 278H574" stroke="#ffffff17" stroke-width="2"/>
+
+  <rect x="128" y="356" width="52" height="112" rx="12" fill="url(#bar1)"/>
+  <rect x="210" y="324" width="52" height="144" rx="12" fill="#7D62FF"/>
+  <rect x="292" y="292" width="52" height="176" rx="12" fill="#9F66FF"/>
+  <rect x="374" y="260" width="52" height="208" rx="12" fill="#B35EFF"/>
+  <rect x="456" y="228" width="52" height="240" rx="12" fill="#C65CFF"/>
+
+  <path d="M154 338L236 300L318 270L400 236L482 204" stroke="url(#line)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="154" cy="338" r="8" fill="#ffffff"/>
+  <circle cx="236" cy="300" r="8" fill="#ffffff"/>
+  <circle cx="318" cy="270" r="8" fill="#ffffff"/>
+  <circle cx="400" cy="236" r="8" fill="#ffffff"/>
+  <circle cx="482" cy="204" r="8" fill="#ffffff"/>
+
+  <rect x="644" y="168" width="268" height="160" rx="22" fill="#ffffff0F" stroke="#ffffff20"/>
+  <rect x="674" y="202" width="122" height="14" rx="7" fill="#ffffff28"/>
+  <rect x="674" y="230" width="198" height="12" rx="6" fill="#ffffff18"/>
+  <rect x="674" y="252" width="172" height="12" rx="6" fill="#ffffff18"/>
+
+  <rect x="644" y="348" width="268" height="160" rx="22" fill="#ffffff0F" stroke="#ffffff20"/>
+  <rect x="674" y="382" width="70" height="90" rx="14" fill="#7D62FF"/>
+  <rect x="754" y="402" width="70" height="70" rx="14" fill="#9F66FF"/>
+  <rect x="834" y="368" width="48" height="104" rx="14" fill="#C65CFF"/>
+</svg>

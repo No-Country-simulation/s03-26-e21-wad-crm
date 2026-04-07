@@ -1,0 +1,28 @@
+---
+import { getFormattedFullDate } from "@scripts/utils/dates";
+import PolicyCard from "./PolicyCard.astro";
+
+interface Props {
+  policy: {
+    title: string;
+    sections: {
+      title: string;
+      paragraphs: string[];
+    }[];
+  };
+}
+
+const { policy } = Astro.props;
+const { title, sections } = policy;
+const lastModified = getFormattedFullDate(new Date());
+---
+
+<section class="flex flex-col gap-12 w-[min(1024px,100%)]">
+  <header class="flex flex-col gap-2">
+    <h1 class="text-5xl">{title}</h1>
+    <p class="text-md opacity-80">Última actualización: {lastModified}</p>
+  </header>
+  <div class="flex flex-col gap-8">
+    {sections.map((policy, index) => <PolicyCard index={index} policy={policy} />)}
+  </div>
+</section>

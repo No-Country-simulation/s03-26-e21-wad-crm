@@ -1,0 +1,15 @@
+---
+import { Image } from "astro:assets";
+import { basics } from "@data/data.json";
+
+interface Props {
+  class?: string;
+  width: number;
+  height: number;
+}
+
+const { name } = basics;
+const { class: className, width, height } = Astro.props;
+---
+
+<Image src="/logo.webp" alt={`Logo de ${name}`} width={width} height={height} class:list={["w-full h-8 object-contain", className]} />

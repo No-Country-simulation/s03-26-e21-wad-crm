@@ -1,0 +1,54 @@
+---
+import CheckIcon from "@components/icons/Check.astro";
+import Link from "@components/ui/Link.astro";
+
+interface Props {
+  name: string;
+  description: string;
+  price?: {
+    amount: number;
+    period: string;
+  };
+  features: string[];
+  isPrincipal: boolean;
+}
+
+const { name, description, price, features, isPrincipal } = Astro.props;
+---
+
+<article
+  class:list={[
+    "flex-1 flex flex-col gap-8 min-h-125 p-8 bg-glass border border-neutral-800 rounded-2xl",
+    isPrincipal && "lg:-translate-y-4",
+  ]}
+>
+  <header class="flex flex-col gap-4">
+    <h3 class="text-3xl font-normal">{name}</h3>
+    <p class="text-base">{description}</p>
+  </header>
+  <section class="flex-1 flex flex-col gap-8">
+    {
+      price ? (
+        <p>
+          <span class="text-4xl font-medium">${price.amount}</span>
+          <span class="text-2xl font-light opacity-80">/{price.period}</span>
+        </p>
+      ) : (
+        <p class="text-4xl font-medium">Gratis</p>
+      )
+    }
+    <ul class="flex flex-col gap-1">
+      {
+        features.map((feature) => (
+          <li class="flex items-center gap-2 text-base">
+            <CheckIcon width={20} class="text-neutral-50 " />
+            {feature}
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+  <footer>
+    <Link href={"#"}>Más información</Link>
+  </footer>
+</article>

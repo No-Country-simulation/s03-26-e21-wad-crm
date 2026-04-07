@@ -1,0 +1,21 @@
+---
+interface Props {
+  index: number;
+  policy: {
+    title: string;
+    paragraphs: string[];
+  };
+}
+
+const { index, policy } = Astro.props;
+const { title, paragraphs } = policy;
+---
+
+<article class="flex flex-col gap-4">
+  <h2 class="text-3xl">
+    {index + 1}. {title}
+  </h2>
+  <div class="flex flex-col gap-4">
+    {paragraphs.map((paragraph) => <p>{paragraph}</p>)}
+  </div>
+</article>
