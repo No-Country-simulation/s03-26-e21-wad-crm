@@ -4,12 +4,27 @@
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
-  color-scheme: light dark;
+
+  /* Color palette from background_poster_img */
+  --color-bg:        #080818;
+  --color-bg-deep:   #0d0d2b;
+  --color-surface:   #12122a;
+  --color-surface-2: #1a1a3a;
+  --color-border:    #2a2a5a;
+  --color-primary:   #7c3aed;
+  --color-primary-h: #9333ea;
+  --color-accent:    #a855f7;
+  --color-blue:      #2563eb;
+  --color-blue-h:    #3b82f6;
+  --color-text:      #e2d9f3;
+  --color-muted:     #9b8ec4;
 }
 
 body {
   margin: 0;
   min-height: 100vh;
+  background-color: var(--color-bg);
+  color: var(--color-text);
 }
 
 #root {
