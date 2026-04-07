@@ -34,3 +34,20 @@ services:
     envVars:
       - key: VITE_API_URL
         sync: false
+
+  # Marketing: Astro (rama landing fusionada en dev). Static Site aparte del CRM.
+  - type: web
+    name: startup-crm-landing
+    runtime: static
+    rootDir: landing
+    plan: free
+    buildCommand: npx --yes pnpm@9.15.9 install --frozen-lockfile && npx --yes pnpm@9.15.9 run build
+    staticPublishPath: dist
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: "22.12.0"
+      - key: PUBLIC_SITE_URL
+        sync: false
+      - key: PUBLIC_CRM_APP_URL
+        sync: false

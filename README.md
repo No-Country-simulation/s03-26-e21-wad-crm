@@ -42,6 +42,18 @@ npm run dev
 Frontend disponible en:
 - App: `http://localhost:5173`
 
+### 5) Landing (marketing, Astro)
+
+En la carpeta `landing` (Node 22+ y [pnpm](https://pnpm.io/)):
+
+```bash
+cd landing
+pnpm install
+pnpm dev
+```
+
+Por defecto el botón **Login** apunta a `http://localhost:5173/login`. Opcional: copia `landing/.env.example` a `landing/.env` y ajusta `PUBLIC_CRM_APP_URL` / `PUBLIC_SITE_URL`.
+
 ## Variables de entorno para demo
 
 En `frontend/.env` (opcional):

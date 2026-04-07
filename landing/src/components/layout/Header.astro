@@ -7,6 +7,11 @@ import { basics } from "@data/data.json";
 
 const { name } = basics;
 
+const crmBase = (
+  import.meta.env.PUBLIC_CRM_APP_URL ?? "http://localhost:5173"
+).replace(/\/$/, "");
+const loginUrl = `${crmBase}/login`;
+
 const navItems = [
   { label: "Integraciones", href: "/#integrations" },
   { label: "Funciones", href: "/#features" },
@@ -30,7 +35,7 @@ const navItems = [
         ))
       }
       <li>
-        <Link href="https://google.com" target="_blank">Login</Link>
+        <Link href={loginUrl}>Login</Link>
       </li>
     </ul>
     <button
@@ -74,7 +79,7 @@ const navItems = [
           ))
         }
         <li class="mt-4">
-          <Link href="https://google.com" target="_blank">Login</Link>
+          <Link href={loginUrl}>Login</Link>
         </li>
       </ul>
     </nav>

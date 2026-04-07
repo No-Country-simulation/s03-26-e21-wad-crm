@@ -3,9 +3,14 @@ import { defineConfig, fontProviders } from "astro/config";
 
 import tailwindcss from "@tailwindcss/vite";
 
+// Site URL for canonical / OG (set PUBLIC_SITE_URL on Render to your landing domain)
+const site =
+  process.env.PUBLIC_SITE_URL?.trim() ||
+  "http://localhost:4321";
+
 // https://astro.build/config
 export default defineConfig({
-  site: "https://nexo-flow-crm.vercel.app/",
+  site,
   vite: {
     plugins: [tailwindcss()],
   },
