@@ -1,4 +1,9 @@
 spring:
+  autoconfigure:
+    # Demo mode on Render: disable Redis when no managed Redis is available.
+    exclude:
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
   datasource:
     url: ${DB_URL}
     username: ${DB_USERNAME}
@@ -8,11 +13,6 @@ spring:
       minimum-idle: 5
   jpa:
     show-sql: false
-  data:
-    redis:
-      host: ${REDIS_HOST}
-      port: ${REDIS_PORT:6379}
-      password: ${REDIS_PASSWORD}
 
 app:
   jwt:

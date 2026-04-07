@@ -1,20 +1,23 @@
 import { useState, useEffect } from 'react';
-import { tasksService } from '../services/api';
+import { contactsService, tasksService } from '../services/api';
 import { Plus, CheckCircle, Circle, Clock, ListTodo, AlertCircle } from 'lucide-react';
 
 export default function Tasks() {
   const [tasks, setTasks] = useState([]);
+  const [contacts, setContacts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
     priority: 'MEDIUM',
-    dueAt: ''
+    dueAt: '',
+    contactId: ''
   });
 
   useEffect(() => {
     loadTasks();
+    loadContacts();
   }, []);
 
   const loadTasks = async () => {
@@ -28,20 +31,32 @@ export default function Tasks() {
     }
   };
 
+  const loadContacts = async () => {
+    try {
+      const response = await contactsService.getAll();
+      setContacts(response.data.content || response.data || []);
+    } catch (error) {
+      console.error('Failed to load contacts for tasks:', error);
+      setContacts([]);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       const data = {
         ...formData,
-        dueAt: formData.dueAt ? new Date(formData.dueAt).toISOString() : null
+        dueAt: new Date(formData.dueAt).toISOString(),
+        contactId: formData.contactId
       };
       await tasksService.create(data);
-      setFormData({ title: '', description: '', priority: 'MEDIUM', dueAt: '' });
+      setFormData({ title: '', description: '', priority: 'MEDIUM', dueAt: '', contactId: '' });
       setShowForm(false);
       loadTasks();
     } catch (error) {
       console.error('Failed to create task:', error);
-      alert('Failed to create task. Make sure you have a contact to link to.');
+      const message = error?.response?.data?.message || 'Failed to create task. Select a contact and due date.';
+      alert(message);
     }
   };
 
@@ -124,8 +139,30 @@ export default function Tasks() {
                   value={formData.dueAt}
                   onChange={(e) => setFormData({ ...formData, dueAt: e.target.value })}
                   className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 transition-colors text-gray-800"
+                  required
                 />
               </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Contacto</label>
+              <select
+                value={formData.contactId}
+                onChange={(e) => setFormData({ ...formData, contactId: e.target.value })}
+                className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 text-gray-800"
+                required
+              >
+                <option value="">Selecciona un contacto</option>
+                {contacts.map((contact) => (
+                  <option key={contact.id} value={contact.id}>
+                    {contact.firstName} {contact.lastName}
+                  </option>
+                ))}
+              </select>
+              {contacts.length === 0 && (
+                <p className="mt-2 text-sm text-amber-600">
+                  No hay contactos disponibles. Crea un contacto primero.
+                </p>
+              )}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Descripcion</label>

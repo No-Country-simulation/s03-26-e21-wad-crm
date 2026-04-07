@@ -16,12 +16,6 @@ services:
         sync: false
       - key: DB_PASSWORD
         sync: false
-      - key: REDIS_HOST
-        sync: false
-      - key: REDIS_PORT
-        value: "6379"
-      - key: REDIS_PASSWORD
-        sync: false
       - key: JWT_SECRET
         generateValue: true
       - key: ENCRYPTION_KEY
