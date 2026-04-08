@@ -13,6 +13,7 @@ import com.crm.module.user.entity.UserRole;
 import com.crm.module.user.repository.UserRepository;
 import com.crm.module.workspace.entity.Workspace;
 import com.crm.module.workspace.repository.WorkspaceRepository;
+import com.crm.module.whatsapp.service.WhatsAppAutoConfigService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -39,6 +40,7 @@ public class AuthService {
     private final RefreshTokenRepository refreshTokenRepository;
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
+    private final WhatsAppAutoConfigService whatsAppAutoConfigService;
 
     // -------------------------------------------------------------------------
     // Register
@@ -80,6 +82,9 @@ public class AuthService {
 
         user = userRepository.save(user);
 
+        // Auto-configure WhatsApp for the new workspace
+        whatsAppAutoConfigService.ensureWhatsAppConfigForWorkspace(workspace.getId());
+
         return buildTokenResponse(user, workspace.getId());
     }
 
@@ -102,6 +107,9 @@ public class AuthService {
 
         // Revoke all previous refresh tokens for this user
         refreshTokenRepository.revokeAllByUserId(user.getId());
+
+        // Auto-configure WhatsApp for this user's workspace if needed
+        whatsAppAutoConfigService.ensureWhatsAppConfigForWorkspace(user.getWorkspaceId());
 
         return buildTokenResponse(user, user.getWorkspaceId());
     }
@@ -153,6 +161,9 @@ public class AuthService {
 
         refreshTokenRepository.revokeAllByUserId(user.getId());
 
+        // Auto-configure WhatsApp for this user's workspace if needed
+        whatsAppAutoConfigService.ensureWhatsAppConfigForWorkspace(user.getWorkspaceId());
+
         return buildTokenResponse(user, user.getWorkspaceId());
     }
 
@@ -176,6 +187,9 @@ public class AuthService {
         user.setWorkspaceId(workspace.getId());
 
         user = userRepository.save(user);
+
+        // Auto-configure WhatsApp for the new workspace
+        whatsAppAutoConfigService.ensureWhatsAppConfigForWorkspace(workspace.getId());
 
         return buildTokenResponse(user, workspace.getId());
     }

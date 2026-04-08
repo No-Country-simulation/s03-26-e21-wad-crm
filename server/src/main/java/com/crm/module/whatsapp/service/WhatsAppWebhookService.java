@@ -134,27 +134,30 @@ public class WhatsAppWebhookService {
      */
     private void processInboundMessages(JsonNode value) {
         String phoneNumberId = value.path("metadata").path("phone_number_id").asText(null);
+        log.info("[WA-WEBHOOK-INBOUND] phoneNumberId='{}'", phoneNumberId);
+        
         if (phoneNumberId == null) {
-            log.warn("[WA-WEBHOOK-INBOUND] Missing phone_number_id in payload — full metadata: {}", value.path("metadata"));
+            log.warn("[WA-WEBHOOK-INBOUND] Missing phone_number_id in payload");
             return;
+        }
+
+        // Debug: Check all configs
+        List<WhatsAppConfig> allConfigs = whatsAppConfigRepository.findAll();
+        log.info("[WA-WEBHOOK-INBOUND] All configs in DB: {}", allConfigs.size());
+        for (WhatsAppConfig c : allConfigs) {
+            log.info("  - id={}, phone={}, active={}, ws={}", 
+                c.getId(), c.getPhoneNumberId(), c.isActive(), c.getWorkspaceId());
         }
 
         // Resolve workspace via phone_number_id
         Optional<WhatsAppConfig> configOpt = whatsAppConfigRepository
                 .findByPhoneNumberIdAndActiveTrue(phoneNumberId);
         if (configOpt.isEmpty()) {
-            log.warn("[WA-WEBHOOK-INBOUND] No active WhatsApp config for phone_number_id='{}' — message will be DROPPED. Check that this phone_number_id exists in whatsapp_configs table with active=true", phoneNumberId);
-            // Log all active configs to help debug
-            List<WhatsAppConfig> allActive = whatsAppConfigRepository.findAll().stream()
-                    .filter(WhatsAppConfig::isActive)
-                    .toList();
-            log.warn("[WA-WEBHOOK-INBOUND] Active configs in DB: {}", allActive.stream()
-                    .map(c -> String.format("id=%s, phone_number_id=%s, workspace=%s", c.getId(), c.getPhoneNumberId(), c.getWorkspaceId()))
-                    .toList());
+            log.warn("[WA-WEBHOOK-INBOUND] No active config for phone='{}'", phoneNumberId);
             return;
         }
         UUID workspaceId = configOpt.get().getWorkspaceId();
-        log.info("[WA-WEBHOOK-INBOUND] phone_number_id={}, workspaceId={}", phoneNumberId, workspaceId);
+        log.info("[WA-WEBHOOK-INBOUND] Found config, workspaceId={}", workspaceId);
 
         JsonNode messages = value.path("messages");
         if (!messages.isArray()) {
