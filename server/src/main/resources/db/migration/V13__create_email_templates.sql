@@ -4,7 +4,7 @@
 -- ============================================================
 -- Table: email_templates
 -- ============================================================
-CREATE TABLE email_templates (
+CREATE TABLE IF NOT EXISTS email_templates (
     id           UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
     workspace_id UUID         NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
     name         VARCHAR(255) NOT NULL,
@@ -24,9 +24,9 @@ CREATE TABLE email_templates (
 -- ============================================================
 -- Indexes
 -- ============================================================
-CREATE INDEX idx_email_templates_workspace_id    ON email_templates(workspace_id);
-CREATE INDEX idx_email_templates_category        ON email_templates(category);
-CREATE INDEX idx_email_templates_active_default ON email_templates(workspace_id, is_active, is_default);
+CREATE INDEX IF NOT EXISTS idx_email_templates_workspace_id    ON email_templates(workspace_id);
+CREATE INDEX IF NOT EXISTS idx_email_templates_category        ON email_templates(category);
+CREATE INDEX IF NOT EXISTS idx_email_templates_active_default ON email_templates(workspace_id, is_active, is_default);
 
 -- ============================================================
 -- Seed: Plantillas por defecto para workspaces existentes
