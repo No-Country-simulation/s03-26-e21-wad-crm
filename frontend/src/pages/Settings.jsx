@@ -12,8 +12,8 @@ export default function Settings() {
     { id: 'workspace',     label: 'Workspace',          icon: Building },
     { id: 'email',         label: 'Email Integration',  icon: Mail },
     { id: 'whatsapp',      label: 'WhatsApp',           icon: MessageCircle },
-    { id: 'notifications', label: 'Notifications',      icon: Bell },
-    { id: 'security',      label: 'Security',           icon: Shield },
+    { id: 'notifications', label: 'Notifications',       icon: Bell },
+    { id: 'security',      label: 'Security',            icon: Shield },
   ];
 
   return (

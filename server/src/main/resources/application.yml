@@ -18,7 +18,6 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
-        format_sql: true
 
   # Flyway
   flyway:
@@ -50,16 +49,32 @@ spring:
   websocket:
     allowed-origins: ${CORS_ORIGINS:http://localhost:3000}
 
-# App config
+# App config - all in one section
 app:
+  timezone: America/Guayaquil
+  format_sql: true
   jwt:
     secret: ${JWT_SECRET:your-256-bit-secret-key-here-change-in-production}
+<<<<<<< HEAD
     access-token-expiry: 86400000   # 24 hours in ms
     refresh-token-expiry: 604800000  # 7 days in ms
+=======
+    access-token-expiry: 86400000      # 24 horas
+    refresh-token-expiry: 604800000    # 7 days in ms
+>>>>>>> origin/feat/startup-crm/whatsapp
   cors:
     allowed-origins: ${CORS_ORIGINS:http://localhost:5173,http://localhost:3000,http://127.0.0.1:5173,http://127.0.0.1:3000}
   encryption:
     key: ${ENCRYPTION_KEY:your-aes-256-key-here-change-in-production}
+  whatsapp:
+    api-version: ${WA_API_VERSION:v22.0}
+    webhook-path: /webhooks/whatsapp
+    # Dev credentials loaded from .env
+    access-token: ${WA_ACCESS_TOKEN:}
+    phone-number-id: ${WA_PHONE_NUMBER_ID:}
+    waba-id: ${WA_WABA_ID:}
+    app-secret: ${WA_APP_SECRET:}
+    webhook-verify-token: ${WA_WEBHOOK_VERIFY_TOKEN:}
 
 # Actuator
 management:

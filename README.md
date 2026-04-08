@@ -1,50 +1,90 @@
-# s03-26-e21-wad-crm
+# Nexo CRM
 
-CRM academico para gestion de clientes, contactos, tareas y pipeline comercial con integracion de canales (email/WhatsApp).
+> CRM inteligente para startups — gestión de contactos, pipeline de ventas, tareas y comunicación multicanal (Email + WhatsApp).
 
-## Modo demo (5 minutos)
+[![Deploy](https://img.shields.io/badge/Landing-Render-blueviolet)](https://nexo-crm-landing.onrender.com)
+[![Frontend](https://img.shields.io/badge/Frontend-Render-blue)](https://nexo-crm-web.onrender.com)
+[![Backend](https://img.shields.io/badge/API-Render-green)](https://nexo-crm-api.onrender.com)
 
-### 1) Requisitos
+---
 
-- Docker Desktop (para PostgreSQL y Redis)
+## Stack tecnológico
+
+| Capa | Tecnología |
+|------|-----------|
+| Landing | Astro + Tailwind CSS |
+| Frontend | React 19 + Vite + Tailwind CSS |
+| Backend | Java 17 + Spring Boot 3.3 |
+| Base de datos | PostgreSQL 16 |
+| Cache | Redis 7 |
+| ORM / Migraciones | Spring Data JPA + Flyway |
+| Autenticación | JWT (access 15min + refresh 7d) |
+| WebSockets | STOMP sobre SockJS |
+| Mensajería | WhatsApp Cloud API (Meta) + SMTP/Gmail OAuth |
+| Deploy | Render (Static Sites + Docker + PostgreSQL) |
+
+---
+
+## Estructura del repositorio
+
+```
+s03-26-e21-wad-crm/
+├── landing/          # Sitio de marketing (Astro)
+├── frontend/         # App React (SPA)
+├── server/           # API REST Spring Boot
+└── doc/              # Documentación y especificaciones
+```
+
+---
+
+## Servicios en producción (Render)
+
+| Servicio | URL | Tipo |
+|---------|-----|------|
+| Landing | https://nexo-crm-landing.onrender.com | Static Site |
+| Frontend | https://nexo-crm-web.onrender.com | Static Site |
+| Backend API | https://nexo-crm-api.onrender.com | Docker |
+| Base de datos | PostgreSQL interno | Managed DB |
+
+---
+
+## Desarrollo local
+
+### Requisitos
+
 - Java 17
 - Node.js 18+
+- pnpm (`npm install -g pnpm`)
+- Docker Desktop (para PostgreSQL y Redis)
 
-### 2) Levantar infraestructura
-
-Desde la raiz del proyecto:
+### 1. Infraestructura
 
 ```bash
 docker compose up -d postgres redis
 ```
 
-### 3) Levantar backend
-
-En la carpeta `server`:
+### 2. Backend
 
 ```bash
+cd server
 ./mvnw spring-boot:run
 ```
 
-Backend disponible en:
+Disponible en:
 - API: `http://localhost:8080`
-- Swagger: `http://localhost:8080/swagger-ui/index.html`
+- Swagger UI: `http://localhost:8080/swagger-ui/index.html`
 
-### 4) Levantar frontend
-
-En la carpeta `frontend`:
+### 3. Frontend
 
 ```bash
+cd frontend
 npm install
 npm run dev
 ```
 
-Frontend disponible en:
-- App: `http://localhost:5173`
+Disponible en: `http://localhost:5173`
 
-### 5) Landing (marketing, Astro)
-
-En la carpeta `landing` (Node 22+ y [pnpm](https://pnpm.io/)):
+### 4. Landing
 
 ```bash
 cd landing
@@ -52,30 +92,63 @@ pnpm install
 pnpm dev
 ```
 
-Por defecto el botón **Login** apunta a `http://localhost:5173/login`. Opcional: copia `landing/.env.example` a `landing/.env` y ajusta `PUBLIC_CRM_APP_URL` / `PUBLIC_SITE_URL`.
+Disponible en: `http://localhost:4321`
 
-## Variables de entorno para demo
+Copia `landing/.env.example` a `landing/.env` y ajusta:
 
-En `frontend/.env` (opcional):
+```env
+PUBLIC_CRM_APP_URL=http://localhost:5173
+PUBLIC_SITE_URL=http://localhost:4321
+```
+
+---
+
+## Variables de entorno
+
+### Frontend (`frontend/.env`)
 
 ```env
 VITE_API_URL=http://localhost:8080
 ```
 
-Si no se define, el frontend ya usa `http://localhost:8080` por defecto.
+### Backend (`server/src/main/resources/application-dev.yml`)
 
-## Flujo sugerido para presentacion (10 min)
+```yaml
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/crm_db
+    username: postgres
+    password: tu_password
+```
 
-1. Login y vista general de dashboard.
-2. Alta/edicion de contacto.
-3. Creacion de tarea vinculada a contacto.
-4. Actualizacion de estado en pipeline/deals.
-5. Cierre con reportes/analytics y configuraciones.
+---
 
-## Checklist rapido antes de exponer
+## Módulos implementados
 
-- Docker arriba (`postgres` y `redis` healthy).
-- Backend en `http://localhost:8080`.
-- Frontend en `http://localhost:5173`.
-- Swagger responde correctamente.
-- Datos de prueba cargados para evitar tiempos muertos.
+| Módulo | Estado | Descripción |
+|--------|--------|-------------|
+| 🔐 Auth | ✅ | Registro, login, Google OAuth, JWT refresh |
+| 👥 Contactos | ✅ | CRUD, búsqueda, filtros, notas, tags |
+| 💼 Deals | ✅ | Pipeline kanban, historial de etapas |
+| ✅ Tareas | ✅ | Recordatorios, prioridades, scheduler |
+| 💬 WhatsApp | ✅ | Webhook Meta Cloud API, conversaciones |
+| 📧 Email | ✅ | SMTP/Gmail OAuth, templates, tracking |
+| 📊 Analytics | ✅ | Dashboard KPIs, tasa de conversión |
+| ⚙️ Settings | ✅ | Workspace, integraciones, usuarios |
+
+---
+
+## Flujo de demo (10 min)
+
+1. Abrir landing → clic en **Login** → redirige al frontend
+2. Registrar cuenta nueva o usar credenciales de prueba
+3. Explorar Dashboard con métricas del workspace
+4. Crear un contacto y asociarle una tarea
+5. Mover un deal entre etapas del pipeline
+6. Revisar configuración de integraciones (Email / WhatsApp)
+
+---
+
+## Equipo
+
+Proyecto desarrollado en **No Country** — simulación laboral s03-26-e21-wad-crm.

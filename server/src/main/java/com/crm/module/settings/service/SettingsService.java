@@ -1,5 +1,6 @@
 package com.crm.module.settings.service;
 
+import com.crm.common.security.EncryptionService;
 import com.crm.module.email.entity.EmailConfig;
 import com.crm.module.email.entity.GmailConfig;
 import com.crm.module.email.provider.GmailOAuthProvider;
@@ -33,6 +34,7 @@ public class SettingsService {
     private final GmailConfigRepository gmailConfigRepository;
     private final WhatsAppProvider whatsAppProvider;
     private final GmailOAuthProvider gmailOAuthProvider;
+    private final EncryptionService encryptionService;
 
     /**
      * Retorna el estado actual de las integraciones sin exponer tokens.
@@ -65,19 +67,17 @@ public class SettingsService {
 
     /**
      * Guarda la configuración de WhatsApp tras verificar la conexión con Meta Cloud API.
+     * Las credenciales se almacenan encriptadas con AES-256 (NFR-6).
      * Requisitos: 19.1, 19.2, 19.3
      */
     @Transactional
     public IntegrationsStatusDto saveWhatsAppConfig(UUID workspaceId, WhatsAppConfigRequest request) {
-        // Build a transient config to verify before persisting
+        // Build a transient config to verify before saving
         WhatsAppConfig config = new WhatsAppConfig();
         config.setWorkspaceId(workspaceId);
         config.setPhoneNumberId(request.phoneNumberId());
-        // TODO: encrypt with EncryptionService (AES-256) once task 2.5 is implemented
+        // Use plain text for verification
         config.setAccessToken(request.accessToken());
-        config.setWebhookVerifyToken(request.webhookVerifyToken());
-        config.setConnectedAt(LocalDateTime.now());
-        config.setActive(true);
 
         // Requisito 19.2: verify connection with Meta Cloud API before saving
         try {
@@ -88,12 +88,20 @@ public class SettingsService {
                     "Verifique que el phoneNumberId y accessToken sean correctos.");
         }
 
-        // Deactivate any existing config for this workspace
+        // Deactivate any existing config for this workspace (must flush to DB before inserting new)
         whatsAppConfigRepository.findByWorkspaceIdAndActiveTrue(workspaceId)
                 .ifPresent(existing -> {
                     existing.setActive(false);
                     whatsAppConfigRepository.save(existing);
+                    whatsAppConfigRepository.flush(); // Ensure deactivation is persisted before new insert
                 });
+
+        // Encrypt sensitive fields before persisting (NFR-6)
+        config.setAccessToken(encryptionService.encrypt(request.accessToken()));
+        config.setWebhookVerifyToken(encryptionService.encrypt(request.webhookVerifyToken()));
+        config.setAppSecret(encryptionService.encrypt(request.appSecret()));
+        config.setConnectedAt(LocalDateTime.now());
+        config.setActive(true);
 
         whatsAppConfigRepository.save(config);
         log.info("WhatsApp config saved for workspace {}", workspaceId);

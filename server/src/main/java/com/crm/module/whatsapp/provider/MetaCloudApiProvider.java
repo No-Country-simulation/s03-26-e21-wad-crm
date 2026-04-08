@@ -1,5 +1,6 @@
 package com.crm.module.whatsapp.provider;
 
+import com.crm.module.whatsapp.dto.SendWhatsAppRequest;
 import com.crm.module.whatsapp.entity.WhatsAppConfig;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -7,16 +8,18 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.security.MessageDigest;
-import java.util.HexFormat;
-import java.util.Map;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
- * Implementación de WhatsAppProvider usando Meta Cloud API v19.0.
+ * Implementación de WhatsAppProvider usando Meta Cloud API v22.0.
  * Requisitos: 19.2, 19.3, 20.1, 20.5, 21.1
  */
 @Slf4j
@@ -24,7 +27,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class MetaCloudApiProvider implements WhatsAppProvider {
 
-    private static final String META_API_BASE = "https://graph.facebook.com/v19.0";
+    private static final String META_API_BASE = "https://graph.facebook.com/v22.0";
 
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
@@ -80,9 +83,92 @@ public class MetaCloudApiProvider implements WhatsAppProvider {
             }
             log.info("WhatsApp message sent to {}, externalId={}", phoneNumber, externalId);
             return externalId;
+        } catch (HttpClientErrorException e) {
+            // Mejor manejo de errores HTTP específicos
+            if (e.getStatusCode() == HttpStatus.UNAUTHORIZED) {
+                log.error("Token de WhatsApp expirado o inválido: {}", e.getMessage());
+                throw new RuntimeException("Token de acceso expirado. Por favor actualizá las credenciales en Settings > WhatsApp.", e);
+            } else if (e.getStatusCode() == HttpStatus.FORBIDDEN) {
+                log.error("Sin permisos para enviar mensaje: {}", e.getMessage());
+                throw new RuntimeException("Sin permisos. Verificá que el token tenga permisos de envío.", e);
+            }
+            log.error("Error HTTP al enviar WhatsApp message to {}: {}", phoneNumber, e.getMessage());
+            throw new RuntimeException("Error al enviar mensaje WhatsApp: " + e.getMessage(), e);
         } catch (Exception e) {
             log.error("Error sending WhatsApp message to {}: {}", phoneNumber, e.getMessage());
             throw new RuntimeException("Error al enviar mensaje WhatsApp: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Envía un mensaje template usando las credenciales explícitas del workspace.
+     * Para mensajes fuera de la ventana de 24h.
+     *
+     * @param phoneNumber   número destino normalizado (sin +)
+     * @param templateName  nombre del template aprobado en Meta
+     * @param language      código de idioma (ej: "en", "es", "en_US")
+     * @param parameters    lista de parámetros para el body del template
+     * @param phoneNumberId ID del número de Meta
+     * @param accessToken   token de acceso (ya descifrado)
+     * @return externalId retornado por Meta
+     */
+    public String sendTemplateMessage(String phoneNumber, String templateName, String language,
+                                      List<SendWhatsAppRequest.TemplateParameter> parameters,
+                                      String phoneNumberId, String accessToken) {
+        String url = META_API_BASE + "/" + phoneNumberId + "/messages";
+
+        Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put("messaging_product", "whatsapp");
+        payload.put("recipient_type", "individual");
+        payload.put("to", normalizePhone(phoneNumber));
+        payload.put("type", "template");
+
+        Map<String, Object> template = new LinkedHashMap<>();
+        template.put("name", templateName);
+        template.put("language", Map.of("code", language));
+
+        if (parameters != null && !parameters.isEmpty()) {
+            List<Map<String, Object>> components = List.of(Map.of(
+                    "type", "body",
+                    "parameters", parameters.stream()
+                            .map(p -> Map.of("type", p.type(), p.type(), p.value()))
+                            .collect(Collectors.toList())
+            ));
+            template.put("components", components);
+        }
+
+        payload.put("template", template);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setBearerAuth(accessToken);
+
+        try {
+            ResponseEntity<String> response = restTemplate.exchange(
+                    url, HttpMethod.POST,
+                    new HttpEntity<>(payload, headers),
+                    String.class);
+
+            JsonNode root = objectMapper.readTree(response.getBody());
+            String externalId = root.path("messages").path(0).path("id").asText(null);
+            if (externalId == null) {
+                throw new RuntimeException("Meta API no retornó message id. Response: " + response.getBody());
+            }
+            log.info("WhatsApp template '{}' sent to {}, externalId={}", templateName, phoneNumber, externalId);
+            return externalId;
+        } catch (HttpClientErrorException e) {
+            if (e.getStatusCode() == HttpStatus.UNAUTHORIZED) {
+                log.error("Token de WhatsApp expirado o inválido: {}", e.getMessage());
+                throw new RuntimeException("Token de acceso expirado. Por favor actualizá las credenciales en Settings > WhatsApp.", e);
+            } else if (e.getStatusCode() == HttpStatus.FORBIDDEN) {
+                log.error("Sin permisos para enviar mensaje: {}", e.getMessage());
+                throw new RuntimeException("Sin permisos. Verificá que el token tenga permisos de envío.", e);
+            }
+            log.error("Error HTTP al enviar WhatsApp template a {}: {}", phoneNumber, e.getMessage());
+            throw new RuntimeException("Error al enviar template WhatsApp: " + e.getMessage(), e);
+        } catch (Exception e) {
+            log.error("Error sending WhatsApp template to {}: {}", phoneNumber, e.getMessage());
+            throw new RuntimeException("Error al enviar template WhatsApp: " + e.getMessage(), e);
         }
     }
 
@@ -105,7 +191,7 @@ public class MetaCloudApiProvider implements WhatsAppProvider {
         try {
             Mac mac = Mac.getInstance("HmacSHA256");
             mac.init(new SecretKeySpec(appSecret.getBytes(), "HmacSHA256"));
-            String expected = "sha256=" + HexFormat.of().formatHex(mac.doFinal(payload.getBytes()));
+            String expected = "sha256=" + HexFormat.of().formatHex(mac.doFinal(payload.getBytes(StandardCharsets.UTF_8)));
             return MessageDigest.isEqual(expected.getBytes(), signature.getBytes());
         } catch (Exception e) {
             log.error("Error verifying webhook signature", e);
@@ -115,7 +201,7 @@ public class MetaCloudApiProvider implements WhatsAppProvider {
 
     /**
      * Req 19.3: verifica la conexión con Meta Cloud API antes de guardar la config.
-     * Llama a GET /v19.0/{phoneNumberId} con el accessToken para validar credenciales.
+     * Llama a GET /v22.0/{phoneNumberId} con el accessToken para validar credenciales.
      */
     @Override
     public void verifyConnection(WhatsAppConfig config) {

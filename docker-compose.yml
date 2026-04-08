@@ -6,14 +6,14 @@ services:
     container_name: crm_postgres
     environment:
       POSTGRES_DB: crm_db
-      POSTGRES_USER: crm_user
-      POSTGRES_PASSWORD: crm_pass
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: Pino2026!
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U crm_user -d crm_db"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d crm_db"]
       interval: 10s
       timeout: 5s
       retries: 5

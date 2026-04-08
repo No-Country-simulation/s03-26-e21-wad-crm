@@ -9,5 +9,6 @@ import jakarta.validation.constraints.NotBlank;
 public record WhatsAppConfigRequest(
         @NotBlank String phoneNumberId,
         @NotBlank String accessToken,
-        @NotBlank String webhookVerifyToken
+        @NotBlank String webhookVerifyToken,
+        @NotBlank String appSecret
 ) {}

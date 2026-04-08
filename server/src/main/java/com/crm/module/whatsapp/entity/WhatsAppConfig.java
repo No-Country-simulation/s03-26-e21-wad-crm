@@ -16,6 +16,7 @@ import java.time.LocalDateTime;
 @Setter
 @Entity
 @Table(name = "whatsapp_configs")
+@AttributeOverride(name = "workspaceId", column = @Column(name = "workspace_id", nullable = false))
 public class WhatsAppConfig extends AuditableEntity {
 
     @Column(name = "phone_number_id", nullable = false)

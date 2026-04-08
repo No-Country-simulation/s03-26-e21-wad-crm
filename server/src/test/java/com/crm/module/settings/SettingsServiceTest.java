@@ -75,7 +75,7 @@ class SettingsServiceTest {
         // Arrange
         doThrow(new RuntimeException("Meta API error")).when(whatsAppProvider).verifyConnection(any());
         WhatsAppConfigRequest request = new WhatsAppConfigRequest(
-                "123456789", "meta-access-token", "verify-token-secret");
+                "123456789", "meta-access-token", "verify-token-secret", "app-secret");
 
         // Act & Assert — Req 19.3: debe lanzar excepción cuando Meta rechaza la conexión
         assertThatThrownBy(() -> settingsService.saveWhatsAppConfig(workspaceId, request))
@@ -92,7 +92,7 @@ class SettingsServiceTest {
         // Arrange
         doThrow(new RuntimeException("Meta API error")).when(whatsAppProvider).verifyConnection(any());
         WhatsAppConfigRequest request = new WhatsAppConfigRequest(
-                "123456789", "meta-access-token", "verify-token-secret");
+                "123456789", "meta-access-token", "verify-token-secret", "app-secret");
 
         // Act
         try {
@@ -121,7 +121,7 @@ class SettingsServiceTest {
                 .thenReturn(Optional.empty());
 
         WhatsAppConfigRequest request = new WhatsAppConfigRequest(
-                "123456789", "meta-access-token", "verify-token-secret");
+                "123456789", "meta-access-token", "verify-token-secret", "app-secret-value");
 
         // Act
         settingsService.saveWhatsAppConfig(workspaceId, request);
@@ -153,7 +153,7 @@ class SettingsServiceTest {
                 .thenReturn(Optional.empty());
 
         WhatsAppConfigRequest request = new WhatsAppConfigRequest(
-                "new-phone-id", "new-token", "new-verify");
+                "new-phone-id", "new-token", "new-verify", "new-app-secret");
 
         // Act
         settingsService.saveWhatsAppConfig(workspaceId, request);

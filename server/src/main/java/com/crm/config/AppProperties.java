@@ -19,6 +19,8 @@ public class AppProperties {
     private final Jwt jwt = new Jwt();
     private final Cors cors = new Cors();
     private final Encryption encryption = new Encryption();
+    /** WhatsApp Business API credentials for dev mode. Loaded from WA_* env vars. */
+    private final WhatsApp whatsApp = new WhatsApp();
 
     @Getter
     @Setter
@@ -38,5 +40,19 @@ public class AppProperties {
     @Setter
     public static class Encryption {
         private String key;
+    }
+
+    /**
+     * WhatsApp Business API credentials for development mode.
+     * Loaded from WA_* env vars in .env file.
+     */
+    @Getter
+    @Setter
+    public static class WhatsApp {
+        private String accessToken;
+        private String phoneNumberId;
+        private String wabaId;
+        private String appSecret;
+        private String webhookVerifyToken;
     }
 }
