@@ -81,7 +81,8 @@ class WhatsAppWebhookIdempotencyPropertyTest {
 
         WhatsAppWebhookService service = new WhatsAppWebhookService(
                 configRepo, contactRepo, convService, messageRepo,
-                metaProvider, encryptionSvc, objectMapper);
+                metaProvider, encryptionSvc, objectMapper,
+                Mockito.mock(org.springframework.messaging.simp.SimpMessagingTemplate.class));
 
         // Active WhatsApp config resolves to our workspaceId
         WhatsAppConfig config = new WhatsAppConfig();
@@ -176,7 +177,8 @@ class WhatsAppWebhookIdempotencyPropertyTest {
 
         WhatsAppWebhookService service = new WhatsAppWebhookService(
                 configRepo, contactRepo, convService, messageRepo,
-                metaProvider, encryptionSvc, objectMapper);
+                metaProvider, encryptionSvc, objectMapper,
+                Mockito.mock(org.springframework.messaging.simp.SimpMessagingTemplate.class));
 
         WhatsAppConfig config = new WhatsAppConfig();
         config.setPhoneNumberId(phoneNumberId);

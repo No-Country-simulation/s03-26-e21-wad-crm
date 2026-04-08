@@ -1,18 +1,19 @@
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LayoutDashboard, Users, CheckSquare, LogOut, Briefcase, Settings, Mail } from 'lucide-react';
+import { LayoutDashboard, Users, CheckSquare, LogOut, Briefcase, Settings, Mail, MessageCircle } from 'lucide-react';
 
 export default function Layout() {
   const { user, logout } = useAuth();
   const location = useLocation();
 
   const navItems = [
-    { path: '/dashboard',       label: 'Dashboard',       icon: LayoutDashboard },
-    { path: '/contacts',        label: 'Contacts',        icon: Users },
-    { path: '/deals',           label: 'Deals',           icon: Briefcase },
-    { path: '/tasks',           label: 'Tasks',           icon: CheckSquare },
-    { path: '/email-templates', label: 'Email Templates', icon: Mail },
-    { path: '/settings',        label: 'Settings',        icon: Settings },
+    { path: '/dashboard',          label: 'Dashboard',          icon: LayoutDashboard },
+    { path: '/contacts',           label: 'Contacts',           icon: Users },
+    { path: '/deals',              label: 'Deals',              icon: Briefcase },
+    { path: '/tasks',              label: 'Tasks',              icon: CheckSquare },
+    { path: '/email-templates',    label: 'Email Templates',    icon: Mail },
+    { path: '/whatsapp-templates', label: 'WhatsApp Templates', icon: MessageCircle },
+    { path: '/settings',           label: 'Settings',           icon: Settings },
   ];
 
   const isActive = (path) => location.pathname === path;

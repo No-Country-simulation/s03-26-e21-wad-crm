@@ -47,6 +47,7 @@ class WhatsAppWebhookServiceTest {
     @Mock MessageRepository messageRepository;
     @Mock MetaCloudApiProvider metaCloudApiProvider;
     @Mock EncryptionService encryptionService;
+    @Mock org.springframework.messaging.simp.SimpMessagingTemplate messagingTemplate;
 
     WhatsAppWebhookService service;
 
@@ -60,7 +61,7 @@ class WhatsAppWebhookServiceTest {
         service = new WhatsAppWebhookService(
                 configRepository, contactRepository, conversationService,
                 messageRepository, metaCloudApiProvider, encryptionService,
-                new ObjectMapper());
+                new ObjectMapper(), messagingTemplate);
     }
 
     // -------------------------------------------------------------------------

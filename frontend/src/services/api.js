@@ -87,4 +87,9 @@ export const emailConfigService = {
   configure: (data) => api.post('/api/settings/integrations/email', data),
 };
 
+export const whatsappService = {
+  getTemplates: () => api.get('/api/whatsapp/templates'),
+  send: (data) => api.post('/api/whatsapp/send', data),
+};
+
 export default api;
