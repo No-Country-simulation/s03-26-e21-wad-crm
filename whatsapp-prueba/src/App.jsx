@@ -1832,8 +1832,23 @@ function LoginScreen({ onLogin }) {
           email, password,
         })
         const token = res.data.accessToken
+        
+        // Obtener workspaceId del token o de /me
+        let workspaceId = res.data.workspaceId
+        if (!workspaceId) {
+          try {
+            const meRes = await axios.get('http://localhost:8080/api/auth/me', {
+              headers: { Authorization: `Bearer ${token}` }
+            })
+            workspaceId = meRes.data.workspaceId
+          } catch (e) {
+            console.warn('Could not get workspaceId:', e)
+          }
+        }
+        
         const session = {
           token,
+          workspaceId,
           email: res.data.email || email,
           name: res.data.name || email,
           loginAt: Date.now(),
@@ -2100,7 +2115,10 @@ export default function App() {
             </div>
             <div>
               <h1 className="text-lg font-bold text-white">WhatsApp Prueba</h1>
-              <p className="text-xs text-slate-400">Meta Cloud API v22.0 + CRM Backend</p>
+              <p className="text-xs text-slate-400">
+                Meta Cloud API v22.0 + CRM Backend
+                {crmConfig?.token && <span className="ml-2 text-green-400">• Workspace: {crmConfig.workspaceId?.substring(0,8)}...</span>}
+              </p>
             </div>
           </div>
           <div className="flex items-center gap-2">

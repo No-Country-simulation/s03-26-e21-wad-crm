@@ -215,6 +215,7 @@ public class AuthService {
         return TokenResponse.builder()
                 .accessToken(accessToken)
                 .refreshToken(rawRefreshToken)
+                .workspaceId(workspaceId)
                 .build();
     }
 
