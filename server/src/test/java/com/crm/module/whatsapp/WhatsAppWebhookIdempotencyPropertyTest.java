@@ -71,19 +71,20 @@ class WhatsAppWebhookIdempotencyPropertyTest {
         UUID convId      = UUID.randomUUID();
         String phoneNumberId = "phone-number-id-" + UUID.randomUUID();
 
-        WhatsAppConfigRepository configRepo    = Mockito.mock(WhatsAppConfigRepository.class);
+WhatsAppConfigRepository configRepo    = Mockito.mock(WhatsAppConfigRepository.class);
         ContactRepository        contactRepo   = Mockito.mock(ContactRepository.class);
         ConversationService      convService   = Mockito.mock(ConversationService.class);
         MessageRepository        messageRepo   = Mockito.mock(MessageRepository.class);
         MetaCloudApiProvider     metaProvider  = Mockito.mock(MetaCloudApiProvider.class);
         EncryptionService        encryptionSvc = Mockito.mock(EncryptionService.class);
         ObjectMapper             objectMapper  = new ObjectMapper();
+        org.springframework.messaging.simp.SimpMessagingTemplate messagingTemplate = 
+                Mockito.mock(org.springframework.messaging.simp.SimpMessagingTemplate.class);
 
         WhatsAppWebhookService service = new WhatsAppWebhookService(
                 configRepo, contactRepo, convService, messageRepo,
-                metaProvider, encryptionSvc, objectMapper);
+                metaProvider, encryptionSvc, objectMapper, messagingTemplate);
 
-        // Active WhatsApp config resolves to our workspaceId
         WhatsAppConfig config = new WhatsAppConfig();
         config.setPhoneNumberId(phoneNumberId);
         config.setActive(true);
@@ -173,10 +174,12 @@ class WhatsAppWebhookIdempotencyPropertyTest {
         MetaCloudApiProvider     metaProvider  = Mockito.mock(MetaCloudApiProvider.class);
         EncryptionService        encryptionSvc = Mockito.mock(EncryptionService.class);
         ObjectMapper             objectMapper  = new ObjectMapper();
+        org.springframework.messaging.simp.SimpMessagingTemplate messagingTemplate = 
+                Mockito.mock(org.springframework.messaging.simp.SimpMessagingTemplate.class);
 
         WhatsAppWebhookService service = new WhatsAppWebhookService(
                 configRepo, contactRepo, convService, messageRepo,
-                metaProvider, encryptionSvc, objectMapper);
+                metaProvider, encryptionSvc, objectMapper, messagingTemplate);
 
         WhatsAppConfig config = new WhatsAppConfig();
         config.setPhoneNumberId(phoneNumberId);
