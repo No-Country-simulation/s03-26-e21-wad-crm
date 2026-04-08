@@ -12,13 +12,9 @@ spring:
 
 app:
   cors:
-<<<<<<< HEAD
-    allowed-origins: http://localhost:5173,http://localhost:3000,http://localhost:3001
-=======
-    allowed-origins: http://localhost:3000,http://localhost:3001,http://localhost:5173,http://localhost:5174,http://127.0.0.1:4040,https://5826-181-199-44-92.ngrok-free.app,http://localhost:8080
+    allowed-origins: http://localhost:3000,http://localhost:3001,http://localhost:5173,http://localhost:5174,http://127.0.0.1:4040,http://localhost:8080
   whatsapp:
     webhook-verify-token: crm-dev-webhook-token-2026
->>>>>>> origin/feat/startup-crm/whatsapp
 
 management:
   endpoints:
