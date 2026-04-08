@@ -15,7 +15,6 @@ export default function Login() {
     e.preventDefault();
     setError('');
     setLoading(true);
-
     try {
       await login(email, password);
       navigate('/dashboard');
@@ -27,76 +26,68 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
-      <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md border border-gray-100">
+    <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--color-bg)' }}>
+      <div className="p-8 rounded-2xl shadow-xl w-full max-w-md" style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}>
         <div className="text-center mb-8">
-          <div className="bg-blue-600 w-16 h-16 rounded-xl flex items-center justify-center mx-auto mb-4">
+          <div className="w-16 h-16 rounded-xl flex items-center justify-center mx-auto mb-4" style={{ background: 'var(--color-primary)' }}>
             <span className="text-white text-2xl font-bold">CRM</span>
           </div>
-          <h1 className="text-2xl font-bold text-gray-800">Startup CRM</h1>
-          <p className="text-gray-500 mt-1">Sign in to your account</p>
+          <h1 className="text-2xl font-bold" style={{ color: 'var(--color-text)' }}>Nexo CRM</h1>
+          <p className="mt-1" style={{ color: 'var(--color-muted)' }}>Sign in to your account</p>
         </div>
-        
+
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg mb-6 text-sm">
+          <div className="px-4 py-3 rounded-lg mb-6 text-sm" style={{ background: '#2d0a0a', border: '1px solid #7f1d1d', color: '#fca5a5' }}>
             {error}
           </div>
         )}
-        
+
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Email Address
-            </label>
+            <label className="block text-sm font-medium mb-2" style={{ color: 'var(--color-text)' }}>Email Address</label>
             <div className="relative">
-              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2" size={18} style={{ color: 'var(--color-muted)' }} />
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Enter your email"
-                className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 transition-colors text-gray-800 placeholder-gray-400"
+                className="w-full pl-10 pr-4 py-3 rounded-lg focus:outline-none transition-colors"
+                style={{ background: 'var(--color-surface-2)', border: '1px solid var(--color-border)', color: 'var(--color-text)' }}
                 required
               />
             </div>
           </div>
-          
+
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Password
-            </label>
+            <label className="block text-sm font-medium mb-2" style={{ color: 'var(--color-text)' }}>Password</label>
             <div className="relative">
-              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2" size={18} style={{ color: 'var(--color-muted)' }} />
               <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Enter your password"
-                className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 transition-colors text-gray-800 placeholder-gray-400"
+                className="w-full pl-10 pr-4 py-3 rounded-lg focus:outline-none transition-colors"
+                style={{ background: 'var(--color-surface-2)', border: '1px solid var(--color-border)', color: 'var(--color-text)' }}
                 required
               />
             </div>
           </div>
-          
+
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors font-medium flex items-center justify-center gap-2"
+            className="w-full py-3 px-4 rounded-lg font-medium flex items-center justify-center gap-2 transition-opacity disabled:opacity-50"
+            style={{ background: 'var(--color-primary)', color: '#fff' }}
           >
-            {loading ? (
-              <span className="animate-spin">⟳</span>
-            ) : (
-              <>
-                <LogIn size={18} />
-                Sign In
-              </>
-            )}
+            {loading ? <span className="animate-spin">⟳</span> : <><LogIn size={18} />Sign In</>}
           </button>
         </form>
-        
-        <p className="mt-6 text-center text-sm text-gray-600">
+
+        <p className="mt-6 text-center text-sm" style={{ color: 'var(--color-muted)' }}>
           Don't have an account?{' '}
-          <Link to="/register" className="text-blue-600 hover:text-blue-700 font-medium hover:underline">
+          <Link to="/register" className="font-medium hover:underline" style={{ color: 'var(--color-accent)' }}>
             Create Account
           </Link>
         </p>

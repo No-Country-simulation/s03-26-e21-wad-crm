@@ -3,13 +3,15 @@ import { emailTemplateService } from '../services/api';
 import { Plus, Edit2, Trash2, Mail, Search, Check } from 'lucide-react';
 
 const CATEGORIES = {
-  WELCOME: { label: 'Bienvenida', color: 'bg-green-100 text-green-800' },
-  FOLLOW_UP: { label: 'Seguimiento', color: 'bg-blue-100 text-blue-800' },
-  PROPOSAL: { label: 'Propuesta', color: 'bg-purple-100 text-purple-800' },
-  CLOSING: { label: 'Cierre', color: 'bg-yellow-100 text-yellow-800' },
-  MEETING: { label: 'Reunión', color: 'bg-indigo-100 text-indigo-800' },
-  CUSTOM: { label: 'Personalizado', color: 'bg-gray-100 text-gray-800' },
+  WELCOME:   { label: 'Bienvenida',    color: '#16a34a' },
+  FOLLOW_UP: { label: 'Seguimiento',   color: '#2563eb' },
+  PROPOSAL:  { label: 'Propuesta',     color: '#7c3aed' },
+  CLOSING:   { label: 'Cierre',        color: '#d97706' },
+  MEETING:   { label: 'Reunión',       color: '#0891b2' },
+  CUSTOM:    { label: 'Personalizado', color: '#6b7280' },
 };
+
+const inp = { background: 'var(--color-surface-2)', border: '1px solid var(--color-border)', color: 'var(--color-text)' };
 
 export default function EmailTemplates() {
   const [templates, setTemplates] = useState([]);
@@ -17,31 +19,16 @@ export default function EmailTemplates() {
   const [search, setSearch] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState(null);
-  const [formData, setFormData] = useState({
-    name: '',
-    subject: '',
-    body: '',
-    description: '',
-    category: 'CUSTOM',
-    isDefault: false,
-  });
+  const [formData, setFormData] = useState({ name: '', subject: '', body: '', description: '', category: 'CUSTOM', isDefault: false });
 
-  useEffect(() => {
-    loadTemplates();
-  }, []);
+  useEffect(() => { loadTemplates(); }, []);
 
   const loadTemplates = async () => {
-    try {
-      const response = await emailTemplateService.getAll();
-      setTemplates(response.data);
-    } catch (error) {
-      console.error('Failed to load templates:', error);
-    } finally {
-      setLoading(false);
-    }
+    try { const r = await emailTemplateService.getAll(); setTemplates(r.data); }
+    catch (e) { console.error(e); } finally { setLoading(false); }
   };
 
-  const filteredTemplates = templates.filter(t =>
+  const filtered = templates.filter(t =>
     t.name?.toLowerCase().includes(search.toLowerCase()) ||
     t.subject?.toLowerCase().includes(search.toLowerCase())
   );
@@ -49,242 +36,128 @@ export default function EmailTemplates() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      if (editingTemplate) {
-        await emailTemplateService.update(editingTemplate.id, formData);
-      } else {
-        await emailTemplateService.create(formData);
-      }
-      setShowModal(false);
-      setEditingTemplate(null);
-      resetForm();
-      loadTemplates();
-    } catch (error) {
-      console.error('Failed to save template:', error);
-    }
+      if (editingTemplate) await emailTemplateService.update(editingTemplate.id, formData);
+      else await emailTemplateService.create(formData);
+      setShowModal(false); setEditingTemplate(null); resetForm(); loadTemplates();
+    } catch (e) { console.error(e); }
   };
 
-  const handleEdit = (template) => {
-    setEditingTemplate(template);
-    setFormData({
-      name: template.name,
-      subject: template.subject,
-      body: template.body,
-      description: template.description || '',
-      category: template.category,
-      isDefault: template.isDefault,
-    });
+  const handleEdit = (t) => {
+    setEditingTemplate(t);
+    setFormData({ name: t.name, subject: t.subject, body: t.body, description: t.description || '', category: t.category, isDefault: t.isDefault });
     setShowModal(true);
   };
 
   const handleDelete = async (id) => {
-    if (!confirm('¿Estás seguro de eliminar esta plantilla?')) return;
-    try {
-      await emailTemplateService.delete(id);
-      loadTemplates();
-    } catch (error) {
-      console.error('Failed to delete template:', error);
-    }
+    if (!confirm('¿Eliminar esta plantilla?')) return;
+    try { await emailTemplateService.delete(id); loadTemplates(); } catch (e) { console.error(e); }
   };
 
-  const resetForm = () => {
-    setFormData({
-      name: '',
-      subject: '',
-      body: '',
-      description: '',
-      category: 'CUSTOM',
-      isDefault: false,
-    });
-  };
+  const resetForm = () => setFormData({ name: '', subject: '', body: '', description: '', category: 'CUSTOM', isDefault: false });
 
-  const openNewModal = () => {
-    resetForm();
-    setEditingTemplate(null);
-    setShowModal(true);
-  };
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <div className="animate-spin text-4xl">⟳</div>
-      </div>
-    );
-  }
+  if (loading) return (
+    <div className="flex items-center justify-center h-full" style={{ background: 'var(--color-bg)' }}>
+      <div className="animate-spin text-4xl" style={{ color: 'var(--color-accent)' }}>⟳</div>
+    </div>
+  );
 
   return (
-    <div className="p-6">
+    <div className="p-6 min-h-screen" style={{ background: 'var(--color-bg)' }}>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">Email Templates</h1>
-        <button
-          onClick={openNewModal}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700"
-        >
-          <Plus size={18} />
-          Nueva Plantilla
+        <h1 className="text-2xl font-bold" style={{ color: 'var(--color-accent)' }}>Email Templates</h1>
+        <button onClick={() => { resetForm(); setEditingTemplate(null); setShowModal(true); }}
+          className="px-4 py-2 rounded-lg flex items-center gap-2 font-medium" style={{ background: 'var(--color-primary)', color: '#fff' }}>
+          <Plus size={18} /> Nueva Plantilla
         </button>
       </div>
 
       <div className="mb-6">
         <div className="relative max-w-md">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-          <input
-            type="text"
-            placeholder="Buscar plantillas..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2" size={18} style={{ color: 'var(--color-muted)' }} />
+          <input type="text" placeholder="Buscar plantillas..." value={search} onChange={(e) => setSearch(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 rounded-lg focus:outline-none" style={inp} />
         </div>
       </div>
 
-      {filteredTemplates.length === 0 ? (
-        <div className="text-center py-12 text-gray-500">
-          <Mail size={48} className="mx-auto mb-4 text-gray-300" />
+      {filtered.length === 0 ? (
+        <div className="text-center py-12" style={{ color: 'var(--color-muted)' }}>
+          <Mail size={48} className="mx-auto mb-4" style={{ color: 'var(--color-border)' }} />
           <p>No se encontraron plantillas</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredTemplates.map((template) => (
-            <div
-              key={template.id}
-              className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition"
-            >
-              <div className="flex items-start justify-between mb-2">
-                <div className="flex items-center gap-2">
-                  <Mail size={18} className="text-gray-400" />
-                  <h3 className="font-semibold text-gray-800">{template.name}</h3>
-                  {template.isDefault && (
-                    <span className="px-2 py-0.5 text-xs bg-green-100 text-green-700 rounded-full flex items-center gap-1">
-                      <Check size={12} /> Default
-                    </span>
-                  )}
+          {filtered.map((t) => {
+            const cat = CATEGORIES[t.category] || CATEGORIES.CUSTOM;
+            return (
+              <div key={t.id} className="p-4 rounded-xl" style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}>
+                <div className="flex items-start justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <Mail size={18} style={{ color: 'var(--color-muted)' }} />
+                    <h3 className="font-semibold" style={{ color: 'var(--color-text)' }}>{t.name}</h3>
+                    {t.isDefault && (
+                      <span className="px-2 py-0.5 text-xs rounded-full flex items-center gap-1" style={{ background: '#16a34a22', color: '#4ade80' }}>
+                        <Check size={12} /> Default
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <button onClick={() => handleEdit(t)} className="p-1.5 transition-colors" style={{ color: 'var(--color-muted)' }}><Edit2 size={16} /></button>
+                    <button onClick={() => handleDelete(t.id)} className="p-1.5 transition-colors" style={{ color: 'var(--color-muted)' }}><Trash2 size={16} /></button>
+                  </div>
                 </div>
-                <div className="flex items-center gap-1">
-                  <button
-                    onClick={() => handleEdit(template)}
-                    className="p-1.5 text-gray-400 hover:text-blue-600 transition"
-                  >
-                    <Edit2 size={16} />
-                  </button>
-                  <button
-                    onClick={() => handleDelete(template.id)}
-                    className="p-1.5 text-gray-400 hover:text-red-600 transition"
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                </div>
+                <p className="text-sm mb-2" style={{ color: 'var(--color-muted)' }}>{t.subject}</p>
+                <span className="inline-block px-2 py-1 text-xs rounded-full" style={{ background: cat.color + '22', color: cat.color }}>
+                  {cat.label}
+                </span>
               </div>
-
-              <p className="text-sm text-gray-500 mb-2">{template.subject}</p>
-
-              <span className={`inline-block px-2 py-1 text-xs rounded-full ${CATEGORIES[template.category]?.color || CATEGORIES.CUSTOM.color}`}>
-                {CATEGORIES[template.category]?.label || template.category}
-              </span>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto m-4">
-            <div className="p-6 border-b">
-              <h2 className="text-xl font-bold">
+        <div className="fixed inset-0 flex items-center justify-center z-50" style={{ background: '#00000088' }}>
+          <div className="rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto m-4" style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}>
+            <div className="p-6" style={{ borderBottom: '1px solid var(--color-border)' }}>
+              <h2 className="text-xl font-bold" style={{ color: 'var(--color-text)' }}>
                 {editingTemplate ? 'Editar Plantilla' : 'Nueva Plantilla'}
               </h2>
             </div>
-
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
+              {[
+                { label: 'Nombre',      key: 'name',        type: 'text' },
+                { label: 'Asunto',      key: 'subject',     type: 'text' },
+                { label: 'Descripción', key: 'description', type: 'text' },
+              ].map(({ label, key, type }) => (
+                <div key={key}>
+                  <label className="block text-sm font-medium mb-1" style={{ color: 'var(--color-text)' }}>{label}</label>
+                  <input type={type} value={formData[key]} onChange={(e) => setFormData({ ...formData, [key]: e.target.value })}
+                    className="w-full px-4 py-2 rounded-lg focus:outline-none" style={inp} required={key !== 'description'} />
+                </div>
+              ))}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Nombre</label>
-                <input
-                  type="text"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Asunto</label>
-                <input
-                  type="text"
-                  value={formData.subject}
-                  onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Categoría</label>
-                <select
-                  value={formData.category}
-                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  {Object.entries(CATEGORIES).map(([key, { label }]) => (
-                    <option key={key} value={key}>{label}</option>
-                  ))}
+                <label className="block text-sm font-medium mb-1" style={{ color: 'var(--color-text)' }}>Categoría</label>
+                <select value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                  className="w-full px-4 py-2 rounded-lg focus:outline-none" style={inp}>
+                  {Object.entries(CATEGORIES).map(([k, { label }]) => <option key={k} value={k}>{label}</option>)}
                 </select>
               </div>
-
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
-                <input
-                  type="text"
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium mb-1" style={{ color: 'var(--color-text)' }}>
                   Cuerpo del Email (HTML)
+                  <span className="ml-2 text-xs font-normal" style={{ color: 'var(--color-muted)' }}>Variables: {'{{contact_name}}'}, {'{{company_name}}'}</span>
                 </label>
-                <p className="text-xs text-gray-500 mb-2">
-                  Variables disponibles: {'{{contact_name}}'}, {'{{company_name}}'}
-                </p>
-                <textarea
-                  value={formData.body}
-                  onChange={(e) => setFormData({ ...formData, body: e.target.value })}
-                  rows={10}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
-                  required
-                />
+                <textarea value={formData.body} onChange={(e) => setFormData({ ...formData, body: e.target.value })}
+                  rows={10} className="w-full px-4 py-2 rounded-lg focus:outline-none font-mono text-sm" style={inp} required />
               </div>
-
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  id="isDefault"
-                  checked={formData.isDefault}
-                  onChange={(e) => setFormData({ ...formData, isDefault: e.target.checked })}
-                  className="w-4 h-4 text-blue-600"
-                />
-                <label htmlFor="isDefault" className="text-sm text-gray-700">
-                  Establecer como plantilla por defecto
-                </label>
-              </div>
-
-              <div className="flex justify-end gap-3 pt-4 border-t">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowModal(false);
-                    setEditingTemplate(null);
-                    resetForm();
-                  }}
-                  className="px-4 py-2 text-gray-600 hover:text-gray-800"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
-                >
+              <label className="flex items-center gap-2" style={{ color: 'var(--color-text)' }}>
+                <input type="checkbox" checked={formData.isDefault} onChange={(e) => setFormData({ ...formData, isDefault: e.target.checked })} className="w-4 h-4" />
+                Establecer como plantilla por defecto
+              </label>
+              <div className="flex justify-end gap-3 pt-4" style={{ borderTop: '1px solid var(--color-border)' }}>
+                <button type="button" onClick={() => { setShowModal(false); setEditingTemplate(null); resetForm(); }}
+                  className="px-4 py-2" style={{ color: 'var(--color-muted)' }}>Cancelar</button>
+                <button type="submit" className="px-6 py-2 rounded-lg font-medium" style={{ background: 'var(--color-primary)', color: '#fff' }}>
                   {editingTemplate ? 'Guardar Cambios' : 'Crear Plantilla'}
                 </button>
               </div>

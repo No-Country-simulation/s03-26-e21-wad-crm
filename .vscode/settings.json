@@ -1,7 +1,4 @@
 {
-<<<<<<< HEAD
-    "mdx-preview.preview.enableScripts": false
-=======
+    "mdx-preview.preview.enableScripts": false,
     "kiroAgent.configureMCP": "Disabled"
->>>>>>> 99edaa791f43ae9f5c0780df9803460b149e3b55
 }
