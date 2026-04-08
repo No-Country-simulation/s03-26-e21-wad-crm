@@ -88,12 +88,11 @@ public class SettingsService {
                     "Verifique que el phoneNumberId y accessToken sean correctos.");
         }
 
-        // Deactivate any existing config for this workspace (must flush to DB before inserting new)
+        // Deactivate any existing config for this workspace
         whatsAppConfigRepository.findByWorkspaceIdAndActiveTrue(workspaceId)
                 .ifPresent(existing -> {
                     existing.setActive(false);
                     whatsAppConfigRepository.save(existing);
-                    whatsAppConfigRepository.flush(); // Ensure deactivation is persisted before new insert
                 });
 
         // Encrypt sensitive fields before persisting (NFR-6)
