@@ -21,7 +21,6 @@ import java.util.UUID;
 
 /**
  * Endpoints autenticados para envío de mensajes WhatsApp.
- * Requisitos: 21.1–21.5
  */
 @Slf4j
 @RestController
@@ -37,9 +36,6 @@ public class WhatsAppController {
 
     /**
      * POST /api/whatsapp/send
-     * Envía un mensaje de WhatsApp a un contacto del workspace.
-     * Registra el mensaje con estado SENDING → SENT/FAILED.
-     * Req 21.1–21.5
      */
     @PostMapping("/send")
     public ResponseEntity<SendWhatsAppResponse> send(
@@ -55,94 +51,93 @@ public class WhatsAppController {
     }
 
     /**
-     * POST /api/whatsapp/conversations/{conversationId}/lock
-     * Bloquea una conversación para el usuario actual (auto-lock cuando hace focus en input).
+     * POST /api/whatsapp/conversations/{conversationId}/start
+     * Inicia la atención de una conversación por el agente actual.
      */
-    @PostMapping("/conversations/{conversationId}/lock")
-    public ResponseEntity<Map<String, Object>> lockConversation(
+    @PostMapping("/conversations/{conversationId}/start")
+    public ResponseEntity<Map<String, Object>> startAttending(
             @PathVariable UUID conversationId,
             @RequestHeader("Authorization") String authHeader) {
 
         UUID workspaceId = WorkspaceContext.getWorkspaceId();
         var conversation = conversationRepository
                 .findByIdAndWorkspaceId(conversationId, workspaceId)
-                .orElseThrow(() -> new IllegalArgumentException("Conversación no encontrada: " + conversationId));
+                .orElseThrow(() -> new IllegalArgumentException("Conversación no encontrada"));
 
-        // Get current user from JWT
         String token = authHeader.substring(7);
-        UUID userId = jwtService.extractUserId(token);
+        UUID agentId = jwtService.extractUserId(token);
 
-        boolean locked = conversationLockService.acquireLock(conversationId, userId);
+        boolean started = conversationLockService.startAttending(conversationId, agentId);
 
         Map<String, Object> response = new HashMap<>();
         response.put("conversationId", conversationId);
-        response.put("locked", locked);
-        response.put("userId", userId);
+        response.put("started", started);
+        response.put("agentId", agentId);
+
+        if (!started) {
+            // Obtener nombre del agente que la está atendiendo
+            Optional<UUID> currentAgent = conversationLockService.getAttendingAgent(conversationId);
+            if (currentAgent.isPresent()) {
+                var user = userRepository.findById(currentAgent.get());
+                response.put("attendingAgentName", user.map(u -> u.getName()).orElse("Otro agente"));
+            }
+        }
 
         return ResponseEntity.ok(response);
     }
 
     /**
-     * POST /api/whatsapp/conversations/{conversationId}/unlock
-     * Desbloquea una conversación (auto-unlock después de enviar mensaje).
+     * POST /api/whatsapp/conversations/{conversationId}/stop
+     * Cierra la atención de una conversación.
      */
-    @PostMapping("/conversations/{conversationId}/unlock")
-    public ResponseEntity<Map<String, Object>> unlockConversation(
+    @PostMapping("/conversations/{conversationId}/stop")
+    public ResponseEntity<Map<String, Object>> stopAttending(
             @PathVariable UUID conversationId,
             @RequestHeader("Authorization") String authHeader) {
 
         UUID workspaceId = WorkspaceContext.getWorkspaceId();
         var conversation = conversationRepository
                 .findByIdAndWorkspaceId(conversationId, workspaceId)
-                .orElseThrow(() -> new IllegalArgumentException("Conversación no encontrada: " + conversationId));
+                .orElseThrow(() -> new IllegalArgumentException("Conversación no encontrada"));
 
-        // Get current user from JWT
         String token = authHeader.substring(7);
-        UUID userId = jwtService.extractUserId(token);
+        UUID agentId = jwtService.extractUserId(token);
 
-        conversationLockService.releaseLock(conversationId, userId);
+        conversationLockService.stopAttending(conversationId, agentId);
 
         Map<String, Object> response = new HashMap<>();
         response.put("conversationId", conversationId);
-        response.put("locked", false);
+        response.put("stopped", true);
 
         return ResponseEntity.ok(response);
     }
 
     /**
-     * GET /api/whatsapp/conversations/{conversationId}/lock-status
-     * Retorna el estado de lock de una conversación (para polling del frontend).
-     * Response: { "locked": true/false, "lockedByUserId": "...", "lockedByUserName": "...", "lockedAt": "...", "lockedUntil": "..." }
+     * GET /api/whatsapp/conversations/{conversationId}/attending
+     * Retorna quién está atendiendo la conversación.
      */
-    @GetMapping("/conversations/{conversationId}/lock-status")
-    public ResponseEntity<Map<String, Object>> getLockStatus(
+    @GetMapping("/conversations/{conversationId}/attending")
+    public ResponseEntity<Map<String, Object>> getAttendingAgent(
             @PathVariable UUID conversationId) {
 
         UUID workspaceId = WorkspaceContext.getWorkspaceId();
         var conversation = conversationRepository
                 .findByIdAndWorkspaceId(conversationId, workspaceId)
-                .orElseThrow(() -> new IllegalArgumentException("Conversación no encontrada: " + conversationId));
+                .orElseThrow(() -> new IllegalArgumentException("Conversación no encontrada"));
 
-        Optional<UUID> lockedByUser = conversationLockService.checkLock(conversationId);
+        Optional<UUID> attendingAgent = conversationLockService.getAttendingAgent(conversationId);
 
         Map<String, Object> response = new HashMap<>();
         response.put("conversationId", conversationId);
-        response.put("locked", lockedByUser.isPresent());
-        
-        if (lockedByUser.isPresent()) {
-            UUID userId = lockedByUser.get();
-            response.put("lockedByUserId", userId);
-            
-            // Fetch user name
-            var user = userRepository.findById(userId);
-            response.put("lockedByUserName", user.map(u -> u.getName()).orElse("Agente desconocido"));
+        response.put("isAttending", attendingAgent.isPresent());
+        response.put("agentId", attendingAgent.orElse(null));
+
+        if (attendingAgent.isPresent()) {
+            var user = userRepository.findById(attendingAgent.get());
+            response.put("agentName", user.map(u -> u.getName()).orElse("Agente desconocido"));
         } else {
-            response.put("lockedByUserId", null);
-            response.put("lockedByUserName", null);
+            response.put("agentName", null);
         }
-        
-        response.put("lockedAt", conversation.getLockedAt());
-        response.put("lockedUntil", conversation.getLockedUntil());
 
         return ResponseEntity.ok(response);
     }

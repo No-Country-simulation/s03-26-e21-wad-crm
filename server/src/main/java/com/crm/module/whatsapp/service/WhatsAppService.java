@@ -93,24 +93,16 @@ public class WhatsAppService {
                 contact.getId(), MessageChannel.WHATSAPP, workspaceId);
         log.info("[WA-OUTBOUND] Conversation: id={}", conversation.getId());
 
-        // MULTI-AGENT: Check lock if userId is provided
+        // MULTI-AGENT: Check if this agent is attending the conversation
         if (userId != null) {
-            if (!conversationLockService.canUserSendMessage(conversation.getId(), userId)) {
-                UUID lockedByUser = conversationLockService.checkLock(conversation.getId()).orElse(null);
-                String errorMsg = lockedByUser != null 
-                    ? "Conversación bloqueada por otro agente. Intenta más tarde."
-                    : "No tienes permiso para enviar a esta conversación.";
-                log.warn("[WA-OUTBOUND] LOCK DENIED: conversationId={}, userId={}, lockedBy={}", 
-                    conversation.getId(), userId, lockedByUser);
+            if (!conversationLockService.canAgentSendMessage(conversation.getId(), userId)) {
+                UUID attendingAgent = conversationLockService.getAttendingAgent(conversation.getId()).orElse(null);
+                String errorMsg = attendingAgent != null
+                        ? "Conversación atendida por otro agente. Debes iniciar atención primero."
+                        : "Nadie está atendiendo esta conversación. Haz clic en 'Iniciar' primero.";
+                log.warn("[WA-OUTBOUND] SEND DENIED: conversationId={}, userId={}, attendingAgent={}", 
+                        conversation.getId(), userId, attendingAgent);
                 throw new IllegalStateException(errorMsg);
-            }
-
-            // Try to acquire lock for this user
-            boolean lockAcquired = conversationLockService.acquireLock(conversation.getId(), userId);
-            if (!lockAcquired) {
-                log.warn("[WA-OUTBOUND] Could not acquire lock: conversationId={}, userId={}", 
-                    conversation.getId(), userId);
-                throw new IllegalStateException("No se pudo bloquear la conversación. Otro agente está activo.");
             }
         }
 

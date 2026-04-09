@@ -1172,7 +1172,7 @@ function ConversationsPanel({ crmConfig }) {
   const [error, setError] = useState(null)
   const [newMessage, setNewMessage] = useState('')
   const [sending, setSending] = useState(false)
-  const [lockStatus, setLockStatus] = useState(null) // { locked, lockedByUserId, lockedAt, lockedUntil }
+  const [lockStatus, setLockStatus] = useState(null) // { isAttending, agentId, agentName }
   const messagesEndRef = useState(null)
 
   const apiBase = window.location.hostname === 'localhost' ? 'http://localhost:8080' : (crmConfig?.baseUrl || '')
@@ -1223,18 +1223,6 @@ function ConversationsPanel({ crmConfig }) {
   }
 
   async function fetchMessages(convId) {
-    // Auto-unlock previous conversation before switching - solo si ESOY quien tiene el lock
-    if (selectedConv && lockStatus?.locked && crmConfig?.token) {
-      if (lockStatus?.lockedByUserId === crmConfig?.userId) {
-        try {
-          await axios.post(`${apiBase}/api/whatsapp/conversations/${selectedConv}/unlock`, {}, {
-            headers: { Authorization: `Bearer ${crmConfig.token}` },
-          })
-          addLog('info', '🔓 Unlock al cambiar de conversación', LOG_TYPES.LOCK)
-        } catch (e) { /* ignore */}
-      }
-      // Si está bloqueada por OTRO, no tocarla - se desbloqueará cuando timeout expire
-    }
     if (!crmConfig?.token) return
     try {
       const res = await axios.get(`${apiBase}/api/conversations/${convId}/messages?page=0&size=200`, {
@@ -1242,49 +1230,52 @@ function ConversationsPanel({ crmConfig }) {
       })
       setMessages(res.data.content || [])
       setSelectedConv(convId)
-      // Also fetch lock status when selecting conversation
-      fetchLockStatus(convId)
+      // Fetch attending status
+      fetchAttendingStatus(convId)
     } catch (err) {
       setError(err.response?.data?.message || err.message)
     }
   }
 
-  async function fetchLockStatus(convId) {
+  async function fetchAttendingStatus(convId) {
     if (!crmConfig?.token || !convId) return
     try {
-      const res = await axios.get(`${apiBase}/api/whatsapp/conversations/${convId}/lock-status`, {
+      const res = await axios.get(`${apiBase}/api/whatsapp/conversations/${convId}/attending`, {
         headers: { Authorization: `Bearer ${crmConfig.token}` },
       })
       setLockStatus(res.data)
     } catch (err) {
-      console.error('Error fetching lock status:', err)
+      console.error('Error fetching attending status:', err)
     }
   }
 
-  async function toggleLock() {
+  async function startAttending() {
     if (!selectedConv || !crmConfig?.token) return
     try {
-      if (lockStatus?.locked) {
-        // Solo unlock si soy yo quien tiene el lock
-        if (lockStatus?.lockedByUserId !== crmConfig?.userId) {
-          addLog('warn', '🔒 No podés desbloquear - está bloqueada por otro', LOG_TYPES.LOCK)
-          return
-        }
-        await axios.post(`${apiBase}/api/whatsapp/conversations/${selectedConv}/unlock`, {}, {
-          headers: { Authorization: `Bearer ${crmConfig.token}` },
-        })
-        addLog('success', `🔓 Conversación desbloqueada`, LOG_TYPES.LOCK)
+      const res = await axios.post(`${apiBase}/api/whatsapp/conversations/${selectedConv}/start`, {}, {
+        headers: { Authorization: `Bearer ${crmConfig.token}` },
+      })
+      if (res.data.started) {
+        addLog('success', '🟢 Iniciaste atención', LOG_TYPES.LOCK)
+        fetchAttendingStatus(selectedConv)
       } else {
-        // Lock
-        await axios.post(`${apiBase}/api/whatsapp/conversations/${selectedConv}/lock`, {}, {
-          headers: { Authorization: `Bearer ${crmConfig.token}` },
-        })
-        addLog('success', `🔒 Conversación bloqueada`, LOG_TYPES.LOCK)
+        addLog('warn', `🔒 Ya está siendo atendida por ${res.data.attendingAgentName}`, LOG_TYPES.LOCK)
       }
-      // Refresh lock status
-      await fetchLockStatus(selectedConv)
     } catch (err) {
-      addLog('error', `❌ Error al cambiar bloqueo: ${err.response?.data?.message || err.message}`, LOG_TYPES.ERROR)
+      addLog('error', `❌ Error al iniciar: ${err.response?.data?.message || err.message}`, LOG_TYPES.ERROR)
+    }
+  }
+
+  async function stopAttending() {
+    if (!selectedConv || !crmConfig?.token) return
+    try {
+      await axios.post(`${apiBase}/api/whatsapp/conversations/${selectedConv}/stop`, {}, {
+        headers: { Authorization: `Bearer ${crmConfig.token}` },
+      })
+      addLog('success', '🔴 Cerraste atención', LOG_TYPES.LOCK)
+      setLockStatus({ isAttending: false, agentId: null, agentName: null })
+    } catch (err) {
+      addLog('error', `❌ Error al cerrar: ${err.response?.data?.message || err.message}`, LOG_TYPES.ERROR)
     }
   }
 
@@ -1298,18 +1289,6 @@ function ConversationsPanel({ crmConfig }) {
         headers: { Authorization: `Bearer ${crmConfig.token}` },
       })
       setNewMessage('')
-      // Auto-unlock after sending message - solo si ESOY yo quien tiene el lock
-      if (lockStatus?.locked && lockStatus?.lockedByUserId === crmConfig?.userId) {
-        try {
-          await axios.post(`${apiBase}/api/whatsapp/conversations/${selectedConv}/unlock`, {}, {
-            headers: { Authorization: `Bearer ${crmConfig.token}` },
-          })
-          addLog('success', '🔓 Auto-unlock luego de enviar', LOG_TYPES.LOCK)
-          setLockStatus({ locked: false, lockedByUserId: null, lockedByUserName: null })
-        } catch (unlockErr) {
-          console.warn('Could not auto-unlock:', unlockErr)
-        }
-      }
       // Refresh messages
       const res = await axios.get(`${apiBase}/api/conversations/${selectedConv}/messages?page=0&size=200`, {
         headers: { Authorization: `Bearer ${crmConfig.token}` },
@@ -1342,15 +1321,15 @@ function ConversationsPanel({ crmConfig }) {
     }
   }, [messages])
 
-  // Short polling: check for new messages every 10 segundos (for Vercel deployment without WebSocket)
+  // Short polling: check for new messages every 10 segundos
   useEffect(() => {
     if (!crmConfig?.token || !selectedConv) return
 
     const interval = setInterval(() => {
       fetchConversations()
       fetchMessages(selectedConv)
-      fetchLockStatus(selectedConv) // Also poll lock status
-    }, 10000) // 10 segundos - good balance for Vercel
+      fetchAttendingStatus(selectedConv)
+    }, 10000)
 
     return () => clearInterval(interval)
   }, [crmConfig?.token, selectedConv])
@@ -1474,29 +1453,33 @@ function ConversationsPanel({ crmConfig }) {
                        <p className="text-xs text-slate-400">{selectedContactInfo?.phone || selectedContactInfo?.email || ''}</p>
                      </div>
                    </div>
-                   {/* Lock/Unlock Button */}
-                   <button
-                     onClick={toggleLock}
-                     disabled={lockStatus?.locked && lockStatus?.lockedByUserId !== crmConfig?.userId}
-                     className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                       lockStatus?.locked
-                         ? 'bg-yellow-600/40 text-yellow-300 border border-yellow-600/50 hover:bg-yellow-600/50 disabled:opacity-50'
-                         : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
-                     }`}
-                   >
-                     {lockStatus?.locked ? '🔒 Desbloq.' : '🔓 Bloquear'}
-                   </button>
+                   {/* Botón Iniciar/Cerrar - solo visible si NO está siendo atendida por OTRO */}
+                   {!lockStatus?.isAttending ? (
+                     <button
+                       onClick={startAttending}
+                       className="px-3 py-1.5 rounded-lg text-sm font-medium bg-green-600 text-white hover:bg-green-500 transition-colors"
+                     >
+                       🟢 Iniciar
+                     </button>
+                   ) : lockStatus?.agentId === crmConfig?.userId ? (
+                     <button
+                       onClick={stopAttending}
+                       className="px-3 py-1.5 rounded-lg text-sm font-medium bg-red-600/40 text-red-300 border border-red-600/50 hover:bg-red-600/50 transition-colors"
+                     >
+                       🔴 Cerrar
+                     </button>
+                   ) : null}
                  </div>
                </div>
 
-{/* Agent Lock Status Banner - solo mostrar si está bloqueada por OTRO */}
-              {lockStatus?.locked && lockStatus?.lockedByUserId !== crmConfig?.userId && (
-                <div className="bg-yellow-900/40 border-b border-yellow-700 p-4 flex items-center gap-2 text-yellow-300 text-sm">
-                  <Activity className="w-5 h-5 text-yellow-400" />
-                  <span className="font-medium">🔒 Atendiendo: {lockStatus.lockedByUserName}</span>
-                  <span className="text-xs text-yellow-400 ml-auto">Conectado</span>
-                </div>
-              )}
+               {/* Banner - solo mostrar si está siendo atendida por OTRO agente */}
+               {lockStatus?.isAttending && lockStatus?.agentId !== crmConfig?.userId && (
+                 <div className="bg-yellow-900/40 border-b border-yellow-700 p-4 flex items-center gap-2 text-yellow-300 text-sm">
+                   <Activity className="w-5 h-5 text-yellow-400" />
+                   <span className="font-medium">🔒 Atendiendo: {lockStatus.agentName}</span>
+                   <span className="text-xs text-yellow-400 ml-auto">Solo lectura</span>
+                 </div>
+               )}
 
               {/* Messages area */}
               <div className="flex-1 overflow-y-auto p-4 space-y-3">
@@ -1531,30 +1514,14 @@ function ConversationsPanel({ crmConfig }) {
                 <div ref={messagesEndRef} />
               </div>
 
-              {/* Message Input - Hidden when locked by ANOTHER agent */}
-              {(!lockStatus?.locked || lockStatus?.lockedByUserId === crmConfig?.userId) ? (
+              {/* Message Input - Solo mostrar si YO estoy atendiendo */}
+              {lockStatus?.isAttending && lockStatus?.agentId === crmConfig?.userId ? (
                 <div className="p-4 border-t border-slate-700 bg-slate-800/50">
                   <div className="flex gap-2">
                     <textarea
                       value={newMessage}
                       onChange={e => setNewMessage(e.target.value)}
                       onKeyDown={handleKeyPress}
-                      onFocus={() => {
-                        if (selectedConv && crmConfig?.token) {
-                          // Solo hacer lock si NO está bloqueada OR si está bloqueada por mí
-                          if (!lockStatus?.locked || lockStatus?.lockedByUserId === crmConfig?.userId) {
-                            axios.post(`${apiBase}/api/whatsapp/conversations/${selectedConv}/lock`, {}, {
-                              headers: { Authorization: `Bearer ${crmConfig.token}` },
-                            }).then(() => {
-                              addLog('success', '🔒 Auto-lock adquirido', LOG_TYPES.LOCK)
-                              fetchLockStatus(selectedConv)
-                            }).catch(() => {})
-                          } else {
-                            // Bloqueada por otro, no intentar
-                            addLog('warn', `🔒 Bloqueada por ${lockStatus.lockedByUserName}`, LOG_TYPES.LOCK)
-                          }
-                        }
-                      }}
                       placeholder="Escribí un mensaje..."
                       rows={1}
                       className="flex-1 rounded-lg border border-slate-600 bg-slate-900 px-3 py-2 text-white placeholder-slate-500 focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500 resize-none min-h-[40px] max-h-[120px]"
@@ -1568,12 +1535,18 @@ function ConversationsPanel({ crmConfig }) {
                     </button>
                   </div>
                 </div>
+              ) : !lockStatus?.isAttending ? (
+                <div className="p-4 border-t border-slate-700 bg-slate-800/50">
+                  <div className="p-3 rounded-lg bg-slate-700/50 text-slate-400 text-sm text-center border border-slate-600">
+                    📖 Solo lectura - Hacé clic en <strong>"Iniciar"</strong> para atender esta conversación
+                  </div>
+                </div>
               ) : (
                 <div className="p-4 border-t border-slate-700 bg-slate-800/50">
                   <div className="p-3 rounded-lg bg-yellow-900/20 text-yellow-300 text-sm text-center border border-yellow-700">
-                    🔒 Atendido por: <strong>{lockStatus?.lockedByUserName}</strong>
+                    🔒 Atendido por: <strong>{lockStatus?.agentName}</strong>
                     <br />
-                    <span className="text-xs">Esperá a que se desconecte o el lock expire (15 min)</span>
+                    <span className="text-xs">Esperá a que cierre la atención</span>
                   </div>
                 </div>
               )}

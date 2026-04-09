@@ -7,13 +7,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
 /**
- * Maneja locks de conversaciones para multi-agente.
- * Previene que múltiples agentes envíen mensajes simultáneamente a la misma conversación.
+ * Maneja el agente que está atendiendo cada conversación.
+ * Simplificado: sin timeout, solo iniciar/cerrar manual.
  */
 @Slf4j
 @Service
@@ -21,84 +20,61 @@ import java.util.UUID;
 public class ConversationLockService {
 
     private final ConversationRepository conversationRepository;
-    private static final int LOCK_TIMEOUT_MINUTES = 15;
 
     /**
-     * Intenta lockear una conversación para un usuario.
-     * Si ya está lockeada por otro user y no expiró, retorna false.
-     * Si expiró, libera automáticamente y lockea para este user.
+     * Inicia la atención de una conversación por un agente.
+     * Guarda el agentId en la conversación.
+     * Retorna true si tuvo éxito, false si ya está siendo atendida por otro.
      */
     @Transactional
-    public boolean acquireLock(UUID conversationId, UUID userId) {
+    public boolean startAttending(UUID conversationId, UUID agentId) {
         Conversation conv = conversationRepository.findById(conversationId)
                 .orElseThrow(() -> new RuntimeException("Conversación no encontrada: " + conversationId));
 
-        // Si el mismo user ya tiene el lock, renovar
-        if (userId.equals(conv.getLockedByUserId())) {
-            conv.setLockedUntil(LocalDateTime.now().plusMinutes(LOCK_TIMEOUT_MINUTES));
-            conversationRepository.save(conv);
-            log.info("🔄 Lock renovado para conversación {}, user {}", conversationId, userId);
+        // Si ya está siendo atendida por el mismo agente, OK
+        if (agentId.equals(conv.getLockedByUserId())) {
+            log.info("✅ Agente {} ya está atendiendo conversación {}", agentId, conversationId);
             return true;
         }
 
-        // Si está lockeada por otro user
+        // Si está siendo atendida por otro agente
         if (conv.getLockedByUserId() != null) {
-            // Verificar si expiró
-            if (conv.getLockedUntil() != null && LocalDateTime.now().isAfter(conv.getLockedUntil())) {
-                log.info("⏰ Lock expirado para conversación {}, liberando...", conversationId);
-                releaseLock(conversationId);
-            } else {
-                // Sigue vigente, no puedo lockear
-                log.warn("🔒 Conversación {} ya está lockeada por user {}", 
+            log.warn("⚠️ Conversación {} ya está siendo atendida por agente {}", 
                     conversationId, conv.getLockedByUserId());
-                return false;
-            }
+            return false;
         }
 
-        // Lockear para este user
-        conv.setLockedByUserId(userId);
-        conv.setLockedAt(LocalDateTime.now());
-        conv.setLockedUntil(LocalDateTime.now().plusMinutes(LOCK_TIMEOUT_MINUTES));
+        // Iniciar atención
+        conv.setLockedByUserId(agentId);
         conversationRepository.save(conv);
-        log.info("🔒 Conversación {} lockeada por user {}", conversationId, userId);
+        log.info("🟢 Agente {} inició atención de conversación {}", agentId, conversationId);
         return true;
     }
 
     /**
-     * Libera el lock de una conversación si pertenece al usuario.
+     * Cierra la atención de una conversación.
+     * Solo el agente que la está atendiendo puede cerrarla.
      */
     @Transactional
-    public void releaseLock(UUID conversationId, UUID userId) {
+    public void stopAttending(UUID conversationId, UUID agentId) {
         Conversation conv = conversationRepository.findById(conversationId)
                 .orElseThrow(() -> new RuntimeException("Conversación no encontrada: " + conversationId));
 
-        if (userId.equals(conv.getLockedByUserId())) {
-            releaseLock(conversationId);
-            log.info("🔓 Lock liberado para conversación {} por user {}", conversationId, userId);
-        } else {
-            log.warn("⚠️ User {} intenta liberar lock que no posee en conversación {}", userId, conversationId);
+        if (!agentId.equals(conv.getLockedByUserId())) {
+            log.warn("⚠️ Agente {} intenta cerrar conversación que no está atendiendo", agentId);
+            return;
         }
-    }
-
-    /**
-     * Libera el lock sin verificación (uso interno).
-     */
-    @Transactional
-    public void releaseLock(UUID conversationId) {
-        Conversation conv = conversationRepository.findById(conversationId)
-                .orElseThrow(() -> new RuntimeException("Conversación no encontrada: " + conversationId));
 
         conv.setLockedByUserId(null);
-        conv.setLockedAt(null);
-        conv.setLockedUntil(null);
         conversationRepository.save(conv);
+        log.info("🔴 Agente {} cerró atención de conversación {}", agentId, conversationId);
     }
 
     /**
-     * Verifica si una conversación está lockeada.
-     * Retorna el user que la tiene lockeada, o empty si está libre.
+     * Obtiene el agente que está atendiendo una conversación.
+     * Retorna Optional.empty() si no hay nadie atendiéndola.
      */
-    public Optional<UUID> checkLock(UUID conversationId) {
+    public Optional<UUID> getAttendingAgent(UUID conversationId) {
         Conversation conv = conversationRepository.findById(conversationId)
                 .orElse(null);
 
@@ -106,42 +82,20 @@ public class ConversationLockService {
             return Optional.empty();
         }
 
-        // Verificar si expiró
-        if (conv.getLockedUntil() != null && LocalDateTime.now().isAfter(conv.getLockedUntil())) {
-            // Liberar automáticamente
-            releaseLock(conversationId);
-            return Optional.empty();
-        }
-
         return Optional.of(conv.getLockedByUserId());
     }
 
     /**
-     * Verifica si un user puede enviar a esta conversación.
-     * Retorna true si: no está lockeada O está lockeada por el mismo user
+     * Verifica si un agente puede enviar mensajes a esta conversación.
+     * Solo puede enviar si es el agente que la está atendiendo.
      */
-    public boolean canUserSendMessage(UUID conversationId, UUID userId) {
-        Optional<UUID> lockedByUser = checkLock(conversationId);
-        
-        if (lockedByUser.isEmpty()) {
-            return true; // No está lockeada
+    public boolean canAgentSendMessage(UUID conversationId, UUID agentId) {
+        Optional<UUID> attendingAgent = getAttendingAgent(conversationId);
+
+        if (attendingAgent.isEmpty()) {
+            return false; // Nadie la está atendiendo, hay que iniciar primero
         }
 
-        return userId.equals(lockedByUser.get()); // Solo si es el mismo user
-    }
-
-    /**
-     * Limpia locks expirados (ejecutar periódicamente).
-     */
-    @Transactional
-    public void cleanupExpiredLocks() {
-        // Encontrar conversaciones con lock expirado
-        conversationRepository.findAll().stream()
-                .filter(conv -> conv.getLockedUntil() != null && 
-                               LocalDateTime.now().isAfter(conv.getLockedUntil()))
-                .forEach(conv -> {
-                    log.info("🧹 Limpiando lock expirado en conversación {}", conv.getId());
-                    releaseLock(conv.getId());
-                });
+        return agentId.equals(attendingAgent.get());
     }
 }
