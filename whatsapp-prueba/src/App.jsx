@@ -1531,8 +1531,8 @@ function ConversationsPanel({ crmConfig }) {
                 <div ref={messagesEndRef} />
               </div>
 
-              {/* Message Input - Hidden when locked by another agent */}
-              {!lockStatus?.locked ? (
+              {/* Message Input - Hidden when locked by ANOTHER agent */}
+              {(!lockStatus?.locked || lockStatus?.lockedByUserId === crmConfig?.userId) ? (
                 <div className="p-4 border-t border-slate-700 bg-slate-800/50">
                   <div className="flex gap-2">
                     <textarea
@@ -1571,7 +1571,9 @@ function ConversationsPanel({ crmConfig }) {
               ) : (
                 <div className="p-4 border-t border-slate-700 bg-slate-800/50">
                   <div className="p-3 rounded-lg bg-yellow-900/20 text-yellow-300 text-sm text-center border border-yellow-700">
-                    ⏳ Otro agente está atendiendo esta conversación. El campo de envío estará disponible cuando se desconecte.
+                    🔒 Atendido por: <strong>{lockStatus?.lockedByUserName}</strong>
+                    <br />
+                    <span className="text-xs">Esperá a que se desconecte o el lock expire (15 min)</span>
                   </div>
                 </div>
               )}
