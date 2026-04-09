@@ -88,10 +88,11 @@ public class AuthController {
                 user.getId(),
                 user.getEmail(),
                 user.getName(),
-                user.getWorkspaceId()
+                user.getWorkspaceId(),
+                user.getRole().toString()
         ));
     }
 
     // DTO for user info
-    public record UserInfoResponse(UUID id, String email, String name, UUID workspaceId) {}
+    public record UserInfoResponse(UUID id, String email, String name, UUID workspaceId, String role) {}
 }

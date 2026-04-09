@@ -1505,10 +1505,21 @@ function ConversationsPanel({ crmConfig }) {
 
 // ─── LogsPanel ───────────────────────────────────────────────────────────────
 
+const LOG_TYPES = {
+  API: 'api',
+  WEBHOOK: 'webhook',
+  LOCK: 'lock',
+  ERROR: 'error',
+  SUCCESS: 'success',
+  WARN: 'warn',
+  INFO: 'info',
+}
+
 function LogsPanel({ crmConfig }) {
   const [logs, setLogs] = useState([])
   const [autoRefresh, setAutoRefresh] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [selectedFilter, setSelectedFilter] = useState('all')
 
   useEffect(() => {
     if (!autoRefresh) return
@@ -1518,10 +1529,7 @@ function LogsPanel({ crmConfig }) {
 
   async function fetchLogs() {
     if (!crmConfig?.token) {
-      setLogs(prev => [{
-        time: new Date().toISOString(), type: 'warn',
-        msg: '⚠️ Configurá el CRM primero (tab CRM) para ver logs del backend',
-      }, ...prev].slice(0, 100))
+      addLog('warn', '⚠️ Configurá el CRM primero (tab CRM) para ver logs del backend', LOG_TYPES.WARN)
       return
     }
 
@@ -1532,19 +1540,34 @@ function LogsPanel({ crmConfig }) {
         headers: { Authorization: `Bearer ${crmConfig.token}` },
       })
       const convs = res.data.content || []
-      setLogs(prev => [{
-        time: new Date().toISOString(), type: 'info',
-        msg: `📋 Conversaciones: ${convs.length} total${convs.length > 0 ? ` — Última: ${convs[0].contactName || convs[0].contactPhone || 'N/A'} (${convs[0].channel})` : ''}`,
-        data: convs.length > 0 ? { lastConversation: convs[0] } : null,
-      }, ...prev].slice(0, 100))
+      addLog('info', `📋 Conversaciones: ${convs.length} total${convs.length > 0 ? ` — Última: ${convs[0].contactName || convs[0].contactPhone || 'N/A'} (${convs[0].channel})` : ''}`, LOG_TYPES.API, convs.length > 0 ? { lastConversation: convs[0] } : null)
     } catch (err) {
-      setLogs(prev => [{
-        time: new Date().toISOString(), type: 'error',
-        msg: `❌ Error: ${err.response?.data?.message || err.response?.data?.error || err.message}`,
-      }, ...prev].slice(0, 100))
+      addLog('error', `❌ Error: ${err.response?.data?.message || err.response?.data?.error || err.message}`, LOG_TYPES.ERROR)
     } finally {
       setLoading(false)
     }
+  }
+
+  function addLog(type, msg, category, data = null) {
+    setLogs(prev => [{
+      time: new Date().toISOString(), 
+      type, 
+      msg,
+      category: category || LOG_TYPES.INFO,
+      data
+    }, ...prev].slice(0, 200))
+  }
+
+  const filteredLogs = selectedFilter === 'all' 
+    ? logs 
+    : logs.filter(log => log.category === selectedFilter)
+
+  const logCounts = {
+    all: logs.length,
+    [LOG_TYPES.API]: logs.filter(l => l.category === LOG_TYPES.API).length,
+    [LOG_TYPES.WEBHOOK]: logs.filter(l => l.category === LOG_TYPES.WEBHOOK).length,
+    [LOG_TYPES.LOCK]: logs.filter(l => l.category === LOG_TYPES.LOCK).length,
+    [LOG_TYPES.ERROR]: logs.filter(l => l.type === 'error').length,
   }
 
   return (
@@ -1565,6 +1588,25 @@ function LogsPanel({ crmConfig }) {
           </div>
         </div>
 
+        {/* Filter Tabs */}
+        <div className="flex gap-2 mb-4 pb-3 border-b border-slate-700 overflow-x-auto">
+          {['all', LOG_TYPES.API, LOG_TYPES.WEBHOOK, LOG_TYPES.LOCK, LOG_TYPES.ERROR].map(filter => (
+            <button
+              key={filter}
+              onClick={() => setSelectedFilter(filter)}
+              className={`px-3 py-1.5 rounded-lg text-sm whitespace-nowrap font-medium transition-colors ${
+                selectedFilter === filter
+                  ? filter === LOG_TYPES.ERROR 
+                    ? 'bg-red-600/30 text-red-300 border border-red-500/50'
+                    : 'bg-blue-600/30 text-blue-300 border border-blue-500/50'
+                  : 'bg-slate-700/50 text-slate-400 hover:bg-slate-600/50'
+              }`}
+            >
+              {filter.toUpperCase()} {logCounts[filter] > 0 && <span className="ml-1 text-xs bg-slate-950 px-2 py-0.5 rounded">{logCounts[filter]}</span>}
+            </button>
+          ))}
+        </div>
+
         {!crmConfig?.token && (
           <div className="mb-4 p-3 rounded-lg bg-amber-900/20 text-amber-300 border border-amber-800/50 text-sm">
             ⚠️ Necesitás configurar el CRM en la tab <strong>CRM</strong> para ver logs del backend.
@@ -1572,21 +1614,27 @@ function LogsPanel({ crmConfig }) {
         )}
 
         <div className="space-y-2 max-h-96 overflow-y-auto">
-          {logs.length === 0 && <p className="text-slate-500 text-center py-8">Sin logs aún. Enviá un mensaje o hacé refresh.</p>}
-          {logs.map((log, i) => (
-            <div key={i} className={`p-3 rounded-lg text-sm border ${log.type === 'error' ? 'bg-red-900/20 border-red-800/50 text-red-300' :
-              log.type === 'success' ? 'bg-green-900/20 border-green-800/50 text-green-300' :
-                log.type === 'warn' ? 'bg-amber-900/20 border-amber-800/50 text-amber-300' :
-                  'bg-slate-900/50 border-slate-700/50 text-slate-300'
-              }`}>
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-slate-500 font-mono">{formatTime(log.time)}</span>
-                <span className="text-xs uppercase font-bold tracking-wider">{log.type}</span>
-              </div>
-              <div className="mt-1">{log.msg}</div>
-              {log.data && <pre className="mt-2 text-xs bg-slate-950/50 p-2 rounded overflow-x-auto">{JSON.stringify(log.data, null, 2)}</pre>}
-            </div>
-          ))}
+          {filteredLogs.length === 0 && (
+            <p className="text-slate-500 text-center py-8">
+              {logs.length === 0 ? 'Sin logs aún. Enviá un mensaje o hacé refresh.' : `Sin logs de tipo ${selectedFilter}`}
+            </p>
+          )}
+           {filteredLogs.map((log, i) => (
+             <div key={i} className={`p-3 rounded-lg text-sm border ${log.type === 'error' ? 'bg-red-900/20 border-red-800/50 text-red-300' :
+               log.type === 'success' ? 'bg-green-900/20 border-green-800/50 text-green-300' :
+                 log.type === 'warn' ? 'bg-amber-900/20 border-amber-800/50 text-amber-300' :
+                   'bg-slate-900/50 border-slate-700/50 text-slate-300'
+               }`}>
+               <div className="flex items-center gap-2 flex-wrap">
+                 <span className="text-xs text-slate-500 font-mono">{formatTime(log.time)}</span>
+                 <span className="text-xs uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-slate-950/50">{log.type}</span>
+                 <span className="text-xs uppercase font-semibold px-2 py-0.5 rounded bg-slate-700/50 text-slate-300">{log.category}</span>
+                 <span className="text-xs font-medium px-2 py-0.5 rounded bg-blue-900/40 text-blue-300 border border-blue-700/50">{log.user} ({log.role})</span>
+               </div>
+               <div className="mt-1">{log.msg}</div>
+               {log.data && <pre className="mt-2 text-xs bg-slate-950/50 p-2 rounded overflow-x-auto">{JSON.stringify(log.data, null, 2)}</pre>}
+             </div>
+           ))}
         </div>
       </div>
     </div>
@@ -1857,22 +1905,25 @@ function LoginScreen({ onLogin }) {
         })
         const token = res.data.accessToken
 
-        // Obtener workspaceId del token o de /me
+        // Obtener workspaceId, role del token o de /me
         let workspaceId = res.data.workspaceId
-        if (!workspaceId) {
+        let role = res.data.role
+        if (!workspaceId || !role) {
           try {
             const meRes = await axios.get('http://localhost:8080/api/auth/me', {
               headers: { Authorization: `Bearer ${token}` }
             })
             workspaceId = meRes.data.workspaceId
+            role = meRes.data.role
           } catch (e) {
-            console.warn('Could not get workspaceId:', e)
+            console.warn('Could not get workspaceId/role:', e)
           }
         }
 
         const session = {
           token,
           workspaceId,
+          role,
           email: res.data.email || email,
           name: res.data.name || email,
           loginAt: Date.now(),
@@ -2065,6 +2116,7 @@ export default function App() {
   const [config, setConfig] = useState(() => loadConfig())
   const [templates, setTemplates] = useState(() => loadTemplates())
   const [copied, setCopied] = useState(false)
+  const [logs, setLogs] = useState([])
 
   // CRM config derived from session
   const crmConfig = session ? {
@@ -2072,6 +2124,19 @@ export default function App() {
     token: session.token,
     workspaceId: session.workspaceId || '',
   } : null
+
+  // Global logger function
+  function addLog(type, msg, category = LOG_TYPES.INFO, data = null) {
+    setLogs(prev => [{
+      time: new Date().toISOString(), 
+      type, 
+      msg,
+      category,
+      data,
+      user: session?.name || 'Unknown',
+      role: session?.role || 'N/A'
+    }, ...prev].slice(0, 200))
+  }
 
   function handleLogin(newSession) {
     setSession(newSession)
