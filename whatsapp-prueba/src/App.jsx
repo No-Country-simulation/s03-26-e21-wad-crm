@@ -1249,6 +1249,29 @@ function ConversationsPanel({ crmConfig }) {
     }
   }
 
+  async function toggleLock() {
+    if (!selectedConv || !crmConfig?.token) return
+    try {
+      if (lockStatus?.locked) {
+        // Unlock
+        await axios.post(`${apiBase}/api/whatsapp/conversations/${selectedConv}/unlock`, {}, {
+          headers: { Authorization: `Bearer ${crmConfig.token}` },
+        })
+        addLog('success', `🔓 Conversación desbloqueada`, LOG_TYPES.LOCK)
+      } else {
+        // Lock
+        await axios.post(`${apiBase}/api/whatsapp/conversations/${selectedConv}/lock`, {}, {
+          headers: { Authorization: `Bearer ${crmConfig.token}` },
+        })
+        addLog('success', `🔒 Conversación bloqueada`, LOG_TYPES.LOCK)
+      }
+      // Refresh lock status
+      await fetchLockStatus(selectedConv)
+    } catch (err) {
+      addLog('error', `❌ Error al cambiar bloqueo: ${err.response?.data?.message || err.message}`, LOG_TYPES.ERROR)
+    }
+  }
+
   async function sendMessage() {
     if (!newMessage.trim() || !selectedConv || !crmConfig?.token) return
     setSending(true)
@@ -1410,19 +1433,33 @@ function ConversationsPanel({ crmConfig }) {
             </div>
            ) : (
             <>
-              {/* Header */}
-              <div className="p-4 border-b border-slate-700 bg-slate-800/50">
-                <div className="flex items-center gap-3">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold ${selectedConvData?.channel === 'WHATSAPP' ? 'bg-green-700 text-white' : 'bg-blue-700 text-white'
-                    }`}>
-                    {selectedContactInfo?.name?.charAt(0).toUpperCase() || '?'}
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-white">{selectedContactInfo?.name || 'Contacto'}</p>
-                    <p className="text-xs text-slate-400">{selectedContactInfo?.phone || selectedContactInfo?.email || ''}</p>
-                  </div>
-                </div>
-              </div>
+               {/* Header */}
+               <div className="p-4 border-b border-slate-700 bg-slate-800/50">
+                 <div className="flex items-center gap-3 justify-between">
+                   <div className="flex items-center gap-3">
+                     <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold ${selectedConvData?.channel === 'WHATSAPP' ? 'bg-green-700 text-white' : 'bg-blue-700 text-white'
+                       }`}>
+                       {selectedContactInfo?.name?.charAt(0).toUpperCase() || '?'}
+                     </div>
+                     <div>
+                       <p className="text-sm font-semibold text-white">{selectedContactInfo?.name || 'Contacto'}</p>
+                       <p className="text-xs text-slate-400">{selectedContactInfo?.phone || selectedContactInfo?.email || ''}</p>
+                     </div>
+                   </div>
+                   {/* Lock/Unlock Button */}
+                   <button
+                     onClick={toggleLock}
+                     disabled={lockStatus?.locked && lockStatus?.lockedByUserId !== crmConfig?.userId}
+                     className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                       lockStatus?.locked
+                         ? 'bg-yellow-600/40 text-yellow-300 border border-yellow-600/50 hover:bg-yellow-600/50 disabled:opacity-50'
+                         : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                     }`}
+                   >
+                     {lockStatus?.locked ? '🔒 Desbloq.' : '🔓 Bloquear'}
+                   </button>
+                 </div>
+               </div>
 
                {/* Agent Lock Status Banner */}
                {lockStatus?.locked && (
@@ -1905,30 +1942,33 @@ function LoginScreen({ onLogin }) {
         })
         const token = res.data.accessToken
 
-        // Obtener workspaceId, role del token o de /me
-        let workspaceId = res.data.workspaceId
-        let role = res.data.role
-        if (!workspaceId || !role) {
-          try {
-            const meRes = await axios.get('http://localhost:8080/api/auth/me', {
-              headers: { Authorization: `Bearer ${token}` }
-            })
-            workspaceId = meRes.data.workspaceId
-            role = meRes.data.role
-          } catch (e) {
-            console.warn('Could not get workspaceId/role:', e)
-          }
-        }
+         // Obtener workspaceId, role, userId del token o de /me
+         let workspaceId = res.data.workspaceId
+         let role = res.data.role
+         let userId = res.data.id
+         if (!workspaceId || !role || !userId) {
+           try {
+             const meRes = await axios.get('http://localhost:8080/api/auth/me', {
+               headers: { Authorization: `Bearer ${token}` }
+             })
+             workspaceId = meRes.data.workspaceId
+             role = meRes.data.role
+             userId = meRes.data.id
+           } catch (e) {
+             console.warn('Could not get workspaceId/role/userId:', e)
+           }
+         }
 
-        const session = {
-          token,
-          workspaceId,
-          role,
-          email: res.data.email || email,
-          name: res.data.name || email,
-          loginAt: Date.now(),
-          expiresAt: Date.now() + TOKEN_EXPIRY_MS,
-        }
+         const session = {
+           token,
+           workspaceId,
+           role,
+           userId,
+           email: res.data.email || email,
+           name: res.data.name || email,
+           loginAt: Date.now(),
+           expiresAt: Date.now() + TOKEN_EXPIRY_MS,
+         }
         saveSession(session)
         onLogin(session)
       }
@@ -2123,6 +2163,7 @@ export default function App() {
     baseUrl: 'http://localhost:8080',
     token: session.token,
     workspaceId: session.workspaceId || '',
+    userId: session.userId || '',
   } : null
 
   // Global logger function
