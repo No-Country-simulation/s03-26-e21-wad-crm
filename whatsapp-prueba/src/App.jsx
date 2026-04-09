@@ -1223,14 +1223,17 @@ function ConversationsPanel({ crmConfig }) {
   }
 
   async function fetchMessages(convId) {
-    // Auto-unlock previous conversation before switching
+    // Auto-unlock previous conversation before switching - solo si ESOY quien tiene el lock
     if (selectedConv && lockStatus?.locked && crmConfig?.token) {
-      try {
-        await axios.post(`${apiBase}/api/whatsapp/conversations/${selectedConv}/unlock`, {}, {
-          headers: { Authorization: `Bearer ${crmConfig.token}` },
-        })
-        addLog('info', '🔓 Unlock al cambiar de conversación', LOG_TYPES.LOCK)
-      } catch (e) { /* ignore */}
+      if (lockStatus?.lockedByUserId === crmConfig?.userId) {
+        try {
+          await axios.post(`${apiBase}/api/whatsapp/conversations/${selectedConv}/unlock`, {}, {
+            headers: { Authorization: `Bearer ${crmConfig.token}` },
+          })
+          addLog('info', '🔓 Unlock al cambiar de conversación', LOG_TYPES.LOCK)
+        } catch (e) { /* ignore */}
+      }
+      // Si está bloqueada por OTRO, no tocarla - se desbloqueará cuando timeout expire
     }
     if (!crmConfig?.token) return
     try {
@@ -1262,7 +1265,11 @@ function ConversationsPanel({ crmConfig }) {
     if (!selectedConv || !crmConfig?.token) return
     try {
       if (lockStatus?.locked) {
-        // Unlock
+        // Solo unlock si soy yo quien tiene el lock
+        if (lockStatus?.lockedByUserId !== crmConfig?.userId) {
+          addLog('warn', '🔒 No podés desbloquear - está bloqueada por otro', LOG_TYPES.LOCK)
+          return
+        }
         await axios.post(`${apiBase}/api/whatsapp/conversations/${selectedConv}/unlock`, {}, {
           headers: { Authorization: `Bearer ${crmConfig.token}` },
         })
@@ -1291,15 +1298,17 @@ function ConversationsPanel({ crmConfig }) {
         headers: { Authorization: `Bearer ${crmConfig.token}` },
       })
       setNewMessage('')
-      // Auto-unlock after sending message
-      try {
-        await axios.post(`${apiBase}/api/whatsapp/conversations/${selectedConv}/unlock`, {}, {
-          headers: { Authorization: `Bearer ${crmConfig.token}` },
-        })
-        addLog('success', '🔓 Auto-unlock luego de enviar', LOG_TYPES.LOCK)
-        setLockStatus({ locked: false, lockedByUserId: null, lockedByUserName: null })
-      } catch (unlockErr) {
-        console.warn('Could not auto-unlock:', unlockErr)
+      // Auto-unlock after sending message - solo si ESOY yo quien tiene el lock
+      if (lockStatus?.locked && lockStatus?.lockedByUserId === crmConfig?.userId) {
+        try {
+          await axios.post(`${apiBase}/api/whatsapp/conversations/${selectedConv}/unlock`, {}, {
+            headers: { Authorization: `Bearer ${crmConfig.token}` },
+          })
+          addLog('success', '🔓 Auto-unlock luego de enviar', LOG_TYPES.LOCK)
+          setLockStatus({ locked: false, lockedByUserId: null, lockedByUserName: null })
+        } catch (unlockErr) {
+          console.warn('Could not auto-unlock:', unlockErr)
+        }
       }
       // Refresh messages
       const res = await axios.get(`${apiBase}/api/conversations/${selectedConv}/messages?page=0&size=200`, {
@@ -1531,13 +1540,19 @@ function ConversationsPanel({ crmConfig }) {
                       onChange={e => setNewMessage(e.target.value)}
                       onKeyDown={handleKeyPress}
                       onFocus={() => {
-                        if (selectedConv && !lockStatus?.locked && crmConfig?.token) {
-                          axios.post(`${apiBase}/api/whatsapp/conversations/${selectedConv}/lock`, {}, {
-                            headers: { Authorization: `Bearer ${crmConfig.token}` },
-                          }).then(() => {
-                            addLog('success', '🔒 Auto-lock adquirido', LOG_TYPES.LOCK)
-                            fetchLockStatus(selectedConv)
-                          }).catch(() => {})
+                        if (selectedConv && crmConfig?.token) {
+                          // Solo hacer lock si NO está bloqueada OR si está bloqueada por mí
+                          if (!lockStatus?.locked || lockStatus?.lockedByUserId === crmConfig?.userId) {
+                            axios.post(`${apiBase}/api/whatsapp/conversations/${selectedConv}/lock`, {}, {
+                              headers: { Authorization: `Bearer ${crmConfig.token}` },
+                            }).then(() => {
+                              addLog('success', '🔒 Auto-lock adquirido', LOG_TYPES.LOCK)
+                              fetchLockStatus(selectedConv)
+                            }).catch(() => {})
+                          } else {
+                            // Bloqueada por otro, no intentar
+                            addLog('warn', `🔒 Bloqueada por ${lockStatus.lockedByUserName}`, LOG_TYPES.LOCK)
+                          }
                         }
                       }}
                       placeholder="Escribí un mensaje..."
