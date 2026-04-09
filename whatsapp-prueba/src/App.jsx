@@ -1223,6 +1223,15 @@ function ConversationsPanel({ crmConfig }) {
   }
 
   async function fetchMessages(convId) {
+    // Auto-unlock previous conversation before switching
+    if (selectedConv && lockStatus?.locked && crmConfig?.token) {
+      try {
+        await axios.post(`${apiBase}/api/whatsapp/conversations/${selectedConv}/unlock`, {}, {
+          headers: { Authorization: `Bearer ${crmConfig.token}` },
+        })
+        addLog('info', '🔓 Unlock al cambiar de conversación', LOG_TYPES.LOCK)
+      } catch (e) { /* ignore */}
+    }
     if (!crmConfig?.token) return
     try {
       const res = await axios.get(`${apiBase}/api/conversations/${convId}/messages?page=0&size=200`, {
@@ -1282,6 +1291,16 @@ function ConversationsPanel({ crmConfig }) {
         headers: { Authorization: `Bearer ${crmConfig.token}` },
       })
       setNewMessage('')
+      // Auto-unlock after sending message
+      try {
+        await axios.post(`${apiBase}/api/whatsapp/conversations/${selectedConv}/unlock`, {}, {
+          headers: { Authorization: `Bearer ${crmConfig.token}` },
+        })
+        addLog('success', '🔓 Auto-unlock luego de enviar', LOG_TYPES.LOCK)
+        setLockStatus({ locked: false, lockedByUserId: null, lockedByUserName: null })
+      } catch (unlockErr) {
+        console.warn('Could not auto-unlock:', unlockErr)
+      }
       // Refresh messages
       const res = await axios.get(`${apiBase}/api/conversations/${selectedConv}/messages?page=0&size=200`, {
         headers: { Authorization: `Bearer ${crmConfig.token}` },
@@ -1511,6 +1530,16 @@ function ConversationsPanel({ crmConfig }) {
                       value={newMessage}
                       onChange={e => setNewMessage(e.target.value)}
                       onKeyDown={handleKeyPress}
+                      onFocus={() => {
+                        if (selectedConv && !lockStatus?.locked && crmConfig?.token) {
+                          axios.post(`${apiBase}/api/whatsapp/conversations/${selectedConv}/lock`, {}, {
+                            headers: { Authorization: `Bearer ${crmConfig.token}` },
+                          }).then(() => {
+                            addLog('success', '🔒 Auto-lock adquirido', LOG_TYPES.LOCK)
+                            fetchLockStatus(selectedConv)
+                          }).catch(() => {})
+                        }
+                      }}
                       placeholder="Escribí un mensaje..."
                       rows={1}
                       className="flex-1 rounded-lg border border-slate-600 bg-slate-900 px-3 py-2 text-white placeholder-slate-500 focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500 resize-none min-h-[40px] max-h-[120px]"

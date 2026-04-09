@@ -1,5 +1,6 @@
 package com.crm.module.whatsapp.controller;
 
+import com.crm.common.security.JwtService;
 import com.crm.common.security.WorkspaceContext;
 import com.crm.module.conversation.repository.ConversationRepository;
 import com.crm.module.conversation.service.ConversationLockService;
@@ -32,6 +33,7 @@ public class WhatsAppController {
     private final ConversationLockService conversationLockService;
     private final ConversationRepository conversationRepository;
     private final UserRepository userRepository;
+    private final JwtService jwtService;
 
     /**
      * POST /api/whatsapp/send
@@ -49,6 +51,61 @@ public class WhatsAppController {
         }
 
         SendWhatsAppResponse response = whatsAppService.sendMessage(request, workspaceId);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * POST /api/whatsapp/conversations/{conversationId}/lock
+     * Bloquea una conversación para el usuario actual (auto-lock cuando hace focus en input).
+     */
+    @PostMapping("/conversations/{conversationId}/lock")
+    public ResponseEntity<Map<String, Object>> lockConversation(
+            @PathVariable UUID conversationId,
+            @RequestHeader("Authorization") String authHeader) {
+
+        UUID workspaceId = WorkspaceContext.getWorkspaceId();
+        var conversation = conversationRepository
+                .findByIdAndWorkspaceId(conversationId, workspaceId)
+                .orElseThrow(() -> new IllegalArgumentException("Conversación no encontrada: " + conversationId));
+
+        // Get current user from JWT
+        String token = authHeader.substring(7);
+        UUID userId = jwtService.extractUserId(token);
+
+        boolean locked = conversationLockService.acquireLock(conversationId, userId);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("conversationId", conversationId);
+        response.put("locked", locked);
+        response.put("userId", userId);
+
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * POST /api/whatsapp/conversations/{conversationId}/unlock
+     * Desbloquea una conversación (auto-unlock después de enviar mensaje).
+     */
+    @PostMapping("/conversations/{conversationId}/unlock")
+    public ResponseEntity<Map<String, Object>> unlockConversation(
+            @PathVariable UUID conversationId,
+            @RequestHeader("Authorization") String authHeader) {
+
+        UUID workspaceId = WorkspaceContext.getWorkspaceId();
+        var conversation = conversationRepository
+                .findByIdAndWorkspaceId(conversationId, workspaceId)
+                .orElseThrow(() -> new IllegalArgumentException("Conversación no encontrada: " + conversationId));
+
+        // Get current user from JWT
+        String token = authHeader.substring(7);
+        UUID userId = jwtService.extractUserId(token);
+
+        conversationLockService.releaseLock(conversationId, userId);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("conversationId", conversationId);
+        response.put("locked", false);
+
         return ResponseEntity.ok(response);
     }
 
