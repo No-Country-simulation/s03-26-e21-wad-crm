@@ -31,4 +31,24 @@ public class Conversation extends AuditableEntity {
 
     @Column(name = "last_message_at")
     private LocalDateTime lastMessageAt;
+
+    /**
+     * Multi-agente lock: User quien está atendiendo esta conversación (NULL = no locked)
+     * Previene que múltiples agentes envíen mensajes simultáneamente
+     */
+    @Column(name = "locked_by_user_id")
+    private UUID lockedByUserId;
+
+    /**
+     * Timestamp cuando se bloqueó (usado para timeout automático)
+     */
+    @Column(name = "locked_at")
+    private LocalDateTime lockedAt;
+
+    /**
+     * Cuando expira el lock (después de 15 min por default)
+     * Si lockedUntil < now(), el lock se libera automáticamente
+     */
+    @Column(name = "locked_until")
+    private LocalDateTime lockedUntil;
 }

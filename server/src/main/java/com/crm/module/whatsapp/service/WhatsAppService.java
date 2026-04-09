@@ -8,6 +8,7 @@ import com.crm.module.conversation.entity.Conversation;
 import com.crm.module.conversation.entity.MessageChannel;
 import com.crm.module.conversation.entity.MessageDirection;
 import com.crm.module.conversation.entity.MessageStatus;
+import com.crm.module.conversation.service.ConversationLockService;
 import com.crm.module.conversation.service.ConversationService;
 import com.crm.module.whatsapp.dto.SendWhatsAppRequest;
 import com.crm.module.whatsapp.dto.SendWhatsAppResponse;
@@ -37,6 +38,7 @@ public class WhatsAppService {
     private final WhatsAppConfigRepository whatsAppConfigRepository;
     private final ContactRepository contactRepository;
     private final ConversationService conversationService;
+    private final ConversationLockService conversationLockService;
     private final MetaCloudApiProvider metaCloudApiProvider;
     private final EncryptionService encryptionService;
 
@@ -47,11 +49,21 @@ public class WhatsAppService {
      * Req 21.1: registra con estado SENDING → SENT/FAILED.
      * Req 21.4: crea conversación si no existe.
      * Req 21.5: actualiza lastMessageAt.
+     * 
+     * Multi-agente: Opcionalmente verifica lock si userId se proporciona.
      */
     @Transactional
     public SendWhatsAppResponse sendMessage(SendWhatsAppRequest request, UUID workspaceId) {
-        log.info("[WA-OUTBOUND] Sending message: contactId={}, workspaceId={}, template={}",
-                request.contactId(), workspaceId, request.templateName());
+        return sendMessage(request, workspaceId, null);
+    }
+
+    /**
+     * Versión con userId para multi-agente locking.
+     */
+    @Transactional
+    public SendWhatsAppResponse sendMessage(SendWhatsAppRequest request, UUID workspaceId, UUID userId) {
+        log.info("[WA-OUTBOUND] Sending message: contactId={}, workspaceId={}, userId={}, template={}",
+                request.contactId(), workspaceId, userId, request.templateName());
 
         // Resolve contact
         Contact contact = contactRepository
@@ -80,6 +92,27 @@ public class WhatsAppService {
         Conversation conversation = conversationService.findOrCreate(
                 contact.getId(), MessageChannel.WHATSAPP, workspaceId);
         log.info("[WA-OUTBOUND] Conversation: id={}", conversation.getId());
+
+        // MULTI-AGENT: Check lock if userId is provided
+        if (userId != null) {
+            if (!conversationLockService.canUserSendMessage(conversation.getId(), userId)) {
+                UUID lockedByUser = conversationLockService.checkLock(conversation.getId()).orElse(null);
+                String errorMsg = lockedByUser != null 
+                    ? "Conversación bloqueada por otro agente. Intenta más tarde."
+                    : "No tienes permiso para enviar a esta conversación.";
+                log.warn("[WA-OUTBOUND] LOCK DENIED: conversationId={}, userId={}, lockedBy={}", 
+                    conversation.getId(), userId, lockedByUser);
+                throw new IllegalStateException(errorMsg);
+            }
+
+            // Try to acquire lock for this user
+            boolean lockAcquired = conversationLockService.acquireLock(conversation.getId(), userId);
+            if (!lockAcquired) {
+                log.warn("[WA-OUTBOUND] Could not acquire lock: conversationId={}, userId={}", 
+                    conversation.getId(), userId);
+                throw new IllegalStateException("No se pudo bloquear la conversación. Otro agente está activo.");
+            }
+        }
 
         // Persist message with SENDING status first
         var pendingMsg = conversationService.addMessage(new AddMessageRequest(

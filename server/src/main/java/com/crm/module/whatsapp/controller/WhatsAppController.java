@@ -1,6 +1,8 @@
 package com.crm.module.whatsapp.controller;
 
 import com.crm.common.security.WorkspaceContext;
+import com.crm.module.conversation.repository.ConversationRepository;
+import com.crm.module.conversation.service.ConversationLockService;
 import com.crm.module.whatsapp.dto.SendWhatsAppRequest;
 import com.crm.module.whatsapp.dto.SendWhatsAppResponse;
 import com.crm.module.whatsapp.service.WhatsAppService;
@@ -10,6 +12,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -23,6 +27,8 @@ import java.util.UUID;
 public class WhatsAppController {
 
     private final WhatsAppService whatsAppService;
+    private final ConversationLockService conversationLockService;
+    private final ConversationRepository conversationRepository;
 
     /**
      * POST /api/whatsapp/send
@@ -41,5 +47,30 @@ public class WhatsAppController {
 
         SendWhatsAppResponse response = whatsAppService.sendMessage(request, workspaceId);
         return ResponseEntity.ok(response);
+    }
+
+    /**
+     * GET /api/whatsapp/conversations/{conversationId}/lock-status
+     * Retorna el estado de lock de una conversación (para polling del frontend).
+     * Response: { "locked": true/false, "lockedByUserId": "...", "lockedAt": "...", "lockedUntil": "..." }
+     */
+    @GetMapping("/conversations/{conversationId}/lock-status")
+    public ResponseEntity<Map<String, Object>> getLockStatus(
+            @PathVariable UUID conversationId) {
+
+        UUID workspaceId = WorkspaceContext.getWorkspaceId();
+        var conversation = conversationRepository
+                .findByIdAndWorkspaceId(conversationId, workspaceId)
+                .orElseThrow(() -> new IllegalArgumentException("Conversación no encontrada: " + conversationId));
+
+        Optional<UUID> lockedByUser = conversationLockService.checkLock(conversationId);
+
+        return ResponseEntity.ok(Map.of(
+                "conversationId", conversationId,
+                "locked", lockedByUser.isPresent(),
+                "lockedByUserId", lockedByUser.orElse(null),
+                "lockedAt", conversation.getLockedAt(),
+                "lockedUntil", conversation.getLockedUntil()
+        ));
     }
 }

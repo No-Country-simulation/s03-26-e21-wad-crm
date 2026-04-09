@@ -6,8 +6,8 @@ import axios from 'axios'
 
 const API_BASE = '/api'
 const BACKEND_BASE = (typeof window !== 'undefined' && window.location.hostname === 'localhost')
-  ? 'http://localhost:8080'
-  : ''
+  ? 'https://nexo-crm-ns89.onrender.com'
+  : 'http://localhost:8080'
 const STORAGE_KEY = 'wa-prueba-config'
 const TEMPLATES_KEY = 'wa-prueba-templates'
 const CRM_KEY = 'wa-prueba-crm'
@@ -201,7 +201,7 @@ function ConfigPanel({ config, onSave, onClear, crmConfig }) {
           <button onClick={saveToCrmBackend} disabled={savingToCrm || !crmConfig?.token} className="px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-500 disabled:opacity-50 transition-colors">
             {savingToCrm ? 'Guardando...' : 'Guardar en CRM Backend'}
           </button>
-          <button onClick={() => { onClear(); setForm({baseUrl: 'https://graph.facebook.com/v22.0', phoneNumberId: '', accessToken: '', appSecret: '', webhookVerifyToken: '', wabaId: ''}); setTestResult(null); setCrmSaveResult(null) }} className="px-4 py-2 rounded-lg bg-red-600/20 text-red-400 hover:bg-red-600/30 transition-colors">
+          <button onClick={() => { onClear(); setForm({ baseUrl: 'https://graph.facebook.com/v22.0', phoneNumberId: '', accessToken: '', appSecret: '', webhookVerifyToken: '', wabaId: '' }); setTestResult(null); setCrmSaveResult(null) }} className="px-4 py-2 rounded-lg bg-red-600/20 text-red-400 hover:bg-red-600/30 transition-colors">
             <Trash2 className="w-4 h-4" />
           </button>
         </div>
@@ -428,17 +428,15 @@ function SendPanel({ config, templates, crmConfig }) {
         <div className="flex gap-2 mb-4">
           <button
             onClick={() => setSendVia('direct')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              sendVia === 'direct' ? 'bg-green-600 text-white' : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
-            }`}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${sendVia === 'direct' ? 'bg-green-600 text-white' : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+              }`}
           >
             <Globe className="w-3.5 h-3.5" /> Directo a Meta
           </button>
           <button
             onClick={() => setSendVia('crm')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              sendVia === 'crm' ? 'bg-green-600 text-white' : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
-            }`}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${sendVia === 'crm' ? 'bg-green-600 text-white' : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+              }`}
           >
             <Server className="w-3.5 h-3.5" /> Vía CRM Backend
           </button>
@@ -844,11 +842,10 @@ function TemplatesPanel() {
               <div className="flex items-center gap-1">
                 {stepLabels.map((label, i) => (
                   <div key={i} className="flex items-center flex-1">
-                    <div className={`flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold transition-colors ${
-                      i + 1 < step ? 'bg-green-600 text-white' :
+                    <div className={`flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold transition-colors ${i + 1 < step ? 'bg-green-600 text-white' :
                       i + 1 === step ? 'bg-green-600 text-white' :
-                      'bg-slate-700 text-slate-400'
-                    }`}>
+                        'bg-slate-700 text-slate-400'
+                      }`}>
                       {i + 1 < step ? '✓' : i + 1}
                     </div>
                     <div className={`hidden sm:block text-xs ml-1 ${i + 1 === step ? 'text-green-400' : 'text-slate-500'}`}>
@@ -1175,6 +1172,7 @@ function ConversationsPanel({ crmConfig }) {
   const [error, setError] = useState(null)
   const [newMessage, setNewMessage] = useState('')
   const [sending, setSending] = useState(false)
+  const [lockStatus, setLockStatus] = useState(null) // { locked, lockedByUserId, lockedAt, lockedUntil }
   const messagesEndRef = useState(null)
 
   const apiBase = window.location.hostname === 'localhost' ? 'http://localhost:8080' : (crmConfig?.baseUrl || '')
@@ -1192,7 +1190,7 @@ function ConversationsPanel({ crmConfig }) {
         headers: { Authorization: `Bearer ${crmConfig.token}` },
       })
       const map = {}
-      ;(res.data.content || []).forEach(c => { map[c.id] = c })
+        ; (res.data.content || []).forEach(c => { map[c.id] = c })
       setContacts(map)
     } catch (err) {
       console.error('Error loading contacts:', err)
@@ -1232,8 +1230,22 @@ function ConversationsPanel({ crmConfig }) {
       })
       setMessages(res.data.content || [])
       setSelectedConv(convId)
+      // Also fetch lock status when selecting conversation
+      fetchLockStatus(convId)
     } catch (err) {
       setError(err.response?.data?.message || err.message)
+    }
+  }
+
+  async function fetchLockStatus(convId) {
+    if (!crmConfig?.token || !convId) return
+    try {
+      const res = await axios.get(`${apiBase}/api/whatsapp/conversations/${convId}/lock-status`, {
+        headers: { Authorization: `Bearer ${crmConfig.token}` },
+      })
+      setLockStatus(res.data)
+    } catch (err) {
+      console.error('Error fetching lock status:', err)
     }
   }
 
@@ -1286,6 +1298,7 @@ function ConversationsPanel({ crmConfig }) {
     const interval = setInterval(() => {
       fetchConversations()
       fetchMessages(selectedConv)
+      fetchLockStatus(selectedConv) // Also poll lock status
     }, 10000) // 10 segundos - good balance for Vercel
 
     return () => clearInterval(interval)
@@ -1355,14 +1368,12 @@ function ConversationsPanel({ crmConfig }) {
                 <button
                   key={conv.id}
                   onClick={() => fetchMessages(conv.id)}
-                  className={`w-full text-left p-3 border-b border-slate-800 transition-colors ${
-                    isSelected ? 'bg-green-900/20 border-l-2 border-l-green-500' : 'hover:bg-slate-800/50'
-                  }`}
+                  className={`w-full text-left p-3 border-b border-slate-800 transition-colors ${isSelected ? 'bg-green-900/20 border-l-2 border-l-green-500' : 'hover:bg-slate-800/50'
+                    }`}
                 >
                   <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 ${
-                      conv.channel === 'WHATSAPP' ? 'bg-green-700 text-white' : 'bg-blue-700 text-white'
-                    }`}>
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 ${conv.channel === 'WHATSAPP' ? 'bg-green-700 text-white' : 'bg-blue-700 text-white'
+                      }`}>
                       {info.name.charAt(0).toUpperCase()}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -1374,9 +1385,8 @@ function ConversationsPanel({ crmConfig }) {
                         <span className="text-xs text-slate-400 truncate">
                           {info.phone || info.email || 'Sin datos'}
                         </span>
-                        <span className={`text-xs px-1.5 py-0.5 rounded flex-shrink-0 ml-2 ${
-                          conv.channel === 'WHATSAPP' ? 'bg-green-900/40 text-green-400' : 'bg-blue-900/40 text-blue-400'
-                        }`}>
+                        <span className={`text-xs px-1.5 py-0.5 rounded flex-shrink-0 ml-2 ${conv.channel === 'WHATSAPP' ? 'bg-green-900/40 text-green-400' : 'bg-blue-900/40 text-blue-400'
+                          }`}>
                           {conv.channel === 'WHATSAPP' ? 'WA' : 'EM'}
                         </span>
                       </div>
@@ -1398,14 +1408,13 @@ function ConversationsPanel({ crmConfig }) {
                 <p className="text-slate-600 text-sm mt-1">Elegí un contacto de la lista izquierda</p>
               </div>
             </div>
-          ) : (
+           ) : (
             <>
               {/* Header */}
               <div className="p-4 border-b border-slate-700 bg-slate-800/50">
                 <div className="flex items-center gap-3">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold ${
-                    selectedConvData?.channel === 'WHATSAPP' ? 'bg-green-700 text-white' : 'bg-blue-700 text-white'
-                  }`}>
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold ${selectedConvData?.channel === 'WHATSAPP' ? 'bg-green-700 text-white' : 'bg-blue-700 text-white'
+                    }`}>
                     {selectedContactInfo?.name?.charAt(0).toUpperCase() || '?'}
                   </div>
                   <div>
@@ -1414,6 +1423,15 @@ function ConversationsPanel({ crmConfig }) {
                   </div>
                 </div>
               </div>
+
+              {/* Agent Lock Status Banner */}
+              {lockStatus?.locked && (
+                <div className="bg-yellow-900/40 border-b border-yellow-700 p-4 flex items-center gap-2 text-yellow-300 text-sm">
+                  <Activity className="w-5 h-5 text-yellow-400" />
+                  <span className="font-medium">🔒 Atendiendo: {lockStatus.lockedByUserId}</span>
+                  <span className="text-xs text-yellow-400 ml-auto">Conectado</span>
+                </div>
+              )}
 
               {/* Messages area */}
               <div className="flex-1 overflow-y-auto p-4 space-y-3">
@@ -1427,15 +1445,13 @@ function ConversationsPanel({ crmConfig }) {
                       key={msg.id}
                       className={`flex ${msg.direction === 'OUTBOUND' ? 'justify-end' : 'justify-start'}`}
                     >
-                      <div className={`max-w-md px-4 py-2.5 rounded-2xl text-sm ${
-                        msg.direction === 'OUTBOUND'
-                          ? 'bg-green-700 text-white rounded-br-md'
-                          : 'bg-slate-700 text-white rounded-bl-md'
-                      }`}>
-                        <p className="whitespace-pre-wrap break-words">{msg.body}</p>
-                        <div className={`flex items-center justify-end gap-2 mt-1 ${
-                          msg.direction === 'OUTBOUND' ? 'text-green-200' : 'text-slate-400'
+                      <div className={`max-w-md px-4 py-2.5 rounded-2xl text-sm ${msg.direction === 'OUTBOUND'
+                        ? 'bg-green-700 text-white rounded-br-md'
+                        : 'bg-slate-700 text-white rounded-bl-md'
                         }`}>
+                        <p className="whitespace-pre-wrap break-words">{msg.body}</p>
+                        <div className={`flex items-center justify-end gap-2 mt-1 ${msg.direction === 'OUTBOUND' ? 'text-green-200' : 'text-slate-400'
+                          }`}>
                           <span className="text-xs">{formatMsgTime(msg.sentAt)}</span>
                           {msg.status && msg.direction === 'OUTBOUND' && (
                             <span className="text-xs">
@@ -1450,27 +1466,36 @@ function ConversationsPanel({ crmConfig }) {
                 <div ref={messagesEndRef} />
               </div>
 
-              {/* Message Input */}
-              <div className="p-4 border-t border-slate-700 bg-slate-800/50">
-                <div className="flex gap-2">
-                  <textarea
-                    value={newMessage}
-                    onChange={e => setNewMessage(e.target.value)}
-                    onKeyDown={handleKeyPress}
-                    placeholder="Escribí un mensaje..."
-                    rows={1}
-                    className="flex-1 rounded-lg border border-slate-600 bg-slate-900 px-3 py-2 text-white placeholder-slate-500 focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500 resize-none min-h-[40px] max-h-[120px]"
-                  />
-                  <button
-                    onClick={sendMessage}
-                    disabled={sending || !newMessage.trim() || !selectedConv}
-                    className="px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-500 disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
-                  >
-                    {sending ? '◷' : '→'}
-                  </button>
+              {/* Message Input - Hidden when locked by another agent */}
+              {!lockStatus?.locked ? (
+                <div className="p-4 border-t border-slate-700 bg-slate-800/50">
+                  <div className="flex gap-2">
+                    <textarea
+                      value={newMessage}
+                      onChange={e => setNewMessage(e.target.value)}
+                      onKeyDown={handleKeyPress}
+                      placeholder="Escribí un mensaje..."
+                      rows={1}
+                      className="flex-1 rounded-lg border border-slate-600 bg-slate-900 px-3 py-2 text-white placeholder-slate-500 focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500 resize-none min-h-[40px] max-h-[120px]"
+                    />
+                    <button
+                      onClick={sendMessage}
+                      disabled={sending || !newMessage.trim() || !selectedConv}
+                      className="px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-500 disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+                    >
+                      {sending ? '◷' : '→'}
+                    </button>
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <div className="p-4 border-t border-slate-700 bg-slate-800/50">
+                  <div className="p-3 rounded-lg bg-yellow-900/20 text-yellow-300 text-sm text-center border border-yellow-700">
+                    ⏳ Otro agente está atendiendo esta conversación. El campo de envío estará disponible cuando se desconecte.
+                  </div>
+                </div>
+              )}
             </>
+
           )}
         </div>
       </div>
@@ -1549,12 +1574,11 @@ function LogsPanel({ crmConfig }) {
         <div className="space-y-2 max-h-96 overflow-y-auto">
           {logs.length === 0 && <p className="text-slate-500 text-center py-8">Sin logs aún. Enviá un mensaje o hacé refresh.</p>}
           {logs.map((log, i) => (
-            <div key={i} className={`p-3 rounded-lg text-sm border ${
-              log.type === 'error' ? 'bg-red-900/20 border-red-800/50 text-red-300' :
+            <div key={i} className={`p-3 rounded-lg text-sm border ${log.type === 'error' ? 'bg-red-900/20 border-red-800/50 text-red-300' :
               log.type === 'success' ? 'bg-green-900/20 border-green-800/50 text-green-300' :
-              log.type === 'warn' ? 'bg-amber-900/20 border-amber-800/50 text-amber-300' :
-              'bg-slate-900/50 border-slate-700/50 text-slate-300'
-            }`}>
+                log.type === 'warn' ? 'bg-amber-900/20 border-amber-800/50 text-amber-300' :
+                  'bg-slate-900/50 border-slate-700/50 text-slate-300'
+              }`}>
               <div className="flex items-center gap-2">
                 <span className="text-xs text-slate-500 font-mono">{formatTime(log.time)}</span>
                 <span className="text-xs uppercase font-bold tracking-wider">{log.type}</span>
@@ -1832,7 +1856,7 @@ function LoginScreen({ onLogin }) {
           email, password,
         })
         const token = res.data.accessToken
-        
+
         // Obtener workspaceId del token o de /me
         let workspaceId = res.data.workspaceId
         if (!workspaceId) {
@@ -1845,7 +1869,7 @@ function LoginScreen({ onLogin }) {
             console.warn('Could not get workspaceId:', e)
           }
         }
-        
+
         const session = {
           token,
           workspaceId,
@@ -2008,9 +2032,8 @@ function SessionWarning({ session, onLogout, onRefresh }) {
       </div>
 
       {/* Token timer */}
-      <div className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-mono ${
-        showWarning ? 'bg-red-900/40 text-red-400 border border-red-700' : 'bg-slate-800 text-slate-400'
-      }`}>
+      <div className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-mono ${showWarning ? 'bg-red-900/40 text-red-400 border border-red-700' : 'bg-slate-800 text-slate-400'
+        }`}>
         <span className={`w-1.5 h-1.5 rounded-full ${showWarning ? 'bg-red-400 animate-pulse' : 'bg-green-400'}`} />
         {timeLeft}
       </div>
@@ -2117,7 +2140,7 @@ export default function App() {
               <h1 className="text-lg font-bold text-white">WhatsApp Prueba</h1>
               <p className="text-xs text-slate-400">
                 Meta Cloud API v22.0 + CRM Backend
-                {crmConfig?.token && <span className="ml-2 text-green-400">• Workspace: {crmConfig.workspaceId?.substring(0,8)}...</span>}
+                {crmConfig?.token && <span className="ml-2 text-green-400">• Workspace: {crmConfig.workspaceId?.substring(0, 8)}...</span>}
               </p>
             </div>
           </div>
@@ -2144,9 +2167,8 @@ export default function App() {
           {tabs.map(tab => {
             const Icon = tab.icon
             return (
-              <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
-                activeTab === tab.id ? 'border-green-500 text-green-400' : 'border-transparent text-slate-400 hover:text-slate-200 hover:border-slate-600'
-              }`}>
+              <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${activeTab === tab.id ? 'border-green-500 text-green-400' : 'border-transparent text-slate-400 hover:text-slate-200 hover:border-slate-600'
+                }`}>
                 <Icon className="w-4 h-4" /> {tab.label}
               </button>
             )
@@ -2158,7 +2180,7 @@ export default function App() {
         {activeTab === TABS.SEND && <SendPanel config={config} templates={templates} crmConfig={crmConfig} />}
         {activeTab === TABS.TEMPLATES && <TemplatesPanel />}
         {activeTab === TABS.CONFIG && <ConfigPanel config={config} crmConfig={crmConfig} onSave={setConfig} onClear={() => { localStorage.removeItem(STORAGE_KEY); setConfig(null) }} />}
-        {activeTab === TABS.CRM && <CrmPanel crmConfig={crmConfig} onSave={() => {}} onClear={() => {}} />}
+        {activeTab === TABS.CRM && <CrmPanel crmConfig={crmConfig} onSave={() => { }} onClear={() => { }} />}
         {activeTab === TABS.CONVERSATIONS && <ConversationsPanel crmConfig={crmConfig} />}
         {activeTab === TABS.LOGS && <LogsPanel crmConfig={crmConfig} />}
         {activeTab === TABS.WEBHOOK && <WebhookSimulator config={config} />}
