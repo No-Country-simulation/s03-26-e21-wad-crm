@@ -55,9 +55,9 @@ public class WhatsAppAutoConfigService {
 
         log.info("Auto-configuring WhatsApp for workspace {} using shared credentials", workspaceId);
 
-        // CRITICAL: Deactivate ALL other configs with the same phone_number_id
-        // In MVP mode, only ONE workspace can have active config per phone number
-        deactivateOtherConfigs(wa.getPhoneNumberId(), workspaceId);
+        // MVP FIX: Don't deactivate other configs - allow multiple workspaces to share the same phone number
+        // The webhook will broadcast incoming messages to ALL workspaces using this phone number
+        // deactivateOtherConfigs(wa.getPhoneNumberId(), workspaceId);
 
         // Create new config for this workspace
         createWhatsAppConfig(workspaceId, wa);

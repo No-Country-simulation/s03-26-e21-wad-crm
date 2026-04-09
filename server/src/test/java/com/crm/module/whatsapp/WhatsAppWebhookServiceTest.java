@@ -58,10 +58,19 @@ class WhatsAppWebhookServiceTest {
 
     @BeforeEach
     void setUp() {
+        // Note: appTimezone is set via @Value, not constructor
         service = new WhatsAppWebhookService(
                 configRepository, contactRepository, conversationService,
                 messageRepository, metaCloudApiProvider, encryptionService,
                 new ObjectMapper(), messagingTemplate);
+        // Inject appTimezone via reflection for tests
+        try {
+            var field = WhatsAppWebhookService.class.getDeclaredField("appTimezone");
+            field.setAccessible(true);
+            field.set(service, "America/Guayaquil");
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     // -------------------------------------------------------------------------

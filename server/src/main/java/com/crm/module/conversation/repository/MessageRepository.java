@@ -27,6 +27,9 @@ public interface MessageRepository extends JpaRepository<Message, UUID> {
     /** Idempotencia: verificar externalId antes de insertar para evitar duplicados. Req 20.4 */
     Optional<Message> findByExternalIdAndChannel(String externalId, MessageChannel channel);
 
+    /** Idempotencia por workspace: verificar que el mensaje no exista ya en ese workspace específico */
+    Optional<Message> findByExternalIdAndChannelAndWorkspaceId(String externalId, MessageChannel channel, UUID workspaceId);
+
     /** Verificar pertenencia al workspace. Req 8.3 */
     boolean existsByConversationIdAndWorkspaceId(UUID conversationId, UUID workspaceId);
 }

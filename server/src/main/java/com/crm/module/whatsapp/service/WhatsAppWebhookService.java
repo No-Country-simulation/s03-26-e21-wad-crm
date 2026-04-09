@@ -149,16 +149,35 @@ public class WhatsAppWebhookService {
                 c.getId(), c.getPhoneNumberId(), c.isActive(), c.getWorkspaceId());
         }
 
-        // Resolve workspace via phone_number_id
-        Optional<WhatsAppConfig> configOpt = whatsAppConfigRepository
-                .findByPhoneNumberIdAndActiveTrue(phoneNumberId);
-        if (configOpt.isEmpty()) {
-            log.warn("[WA-WEBHOOK-INBOUND] No active config for phone='{}'", phoneNumberId);
+        // Resolve ALL ACTIVE workspaces that share this phone number (MVP multi-tenant broadcast)
+        // In MVP mode, multiple workspaces can share the same phone number, and all ACTIVE should receive messages
+        List<WhatsAppConfig> allConfigsForPhone = whatsAppConfigRepository.findByPhoneNumberId(phoneNumberId);
+        List<WhatsAppConfig> configsForPhone = allConfigsForPhone.stream()
+                .filter(config -> config.isActive())
+                .toList();
+        
+        if (configsForPhone.isEmpty()) {
+            log.warn("[WA-WEBHOOK-INBOUND] No configs found for phone='{}'", phoneNumberId);
             return;
         }
-        UUID workspaceId = configOpt.get().getWorkspaceId();
-        log.info("[WA-WEBHOOK-INBOUND] Found config, workspaceId={}", workspaceId);
+        
+        // Get unique workspace IDs that have this phone number
+        List<UUID> workspaceIds = configsForPhone.stream()
+                .map(WhatsAppConfig::getWorkspaceId)
+                .distinct()
+                .toList();
+        
+        log.info("[WA-WEBHOOK-INBOUND] Broadcasting to {} workspaces: {}", workspaceIds.size(), workspaceIds);
 
+        // Process messages for each workspace
+        processInboundMessagesForWorkspaces(value, workspaceIds, phoneNumberId);
+    }
+
+    /**
+     * Procesa mensajes entrantes broadcast a múltiples workspaces.
+     * Cada workspace recibe su propia copia de la conversación y mensajes.
+     */
+    private void processInboundMessagesForWorkspaces(JsonNode value, List<UUID> workspaceIds, String phoneNumberId) {
         JsonNode messages = value.path("messages");
         if (!messages.isArray()) {
             log.warn("[WA-WEBHOOK-INBOUND] No messages array in payload");
@@ -177,14 +196,7 @@ public class WhatsAppWebhookService {
 
             log.info("[WA-WEBHOOK-INBOUND] Processing: externalId={}, from={}, type={}", externalId, fromPhone, type);
 
-            // Req 20.4: idempotencia — skip if already processed
-            if (messageRepository.findByExternalIdAndChannel(
-                    externalId, MessageChannel.WHATSAPP).isPresent()) {
-                log.info("[WA-WEBHOOK-INBOUND] Duplicate ignored: externalId={}", externalId);
-                continue;
-            }
-
-            // Extraer nombre de WhatsApp desde contacts del payload: value.contacts[].profile.name
+            // Extraer nombre de WhatsApp desde contacts del payload
             String waName = null;
             JsonNode contactsNode = value.path("contacts");
             if (contactsNode.isArray()) {
@@ -196,88 +208,98 @@ public class WhatsAppWebhookService {
                     }
                 }
             }
-
-            // Guardar waName en variable final para usar en lambda
             final String waNameFinal = waName;
 
-            // Req 20.2: find contact by phone within workspace
-            // Req 20.3: create new contact with status NEW if not found (guarda nombre de WhatsApp si está disponible)
-            Contact contact = contactRepository
-                    .findByWorkspaceIdAndPhoneAndIsDeletedFalse(workspaceId, fromPhone)
-                    .orElseGet(() -> {
-                        log.info("[WA-WEBHOOK-INBOUND] New contact created: phone={}, waName={}", fromPhone, waNameFinal);
-                        return createContact(workspaceId, fromPhone, waNameFinal);
-                    });
-
-            // findOrCreate conversation (Req 21.4)
-            Conversation conversation = conversationService.findOrCreate(
-                    contact.getId(), MessageChannel.WHATSAPP, workspaceId);
-            log.info("[WA-WEBHOOK-INBOUND] Conversation: id={}, contactId={}", conversation.getId(), contact.getId());
-
-            long tsEpoch = msg.path("timestamp").asLong(0);
-            // Meta sends UTC, convert to timezone from app configuration
-            ZoneId zone = ZoneId.of(appTimezone);
-            LocalDateTime sentAt = tsEpoch > 0
-                    ? LocalDateTime.ofInstant(Instant.ofEpochSecond(tsEpoch), zone)
-                    : LocalDateTime.now(zone);
-
-            if ("text".equals(type)) {
-                String body = msg.path("text").path("body").asText(null);
-                if (body == null) {
-                    log.warn("[WA-WEBHOOK-INBOUND] Text message with empty body: externalId={}", externalId);
-                    continue;
+             // Broadcast to ALL workspaces (each workspace has its own idempotency check)
+             for (UUID workspaceId : workspaceIds) {
+                 // Check idempotency PER WORKSPACE, not globally
+                 // Each workspace should have its own copy of the message
+                 log.debug("[WA-WEBHOOK-INBOUND] Checking idempotency: externalId={}, channel=WHATSAPP, workspaceId={}", externalId, workspaceId);
+                 boolean existsInThisWorkspace = messageRepository
+                         .findByExternalIdAndChannelAndWorkspaceId(externalId, MessageChannel.WHATSAPP, workspaceId)
+                         .isPresent();
+                 log.debug("[WA-WEBHOOK-INBOUND] Idempotency check result: exists={}", existsInThisWorkspace);
+                 
+                 if (existsInThisWorkspace) {
+                     log.warn("[WA-WEBHOOK-INBOUND] Message already exists in workspace {}, skipping", workspaceId);
+                     continue;
+                 }
+                
+                try {
+                    processMessageForWorkspace(msg, externalId, fromPhone, type, waNameFinal, workspaceId, value);
+                } catch (Exception e) {
+                    log.error("[WA-WEBHOOK-INBOUND] Error processing message for workspace {}: {}", workspaceId, e.getMessage());
                 }
-
-                conversationService.addMessage(new AddMessageRequest(
-                        conversation.getId(),
-                        body,
-                        MessageDirection.INBOUND,
-                        MessageChannel.WHATSAPP,
-                        null,
-                        externalId,
-                        sentAt
-                ), workspaceId);
-                log.info("[WA-WEBHOOK-INBOUND] Text message saved: externalId={}, body='{}', sentAt={}", externalId, body, sentAt);
-
-            } else if ("interactive".equals(type)) {
-                // Handle button/list replies
-                JsonNode interactive = msg.path("interactive");
-                String replyBody = extractInteractiveReply(interactive);
-                if (replyBody != null) {
-                    conversationService.addMessage(new AddMessageRequest(
-                            conversation.getId(),
-                            replyBody,
-                            MessageDirection.INBOUND,
-                            MessageChannel.WHATSAPP,
-                            null,
-                            externalId,
-                            sentAt
-                    ), workspaceId);
-                    log.info("[WA-WEBHOOK-INBOUND] Interactive reply saved: externalId={}, body='{}'", externalId, replyBody);
-                } else {
-                    log.warn("[WA-WEBHOOK-INBOUND] Interactive message with no extractable reply: externalId={}", externalId);
-                }
-
-            } else if ("image".equals(type) || "document".equals(type) ||
-                       "video".equals(type) || "audio".equals(type)) {
-                // Media messages — store caption or media type as body
-                String caption = msg.path(type).path("caption").asText(null);
-                String mimeType = msg.path(type).path("mime_type").asText(null);
-                String mediaBody = caption != null ? caption : "[" + type.toUpperCase() + ": " + mimeType + "]";
-
-                conversationService.addMessage(new AddMessageRequest(
-                        conversation.getId(),
-                        mediaBody,
-                        MessageDirection.INBOUND,
-                        MessageChannel.WHATSAPP,
-                        null,
-                        externalId,
-                        sentAt
-                ), workspaceId);
-                log.info("[WA-WEBHOOK-INBOUND] Media message saved: externalId={}, type={}, body='{}'", externalId, type, mediaBody);
-            } else {
-                log.warn("[WA-WEBHOOK-INBOUND] Unsupported message type: type={}, externalId={}", type, externalId);
             }
+        }
+    }
+
+    /**
+     * Procesa un mensaje individual para un workspace específico.
+     */
+    private void processMessageForWorkspace(JsonNode msg, String externalId, String fromPhone, 
+            String type, String waName, UUID workspaceId, JsonNode value) {
+        
+        log.debug("[WA-WEBHOOK-INBOUND] Processing for workspace={}, externalId={}", workspaceId, externalId);
+
+        // Find or create contact for this workspace
+        Contact contact = contactRepository
+                .findByWorkspaceIdAndPhoneAndIsDeletedFalse(workspaceId, fromPhone)
+                .orElseGet(() -> {
+                    log.info("[WA-WEBHOOK-INBOUND] New contact in workspace {}: phone={}, waName={}", workspaceId, fromPhone, waName);
+                    return createContact(workspaceId, fromPhone, waName);
+                });
+
+        // Find or create conversation
+        Conversation conversation = conversationService.findOrCreate(
+                contact.getId(), MessageChannel.WHATSAPP, workspaceId);
+        log.info("[WA-WEBHOOK-INBOUND] Conversation in workspace {}: id={}, contactId={}", 
+                workspaceId, conversation.getId(), contact.getId());
+
+        // Parse timestamp
+        long tsEpoch = msg.path("timestamp").asLong(0);
+        ZoneId zone = ZoneId.of(appTimezone);
+        LocalDateTime sentAt = tsEpoch > 0
+                ? LocalDateTime.ofInstant(Instant.ofEpochSecond(tsEpoch), zone)
+                : LocalDateTime.now(zone);
+
+        // Process message based on type
+        if ("text".equals(type)) {
+            String body = msg.path("text").path("body").asText(null);
+            if (body == null) {
+                log.warn("[WA-WEBHOOK-INBOUND] Text message with empty body: externalId={}", externalId);
+                return;
+            }
+            conversationService.addMessage(new AddMessageRequest(
+                    conversation.getId(), body, MessageDirection.INBOUND, 
+                    MessageChannel.WHATSAPP, null, externalId, sentAt
+            ), workspaceId);
+            log.info("[WA-WEBHOOK-INBOUND] Text saved ws={}: externalId={}, body='{}'", workspaceId, externalId, body);
+
+        } else if ("interactive".equals(type)) {
+            JsonNode interactive = msg.path("interactive");
+            String replyBody = extractInteractiveReply(interactive);
+            if (replyBody != null) {
+                conversationService.addMessage(new AddMessageRequest(
+                        conversation.getId(), replyBody, MessageDirection.INBOUND,
+                        MessageChannel.WHATSAPP, null, externalId, sentAt
+                ), workspaceId);
+                log.info("[WA-WEBHOOK-INBOUND] Interactive saved ws={}: externalId={}", workspaceId, externalId);
+            }
+
+        } else if ("image".equals(type) || "document".equals(type) ||
+                   "video".equals(type) || "audio".equals(type)) {
+            String caption = msg.path(type).path("caption").asText(null);
+            String mimeType = msg.path(type).path("mime_type").asText(null);
+            String mediaBody = caption != null ? caption : "[" + type.toUpperCase() + ": " + mimeType + "]";
+
+            conversationService.addMessage(new AddMessageRequest(
+                    conversation.getId(), mediaBody, MessageDirection.INBOUND,
+                    MessageChannel.WHATSAPP, null, externalId, sentAt
+            ), workspaceId);
+            log.info("[WA-WEBHOOK-INBOUND] Media saved ws={}: externalId={}, type={}", workspaceId, externalId, type);
+        } else {
+            log.warn("[WA-WEBHOOK-INBOUND] Unsupported type: type={}, externalId={}", type, externalId);
         }
     }
 

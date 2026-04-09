@@ -1424,14 +1424,14 @@ function ConversationsPanel({ crmConfig }) {
                 </div>
               </div>
 
-              {/* Agent Lock Status Banner */}
-              {lockStatus?.locked && (
-                <div className="bg-yellow-900/40 border-b border-yellow-700 p-4 flex items-center gap-2 text-yellow-300 text-sm">
-                  <Activity className="w-5 h-5 text-yellow-400" />
-                  <span className="font-medium">🔒 Atendiendo: {lockStatus.lockedByUserId}</span>
-                  <span className="text-xs text-yellow-400 ml-auto">Conectado</span>
-                </div>
-              )}
+               {/* Agent Lock Status Banner */}
+               {lockStatus?.locked && (
+                 <div className="bg-yellow-900/40 border-b border-yellow-700 p-4 flex items-center gap-2 text-yellow-300 text-sm">
+                   <Activity className="w-5 h-5 text-yellow-400" />
+                   <span className="font-medium">🔒 Atendiendo: {lockStatus.lockedByUserName}</span>
+                   <span className="text-xs text-yellow-400 ml-auto">Conectado</span>
+                 </div>
+               )}
 
               {/* Messages area */}
               <div className="flex-1 overflow-y-auto p-4 space-y-3">

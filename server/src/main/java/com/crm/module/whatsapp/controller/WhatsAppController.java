@@ -3,6 +3,7 @@ package com.crm.module.whatsapp.controller;
 import com.crm.common.security.WorkspaceContext;
 import com.crm.module.conversation.repository.ConversationRepository;
 import com.crm.module.conversation.service.ConversationLockService;
+import com.crm.module.user.repository.UserRepository;
 import com.crm.module.whatsapp.dto.SendWhatsAppRequest;
 import com.crm.module.whatsapp.dto.SendWhatsAppResponse;
 import com.crm.module.whatsapp.service.WhatsAppService;
@@ -12,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -29,6 +31,7 @@ public class WhatsAppController {
     private final WhatsAppService whatsAppService;
     private final ConversationLockService conversationLockService;
     private final ConversationRepository conversationRepository;
+    private final UserRepository userRepository;
 
     /**
      * POST /api/whatsapp/send
@@ -52,7 +55,7 @@ public class WhatsAppController {
     /**
      * GET /api/whatsapp/conversations/{conversationId}/lock-status
      * Retorna el estado de lock de una conversación (para polling del frontend).
-     * Response: { "locked": true/false, "lockedByUserId": "...", "lockedAt": "...", "lockedUntil": "..." }
+     * Response: { "locked": true/false, "lockedByUserId": "...", "lockedByUserName": "...", "lockedAt": "...", "lockedUntil": "..." }
      */
     @GetMapping("/conversations/{conversationId}/lock-status")
     public ResponseEntity<Map<String, Object>> getLockStatus(
@@ -65,12 +68,25 @@ public class WhatsAppController {
 
         Optional<UUID> lockedByUser = conversationLockService.checkLock(conversationId);
 
-        return ResponseEntity.ok(Map.of(
-                "conversationId", conversationId,
-                "locked", lockedByUser.isPresent(),
-                "lockedByUserId", lockedByUser.orElse(null),
-                "lockedAt", conversation.getLockedAt(),
-                "lockedUntil", conversation.getLockedUntil()
-        ));
+        Map<String, Object> response = new HashMap<>();
+        response.put("conversationId", conversationId);
+        response.put("locked", lockedByUser.isPresent());
+        
+        if (lockedByUser.isPresent()) {
+            UUID userId = lockedByUser.get();
+            response.put("lockedByUserId", userId);
+            
+            // Fetch user name
+            var user = userRepository.findById(userId);
+            response.put("lockedByUserName", user.map(u -> u.getName()).orElse("Agente desconocido"));
+        } else {
+            response.put("lockedByUserId", null);
+            response.put("lockedByUserName", null);
+        }
+        
+        response.put("lockedAt", conversation.getLockedAt());
+        response.put("lockedUntil", conversation.getLockedUntil());
+
+        return ResponseEntity.ok(response);
     }
 }

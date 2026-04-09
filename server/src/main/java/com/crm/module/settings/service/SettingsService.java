@@ -11,6 +11,7 @@ import com.crm.module.settings.dto.WhatsAppConfigRequest;
 import com.crm.module.whatsapp.entity.WhatsAppConfig;
 import com.crm.module.whatsapp.provider.WhatsAppProvider;
 import com.crm.module.whatsapp.repository.WhatsAppConfigRepository;
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -35,6 +36,7 @@ public class SettingsService {
     private final WhatsAppProvider whatsAppProvider;
     private final GmailOAuthProvider gmailOAuthProvider;
     private final EncryptionService encryptionService;
+    private final EntityManager entityManager;
 
     /**
      * Retorna el estado actual de las integraciones sin exponer tokens.
@@ -88,14 +90,16 @@ public class SettingsService {
                     "Verifique que el phoneNumberId y accessToken sean correctos.");
         }
 
-        // Deactivate any existing config for this workspace
-        whatsAppConfigRepository.findByWorkspaceIdAndActiveTrue(workspaceId)
-                .ifPresent(existing -> {
-                    existing.setActive(false);
-                    whatsAppConfigRepository.save(existing);
-                });
+         // Deactivate any existing config for this workspace
+         whatsAppConfigRepository.findByWorkspaceIdAndActiveTrue(workspaceId)
+                 .ifPresent(existing -> {
+                     existing.setActive(false);
+                     whatsAppConfigRepository.save(existing);
+                 });
+         // Flush to ensure constraint is checked before INSERT of new config
+         entityManager.flush();
 
-        // Encrypt sensitive fields before persisting (NFR-6)
+         // Encrypt sensitive fields before persisting (NFR-6)
         config.setAccessToken(encryptionService.encrypt(request.accessToken()));
         config.setWebhookVerifyToken(encryptionService.encrypt(request.webhookVerifyToken()));
         config.setAppSecret(encryptionService.encrypt(request.appSecret()));
