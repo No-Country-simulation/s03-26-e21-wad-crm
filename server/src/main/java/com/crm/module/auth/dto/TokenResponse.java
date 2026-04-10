@@ -16,4 +16,5 @@ public class TokenResponse {
     private String tokenType = "Bearer";
     
     private UUID workspaceId;
+    private String role;
 }

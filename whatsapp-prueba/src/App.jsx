@@ -2169,9 +2169,9 @@ function SessionWarning({ session, onLogout, onRefresh }) {
 
 // ─── Main App ────────────────────────────────────────────────────────────────
 
-export default function App() {
+export default function App({ currentRole, allowedTabs }) {
   const [session, setSession] = useState(() => loadSession())
-  const [activeTab, setActiveTab] = useState(TABS.SEND)
+  const [activeTab, setActiveTab] = useState(allowedTabs ? allowedTabs[0] : TABS.SEND)
   const [config, setConfig] = useState(() => loadConfig())
   const [templates, setTemplates] = useState(() => loadTemplates())
   const [copied, setCopied] = useState(false)
@@ -2235,7 +2235,12 @@ export default function App() {
     { id: TABS.CONVERSATIONS, label: 'Conversaciones', icon: MessageCircle },
     { id: TABS.LOGS, label: 'Logs', icon: Activity },
     { id: TABS.WEBHOOK, label: 'Webhook', icon: Webhook },
-  ]
+  ].filter(tab => !allowedTabs || allowedTabs.includes(tab.id))
+
+  // Ensure activeTab is always in allowed tabs, otherwise redirect to first allowed
+  if (allowedTabs && !allowedTabs.includes(activeTab)) {
+    setActiveTab(allowedTabs[0] || TABS.CONVERSATIONS)
+  }
 
   function copyCurl() {
     if (!config?.phoneNumberId || !config?.accessToken) return
@@ -2270,6 +2275,20 @@ export default function App() {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            {currentRole && (
+              <span className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs border ${
+                currentRole === 'ADMIN' ? 'bg-red-900/30 text-red-400 border-red-800/50' :
+                currentRole === 'AGENT' ? 'bg-blue-900/30 text-blue-400 border-blue-800/50' :
+                currentRole === 'USER' ? 'bg-amber-900/30 text-amber-400 border-amber-800/50' :
+                'bg-slate-700/30 text-slate-400 border-slate-700/50'
+              }`}>
+                <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{
+                  backgroundColor: currentRole === 'ADMIN' ? '#f87171' :
+                                   currentRole === 'AGENT' ? '#60a5fa' :
+                                   currentRole === 'USER' ? '#fbbf24' : '#94a3b8'
+                }} /> {currentRole}
+              </span>
+            )}
             {config?.phoneNumberId && (
               <span className="flex items-center gap-1 px-2 py-1 rounded-full bg-green-900/30 text-green-400 text-xs border border-green-800/50">
                 <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" /> Meta

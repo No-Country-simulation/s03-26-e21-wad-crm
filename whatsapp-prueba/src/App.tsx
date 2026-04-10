@@ -8,6 +8,7 @@ import { useEffect } from 'react';
 import { useWhatsAppStore } from '@/store/whatsappStore';
 import { RoleType, ROLES, TabKey, TABS } from '@/types';
 import { useRbac } from '@/hooks/useRbac';
+import { LoginPanel } from '@/components/LoginPanel';
 import App from './App.jsx';
 
 /**
@@ -121,13 +122,14 @@ export default function AppWithRoles() {
   useDetectRole();
   const { currentRole } = useRbac();
 
-  // If user doesn't have any role, show permission denied
+  // If user doesn't have any role, show login
   if (!currentRole) {
-    return <PermissionDenied />;
+    return <LoginPanel />;
   }
 
-  // For now, just render the original App.jsx
-  // We'll migrate components gradually
+  const allowedTabs = getAllowedTabs(currentRole);
+
+  // Pass role and allowedTabs to App.jsx so it can filter UI elements
   // @ts-ignore - App.jsx is not typed, but it works
-  return <App />;
+  return <App currentRole={currentRole} allowedTabs={allowedTabs} />;
 }

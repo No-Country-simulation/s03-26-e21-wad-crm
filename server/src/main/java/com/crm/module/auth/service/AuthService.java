@@ -236,6 +236,7 @@ public class AuthService {
                 .accessToken(accessToken)
                 .refreshToken(rawRefreshToken)
                 .workspaceId(workspaceId)
+                .role(user.getRole().getName())
                 .build();
     }
 
