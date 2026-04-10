@@ -1,6 +1,6 @@
 ﻿import { useState, useEffect } from 'react';
 import { contactsService } from '../services/api';
-import { Plus, Search, Mail, Phone, Trash2, User, Building } from 'lucide-react';
+import { Plus, Search, Mail, Phone, Trash2, User, Building, Pencil, X, MessageCircle } from 'lucide-react';
 
 const inp = { background: 'var(--color-surface-2)', border: '1px solid var(--color-border)', color: 'var(--color-text)' };
 
@@ -11,6 +11,7 @@ export default function Contacts() {
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({ name: '', email: '', phone: '' });
   const [search, setSearch] = useState('');
+  const [editingId, setEditingId] = useState(null);
 
   useEffect(() => { loadContacts(); }, []);
 
@@ -55,6 +56,40 @@ export default function Contacts() {
     }
   };
 
+  const handleEdit = (contact) => {
+    setEditingId(contact.id);
+    setFormData({ name: contact.name, email: contact.email, phone: contact.phone || '' });
+    setShowForm(true);
+  };
+
+  const handleUpdate = async (e) => {
+    e.preventDefault();
+    try {
+      await contactsService.update(editingId, formData);
+      setFormData({ name: '', email: '', phone: '' });
+      setEditingId(null);
+      setShowForm(false);
+      loadContacts();
+    } catch (error) {
+      alert('Failed to update contact');
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingId(null);
+    setFormData({ name: '', email: '', phone: '' });
+    setShowForm(false);
+  };
+
+  const handleSendEmail = (email) => {
+    window.open(`mailto:${email}`, '_blank');
+  };
+
+  const handleSendWhatsApp = (phone) => {
+    const cleanPhone = phone.replace(/\D/g, '');
+    window.open(`https://wa.me/${cleanPhone}`, '_blank');
+  };
+
   const statusColor = (s) => ({
     NEW: '#2563eb', CONTACTED: '#d97706', QUALIFIED: '#16a34a', LOST: '#dc2626', CONVERTED: '#7c3aed'
   }[s] || '#6b7280');
@@ -70,8 +105,13 @@ export default function Contacts() {
 
       {showForm && (
         <div className="rounded-xl p-6 mb-6" style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}>
-          <h2 className="text-lg font-semibold mb-4" style={{ color: 'var(--color-text)' }}>New Contact</h2>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-lg font-semibold" style={{ color: 'var(--color-text)' }}>{editingId ? 'Edit Contact' : 'New Contact'}</h2>
+            <button type="button" onClick={handleCancelEdit} className="p-1 rounded" style={{ color: 'var(--color-muted)' }}>
+              <X size={20} />
+            </button>
+          </div>
+          <form onSubmit={editingId ? handleUpdate : handleSubmit} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {[
                 { icon: User,  type: 'text',  key: 'name',  ph: 'Full Name' },
@@ -130,6 +170,9 @@ export default function Contacts() {
                     </span>
                   </div>
                 </div>
+                <button onClick={() => handleEdit(contact)} className="p-2 rounded-lg transition-colors" style={{ color: 'var(--color-muted)' }}>
+                  <Pencil size={18} />
+                </button>
                 <button onClick={() => handleDelete(contact.id)} className="p-2 rounded-lg transition-colors" style={{ color: 'var(--color-muted)' }}>
                   <Trash2 size={18} />
                 </button>
@@ -152,8 +195,18 @@ export default function Contacts() {
                   </div>
                 )}
               </div>
-              <div className="mt-4 pt-4" style={{ borderTop: '1px solid var(--color-border)' }}>
+              <div className="mt-4 pt-4 flex justify-between items-center" style={{ borderTop: '1px solid var(--color-border)' }}>
                 <p className="text-xs" style={{ color: 'var(--color-muted)' }}>Created: {new Date(contact.createdAt).toLocaleDateString()}</p>
+                <div className="flex gap-2">
+                  <button onClick={() => handleSendEmail(contact.email)} className="p-2 rounded-lg transition-colors hover:bg-blue-100" style={{ color: '#2563eb' }} title="Send Email">
+                    <Mail size={18} />
+                  </button>
+                  {contact.phone && (
+                    <button onClick={() => handleSendWhatsApp(contact.phone)} className="p-2 rounded-lg transition-colors hover:bg-green-100" style={{ color: '#16a34a' }} title="Send WhatsApp">
+                      <MessageCircle size={18} />
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           ))}

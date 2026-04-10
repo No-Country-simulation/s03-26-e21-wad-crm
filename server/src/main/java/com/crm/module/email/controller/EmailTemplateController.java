@@ -64,7 +64,7 @@ public class EmailTemplateController {
                 .body(templateService.createTemplate(workspaceId, request));
     }
 
-    @PutMapping("/{id}")
+    @PatchMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<EmailTemplateDto> updateTemplate(
             @PathVariable UUID id,
