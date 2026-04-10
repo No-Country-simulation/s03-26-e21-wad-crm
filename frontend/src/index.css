@@ -4,8 +4,10 @@
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
+}
 
-  /* Color palette from background_poster_img */
+/* ── Dark theme (default) ── */
+[data-theme="dark"], :root {
   --color-bg:        #080818;
   --color-bg-deep:   #0d0d2b;
   --color-surface:   #12122a;
@@ -16,8 +18,24 @@
   --color-accent:    #a855f7;
   --color-blue:      #2563eb;
   --color-blue-h:    #3b82f6;
-  --color-text:      #e2d9f3;
-  --color-muted:     #9b8ec4;
+  --color-text:      #ffffff;
+  --color-muted:     #c4b8e8;
+}
+
+/* ── Light theme ── */
+[data-theme="light"] {
+  --color-bg:        #f0eeff;
+  --color-bg-deep:   #e8e0ff;
+  --color-surface:   #ffffff;
+  --color-surface-2: #f5f0ff;
+  --color-border:    #c4b8e8;
+  --color-primary:   #7c3aed;
+  --color-primary-h: #6d28d9;
+  --color-accent:    #7c3aed;
+  --color-blue:      #2563eb;
+  --color-blue-h:    #1d4ed8;
+  --color-text:      #0d0d2b;
+  --color-muted:     #4a3f7a;
 }
 
 body {
@@ -25,6 +43,7 @@ body {
   min-height: 100vh;
   background-color: var(--color-bg);
   color: var(--color-text);
+  transition: background-color 0.2s, color 0.2s;
 }
 
 #root {

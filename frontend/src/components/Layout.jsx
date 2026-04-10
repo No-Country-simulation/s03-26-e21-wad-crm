@@ -1,10 +1,19 @@
 import { Link, Outlet, useLocation } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { LayoutDashboard, Users, CheckSquare, LogOut, Briefcase, Settings, Mail, MessageCircle } from 'lucide-react';
+import { LayoutDashboard, Users, CheckSquare, LogOut, Briefcase, Settings, Mail, MessageCircle, Sun, Moon } from 'lucide-react';
 
 export default function Layout() {
   const { user, logout } = useAuth();
   const location = useLocation();
+  const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'dark');
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => setTheme(t => t === 'dark' ? 'light' : 'dark');
 
   const navItems = [
     { path: '/dashboard',          label: 'Dashboard',          icon: LayoutDashboard },
@@ -21,8 +30,11 @@ export default function Layout() {
   return (
     <div className="min-h-screen flex" style={{ background: 'var(--color-bg)' }}>
       <aside className="w-64 flex flex-col" style={{ background: 'var(--color-bg-deep)', borderRight: '1px solid var(--color-border)' }}>
-        <div className="p-5" style={{ borderBottom: '1px solid var(--color-border)' }}>
+        <div className="p-5 flex items-center justify-between" style={{ borderBottom: '1px solid var(--color-border)' }}>
           <h1 className="text-xl font-bold" style={{ color: 'var(--color-accent)' }}>Nexo CRM</h1>
+          <button onClick={toggleTheme} className="p-1.5 rounded-lg transition-colors" style={{ color: 'var(--color-muted)', background: 'var(--color-surface-2)' }} title={theme === 'dark' ? 'Modo claro' : 'Modo oscuro'}>
+            {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+          </button>
         </div>
         <nav className="flex-1 p-4 space-y-1">
           {navItems.map((item) => (
