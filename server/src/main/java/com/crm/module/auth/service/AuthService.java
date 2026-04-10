@@ -71,6 +71,9 @@ public class AuthService {
                         .build()
         );
 
+         // Initialize system roles for the workspace (MUST be before getRoleByName)
+         roleService.initializeSystemRoles(workspace.getId());
+
          // Create admin user
          Role adminRole = roleService.getRoleByName(workspace.getId(), "ADMIN");
          User user = User.builder()
@@ -84,9 +87,6 @@ public class AuthService {
           user.setWorkspaceId(workspace.getId());
 
          user = userRepository.save(user);
-
-         // Initialize system roles for the workspace
-         roleService.initializeSystemRoles(workspace.getId());
 
          // Auto-configure WhatsApp for the new workspace
          whatsAppAutoConfigService.ensureWhatsAppConfigForWorkspace(workspace.getId());
