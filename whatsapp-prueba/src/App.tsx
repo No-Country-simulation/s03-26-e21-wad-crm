@@ -1,15 +1,20 @@
 /**
  * WhatsApp CRM - App Component (TypeScript version)
- * Re-exports App.jsx functionality with type safety and role control
- * This is a thin wrapper that preserves 100% existing functionality
+ * 
+ * RBAC-enforced application wrapper with:
+ * - Type-safe role management
+ * - Tab filtering by role
+ * - MainLayout with Header, Sidebar, content area
+ * - Fallback to LoginPanel if not authenticated
  */
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useWhatsAppStore } from '@/store/whatsappStore';
 import { RoleType, ROLES, TabKey, TABS } from '@/types';
 import { useRbac } from '@/hooks/useRbac';
 import { LoginPanel } from '@/components/LoginPanel';
-import AppOld from './AppOld';
+import { MainLayout } from '@/components/layout';
+import { AppMain } from './AppMain';
 
 /**
  * Component to display when user doesn't have permission
@@ -115,12 +120,18 @@ export function TabGuard({
 
 /**
  * Main App Component
- * Preserves 100% of original App.jsx functionality
- * Adds type safety and role-based access control
+ * 
+ * Orchestrates:
+ * - Role detection from JWT/session
+ * - Tab permission filtering
+ * - MainLayout wrapper (Header + Sidebar + Content)
+ * - AppMain panel renderer
  */
 export default function AppWithRoles() {
   useDetectRole();
   const { currentRole } = useRbac();
+  const [activeTab, setActiveTab] = useState<TabKey>(TABS.CONVERSATIONS);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   // If user doesn't have any role, show login
   if (!currentRole) {
@@ -129,7 +140,41 @@ export default function AppWithRoles() {
 
   const allowedTabs = getAllowedTabs(currentRole);
 
-  // Pass role and allowedTabs to App.jsx so it can filter UI elements
-  // @ts-ignore - App.jsx is not typed, but it works
-  return <AppOld currentRole={currentRole} allowedTabs={allowedTabs} />;
+  // Auto-select first allowed tab
+  useEffect(() => {
+    if (!allowedTabs.includes(activeTab) && allowedTabs.length > 0) {
+      setActiveTab(allowedTabs[0])
+    }
+  }, [currentRole, allowedTabs, activeTab])
+
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+    try {
+      // Clear session
+      localStorage.removeItem('user-role');
+      localStorage.removeItem('user-id');
+      localStorage.removeItem('workspace-id');
+      localStorage.removeItem('auth-token');
+      
+      // Refresh to trigger re-render
+      window.location.href = '/';
+    } catch (error) {
+      console.error('Logout failed:', error);
+      setIsLoggingOut(false);
+    }
+  }
+
+  return (
+    <MainLayout
+      userRole={currentRole}
+      userName={localStorage.getItem('user-name') || undefined}
+      activeTab={activeTab}
+      allowedTabs={allowedTabs}
+      onTabChange={setActiveTab}
+      onLogout={handleLogout}
+      connectionStatus="connected"
+    >
+      <AppMain crmConfig={undefined} userRole={currentRole} />
+    </MainLayout>
+  );
 }
