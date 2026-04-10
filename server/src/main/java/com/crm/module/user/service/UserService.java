@@ -5,8 +5,9 @@ import com.crm.common.exception.ForbiddenException;
 import com.crm.common.exception.ResourceNotFoundException;
 import com.crm.module.user.dto.*;
 import com.crm.module.user.entity.User;
-import com.crm.module.user.entity.UserRole;
+import com.crm.module.user.entity.Role;
 import com.crm.module.user.repository.UserRepository;
+import com.crm.module.user.repository.RoleRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -27,6 +28,7 @@ import java.util.UUID;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
 
     // -------------------------------------------------------------------------
@@ -50,7 +52,7 @@ public class UserService {
 
     /**
      * Creates a new user in the workspace with {@code isActive=false} (pending invite).
-     * Defaults role to SALES when not specified.
+     * Defaults role to USER when not specified.
      * Throws {@link ConflictException} if the email is already registered.
      */
     public UserDto inviteUser(UUID workspaceId, InviteUserRequest request) {
@@ -58,7 +60,11 @@ public class UserService {
             throw new ConflictException("Email already registered: " + request.getEmail());
         }
 
-        UserRole role = request.getRole() != null ? request.getRole() : UserRole.SALES;
+        // Get role by name (default to USER)
+        String roleName = request.getRole() != null ? request.getRole() : "USER";
+        Role role = roleRepository
+                .findByWorkspaceIdAndNameAndIsActiveTrue(workspaceId, roleName)
+                .orElseThrow(() -> new IllegalArgumentException("Role not found: " + roleName));
 
         User user = User.builder()
                 .email(request.getEmail())
@@ -82,19 +88,26 @@ public class UserService {
     public UserDto updateRole(UUID workspaceId, UUID userId, UpdateRoleRequest request) {
         User user = findActiveInWorkspace(workspaceId, userId);
 
-        boolean demotingAdmin = user.getRole() == UserRole.ADMIN
-                && request.getRole() != UserRole.ADMIN;
+        // Get new role
+        Role newRole = roleRepository
+                .findByWorkspaceIdAndNameAndIsActiveTrue(workspaceId, request.getRole())
+                .orElseThrow(() -> new IllegalArgumentException("Role not found: " + request.getRole()));
+
+        boolean demotingAdmin = "ADMIN".equals(user.getRole().getName())
+                && !"ADMIN".equals(newRole.getName());
 
         if (demotingAdmin) {
-            long activeAdmins = userRepository
-                    .countByWorkspaceIdAndRoleAndIsActiveTrue(workspaceId, UserRole.ADMIN);
+            long activeAdmins = userRepository.findByWorkspaceId(workspaceId)
+                    .stream()
+                    .filter(u -> u.isActive() && "ADMIN".equals(u.getRole().getName()))
+                    .count();
             if (activeAdmins <= 1) {
                 throw new ForbiddenException(
                         "Cannot change role: workspace must have at least one active ADMIN");
             }
         }
 
-        user.setRole(request.getRole());
+        user.setRole(newRole);
         return UserDto.from(userRepository.save(user));
     }
 
@@ -109,9 +122,11 @@ public class UserService {
     public void deactivate(UUID workspaceId, UUID userId) {
         User user = findActiveInWorkspace(workspaceId, userId);
 
-        if (user.getRole() == UserRole.ADMIN) {
-            long activeAdmins = userRepository
-                    .countByWorkspaceIdAndRoleAndIsActiveTrue(workspaceId, UserRole.ADMIN);
+        if ("ADMIN".equals(user.getRole().getName())) {
+            long activeAdmins = userRepository.findByWorkspaceId(workspaceId)
+                    .stream()
+                    .filter(u -> u.isActive() && "ADMIN".equals(u.getRole().getName()))
+                    .count();
             if (activeAdmins <= 1) {
                 throw new ForbiddenException(
                         "Cannot deactivate: workspace must have at least one active ADMIN");

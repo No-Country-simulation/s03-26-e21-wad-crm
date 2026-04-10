@@ -99,6 +99,15 @@ public class RoleService {
     }
 
     /**
+     * Get role by name (used in AuthService)
+     */
+    public Role getRoleByName(UUID workspaceId, String roleName) {
+        return roleRepository
+            .findByWorkspaceIdAndNameAndIsActiveTrue(workspaceId, roleName)
+            .orElseThrow(() -> new IllegalArgumentException("Role not found: " + roleName));
+    }
+
+    /**
      * Create a new custom role
      */
     public RoleDto createRole(UUID workspaceId, CreateRoleRequest request) {

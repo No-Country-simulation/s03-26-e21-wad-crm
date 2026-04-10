@@ -9,8 +9,8 @@ import com.crm.module.auth.dto.TokenResponse;
 import com.crm.module.auth.entity.RefreshToken;
 import com.crm.module.auth.repository.RefreshTokenRepository;
 import com.crm.module.user.entity.User;
-import com.crm.module.user.entity.UserRole;
 import com.crm.module.user.repository.UserRepository;
+import com.crm.module.user.service.RoleService;
 import com.crm.module.workspace.entity.Workspace;
 import com.crm.module.workspace.repository.WorkspaceRepository;
 import lombok.RequiredArgsConstructor;
@@ -39,6 +39,7 @@ public class AuthService {
     private final RefreshTokenRepository refreshTokenRepository;
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
+    private final RoleService roleService;
 
     // -------------------------------------------------------------------------
     // Register
@@ -67,12 +68,13 @@ public class AuthService {
                         .build()
         );
 
-        // Create admin user
+// Create admin user with role
+        Role adminRole = roleService.getRoleByName(workspace.getId(), "ADMIN");
         User user = User.builder()
                 .email(request.getEmail())
                 .passwordHash(passwordEncoder.encode(request.getPassword()))
                 .name(request.getName())
-                .role(UserRole.ADMIN)
+                .role(adminRole)
                 .isActive(true)
                 .timezone("UTC")
                 .build();
@@ -167,13 +169,13 @@ public class AuthService {
                         .build()
         );
 
-        User user = User.builder()
-                .email(email)
-                .name(name)
-                .role(UserRole.ADMIN)
-                .isActive(true)
-                .build();
-        user.setWorkspaceId(workspace.getId());
+         User user = User.builder()
+                 .email(email)
+                 .name(name)
+                 .role(roleService.getRoleByName(workspace.getId(), "ADMIN"))
+                 .isActive(true)
+                 .build();
+         user.setWorkspaceId(workspace.getId());
 
         user = userRepository.save(user);
 
@@ -198,7 +200,7 @@ public class AuthService {
     private TokenResponse buildTokenResponse(User user, UUID workspaceId) {
         String rawRefreshToken = jwtService.generateRefreshToken();
         String accessToken = jwtService.generateAccessToken(
-                user.getId(), workspaceId, user.getRole().name());
+                user.getId(), workspaceId, user.getRole().getName());
 
         long expiryMs = jwtService.getRefreshTokenExpiry();
         LocalDateTime expiresAt = LocalDateTime.now()

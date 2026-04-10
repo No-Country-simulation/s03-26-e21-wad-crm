@@ -26,9 +26,9 @@ public class User extends AuditableEntity {
 
     private String timezone;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private UserRole role;
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "role_id", nullable = false)
+    private Role role;
 
     @Builder.Default
     @Column(name = "is_active")
