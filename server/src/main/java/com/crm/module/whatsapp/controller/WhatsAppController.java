@@ -8,6 +8,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -26,11 +27,10 @@ public class WhatsAppController {
 
     /**
      * POST /api/whatsapp/send
-     * Envía un mensaje de WhatsApp a un contacto del workspace.
-     * Registra el mensaje con estado SENDING → SENT/FAILED.
-     * Req 21.1–21.5
+     * Only ADMIN and AGENT roles can send messages
      */
     @PostMapping("/send")
+    @PreAuthorize("hasAnyRole('ADMIN', 'AGENT')")
     public ResponseEntity<SendWhatsAppResponse> send(
             @Valid @RequestBody SendWhatsAppRequest request) {
 

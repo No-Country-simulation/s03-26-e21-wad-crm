@@ -68,6 +68,7 @@ public class AuthService {
                         .build()
         );
 
+<<<<<<< HEAD
 // Create admin user with role
         Role adminRole = roleService.getRoleByName(workspace.getId(), "ADMIN");
         User user = User.builder()
@@ -78,15 +79,27 @@ public class AuthService {
                 .isActive(true)
                 .timezone("UTC")
                 .build();
-        user.setWorkspaceId(workspace.getId());
-
+user.setWorkspaceId(workspace.getId());
         user = userRepository.save(user);
+
+        // Initialize system roles for the workspace
+        roleService.initializeSystemRoles(workspace.getId());
 
         return buildTokenResponse(user, workspace.getId());
     }
+=======
+         // Initialize system roles for the workspace
+         roleService.initializeSystemRoles(workspace.getId());
 
-    // -------------------------------------------------------------------------
-    // Login
+         // Auto-configure WhatsApp for the new workspace
+         whatsAppAutoConfigService.ensureWhatsAppConfigForWorkspace(workspace.getId());
+>>>>>>> b2972d5 (feat(frontend): add RBAC guards with ContactInfoPanel integration)
+
+         return buildTokenResponse(user, workspace.getId());
+     }
+
+     // -------------------------------------------------------------------------
+     // Login
     // -------------------------------------------------------------------------
 
     /**
