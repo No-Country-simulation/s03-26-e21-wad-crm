@@ -63,6 +63,17 @@ export const DEFAULT_CONFIG = {
   wabaId: '',
 }
 
+// ─── Config Fields ────────────────────────────────────────────────────────────
+
+export const WHATSAPP_CONFIG_FIELDS = [
+  { key: 'baseUrl', label: 'API Base URL', placeholder: 'https://graph.facebook.com/v22.0', type: 'text' },
+  { key: 'phoneNumberId', label: 'Phone Number ID', placeholder: '1023265770876372', type: 'text' },
+  { key: 'accessToken', label: 'Access Token', placeholder: 'EAAmC6O5Qmok...', type: 'password' },
+  { key: 'appSecret', label: 'App Secret', placeholder: 'Para verificar firma del webhook', type: 'password' },
+  { key: 'webhookVerifyToken', label: 'Webhook Verify Token', placeholder: 'Tu token personalizado', type: 'text' },
+  { key: 'wabaId', label: 'WABA ID (opcional)', placeholder: '1842664289565674', type: 'text' },
+] as const
+
 // ─── Polling ──────────────────────────────────────────────────────────────────
 
 export const POLLING_INTERVAL_MS = 15_000 // 15 seconds
