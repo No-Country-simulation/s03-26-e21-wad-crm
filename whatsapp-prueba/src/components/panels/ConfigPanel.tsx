@@ -9,10 +9,11 @@
  * - Full error handling
  */
 
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { Settings, Trash2 } from 'lucide-react'
-import { WhatsAppConfig, CRMConfig, saveConfig, loadConfig } from '@/utils/storage'
+import { WhatsAppConfig, CRMConfig } from '@/utils/storage'
 import { WHATSAPP_CONFIG_FIELDS } from '@/utils/constants'
+import { useLocalStorage } from '@/hooks'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -41,16 +42,22 @@ export function ConfigPanel({
   onSave,
   onClear,
 }: ConfigPanelProps) {
-  const [form, setForm] = useState<WhatsAppConfig>(
-    config || {
-      baseUrl: 'https://graph.facebook.com/v22.0',
-      phoneNumberId: '',
-      accessToken: '',
-      appSecret: '',
-      webhookVerifyToken: '',
-      wabaId: '',
-    }
+  const defaultConfig: WhatsAppConfig = {
+    baseUrl: 'https://graph.facebook.com/v22.0',
+    phoneNumberId: '',
+    accessToken: '',
+    appSecret: '',
+    webhookVerifyToken: '',
+    wabaId: '',
+  }
+
+  // Use localStorage hook instead of useState
+  const [storedConfig, setStoredConfig] = useLocalStorage<WhatsAppConfig>(
+    'wa-config',
+    { defaultValue: config || defaultConfig, sync: true }
   )
+
+  const form = storedConfig || defaultConfig
 
   const [testing, setTesting] = useState(false)
   const [testResult, setTestResult] = useState<TestResult | null>(null)
@@ -59,11 +66,14 @@ export function ConfigPanel({
 
   // ─── Handlers ─────────────────────────────────────────────────────────────
 
-  function handleChange(field: keyof WhatsAppConfig, value: string) {
-    setForm((prev) => ({ ...prev, [field]: value }))
-  }
+  const handleChange = useCallback(
+    (field: keyof WhatsAppConfig, value: string) => {
+      setStoredConfig({ ...form, [field]: value })
+    },
+    [form, setStoredConfig]
+  )
 
-  async function testConnection() {
+  const testConnection = useCallback(async () => {
     if (!form.phoneNumberId || !form.accessToken) {
       setTestResult({ ok: false, msg: 'Completá phoneNumberId y accessToken' })
       return
@@ -93,9 +103,9 @@ export function ConfigPanel({
     } finally {
       setTesting(false)
     }
-  }
+  }, [form.baseUrl, form.phoneNumberId, form.accessToken])
 
-  async function saveToCrmBackend() {
+  const saveToCrmBackend = useCallback(async () => {
     if (!crmConfig?.token) {
       setCrmSaveResult({
         ok: false,
@@ -143,34 +153,25 @@ export function ConfigPanel({
       }
 
       setCrmSaveResult({ ok: true, msg: '✅ Guardado en el CRM Backend!' })
-      saveConfig(form)
+      onSave?.(form)
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Error desconocido'
       setCrmSaveResult({ ok: false, msg: `❌ Error: ${msg}` })
     } finally {
       setSavingToCrm(false)
     }
-  }
+  }, [form, crmConfig, onSave])
 
-  function handleSave() {
-    saveConfig(form)
+  const handleSave = useCallback(() => {
     onSave?.(form)
-  }
+  }, [form, onSave])
 
-  function handleClear() {
-    const reset: WhatsAppConfig = {
-      baseUrl: 'https://graph.facebook.com/v22.0',
-      phoneNumberId: '',
-      accessToken: '',
-      appSecret: '',
-      webhookVerifyToken: '',
-      wabaId: '',
-    }
-    setForm(reset)
+  const handleClear = useCallback(() => {
+    setStoredConfig(defaultConfig)
     setTestResult(null)
     setCrmSaveResult(null)
     onClear?.()
-  }
+  }, [defaultConfig, setStoredConfig, onClear])
 
   // ─── Render ───────────────────────────────────────────────────────────────
 

@@ -9,10 +9,11 @@
  * - Local and backend log integration
  */
 
-import { useState, useEffect } from 'react'
+import { useState, useCallback } from 'react'
 import { Activity, RotateCw, Trash2 } from 'lucide-react'
 import { CRMConfig } from '@/utils/storage'
 import { formatTime } from '@/utils/helpers'
+import { usePolling } from '@/hooks'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -44,31 +45,16 @@ interface LogsPanelProps {
 
 export function LogsPanel({ crmConfig }: LogsPanelProps) {
   const [logs, setLogs] = useState<Log[]>([])
-  const [autoRefresh, setAutoRefresh] = useState(false)
-  const [loading, setLoading] = useState(false)
   const [selectedFilter, setSelectedFilter] = useState<'all' | LogType>('all')
 
-  // ─── Effects ──────────────────────────────────────────────────────────────
+  // ─── Fetch logs callback ──────────────────────────────────────────────────
 
-  useEffect(() => {
-    if (!autoRefresh) return
-
-    const interval = setInterval(() => {
-      fetchLogs()
-    }, 5000)
-
-    return () => clearInterval(interval)
-  }, [autoRefresh, crmConfig?.token])
-
-  // ─── Handlers ─────────────────────────────────────────────────────────────
-
-  async function fetchLogs() {
+  const fetchLogs = useCallback(async () => {
     if (!crmConfig?.token) {
       addLog('warn', '⚠️ Configurá el CRM primero (tab CRM) para ver logs del backend', LOG_TYPES.WARN)
       return
     }
 
-    setLoading(true)
     try {
       const apiBase =
         typeof window !== 'undefined' && window.location.hostname === 'localhost'
@@ -98,10 +84,32 @@ export function LogsPanel({ crmConfig }: LogsPanelProps) {
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Error desconocido'
       addLog('error', `❌ Error: ${msg}`, LOG_TYPES.ERROR)
-    } finally {
-      setLoading(false)
     }
-  }
+  }, [crmConfig?.token, crmConfig?.baseUrl])
+
+  // ─── usePolling hook ─────────────────────────────────────────────────────
+
+  const { isPolling, pause, resume, triggerPoll, lastError, retryCount } = usePolling(
+    fetchLogs,
+    {
+      interval: 5000,
+      maxRetries: 3,
+      enabled: false, // Start disabled, user toggles it
+      onError: (error, attempt) => {
+        addLog('error', `⚠️ Polling attempt ${attempt}: ${error.message}`, LOG_TYPES.ERROR)
+      },
+    }
+  )
+
+  // ─── Handlers ─────────────────────────────────────────────────────────────
+
+  const handleToggleAutoRefresh = useCallback(() => {
+    if (isPolling) {
+      pause()
+    } else {
+      resume()
+    }
+  }, [isPolling, pause, resume])
 
   function addLog(
     type: 'error' | 'success' | 'warn' | 'info',
@@ -135,26 +143,28 @@ export function LogsPanel({ crmConfig }: LogsPanelProps) {
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-white flex items-center gap-2">
             <Activity className="w-5 h-5 text-green-400" /> Logs
+            {isPolling && <span className="ml-2 text-xs text-green-400 font-bold">● POLLING</span>}
+            {lastError && <span className="ml-2 text-xs text-red-400">({retryCount} retries)</span>}
           </h2>
           <div className="flex gap-2">
             <button
-              onClick={fetchLogs}
-              disabled={loading}
+              onClick={() => triggerPoll()}
+              disabled={isPolling}
               className="px-3 py-1.5 rounded-lg bg-slate-700 text-slate-300 text-sm hover:bg-slate-600 disabled:opacity-50 transition-colors font-medium flex items-center gap-1"
             >
-              <RotateCw className="w-3.5 h-3.5" />
-              {loading ? 'Cargando...' : 'Refresh'}
+              <RotateCw className={`w-3.5 h-3.5 ${isPolling ? 'animate-spin' : ''}`} />
+              {isPolling ? 'Polling...' : 'Refresh'}
             </button>
             <button
-              onClick={() => setAutoRefresh(!autoRefresh)}
+              onClick={handleToggleAutoRefresh}
               className={`px-3 py-1.5 rounded-lg text-sm transition-colors font-medium flex items-center gap-1 ${
-                autoRefresh
+                isPolling
                   ? 'bg-green-600 text-white'
                   : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
               }`}
             >
               <Activity className="w-3.5 h-3.5" />
-              Auto {autoRefresh ? 'ON' : 'OFF'}
+              Auto {isPolling ? 'ON' : 'OFF'}
             </button>
             <button
               onClick={() => setLogs([])}

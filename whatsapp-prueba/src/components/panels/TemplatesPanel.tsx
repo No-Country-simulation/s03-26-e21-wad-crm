@@ -10,11 +10,12 @@
  * - CRUD operations with localStorage persistence
  */
 
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { FileText, Download, Upload, Plus, Eye, Pencil, Trash2, X, ChevronRight } from 'lucide-react'
-import { WhatsAppTemplate, loadTemplates, saveTemplates } from '@/utils/storage'
+import { WhatsAppTemplate } from '@/utils/storage'
 import { TEMPLATE_CATEGORIES, LANGUAGES } from '@/utils/constants'
 import { generateId, countVariables } from '@/utils/helpers'
+import { useLocalStorage } from '@/hooks'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -73,7 +74,11 @@ function SafePreviewRender({ text }: { text: string }) {
 
 export function TemplatesPanel() {
   // ─── State: Templates ─────────────────────────────────────────────────────
-  const [templates, setTemplates] = useState<WhatsAppTemplate[]>(() => loadTemplates())
+  const [templates, setTemplates] = useLocalStorage<WhatsAppTemplate[]>(
+    'wa-templates',
+    { defaultValue: [], sync: true }
+  )
+
   const [editing, setEditing] = useState<string | null>(null)
   const [showForm, setShowForm] = useState(false)
   const [previewTpl, setPreviewTpl] = useState<WhatsAppTemplate | null>(null)
@@ -151,7 +156,6 @@ export function TemplatesPanel() {
         t.id === editing ? { ...t, ...tplData, updatedAt: new Date().toISOString() } : t
       )
       setTemplates(updated)
-      saveTemplates(updated)
     } else {
       const newTpl: WhatsAppTemplate = {
         id: generateId(),
@@ -161,7 +165,6 @@ export function TemplatesPanel() {
       }
       const updated = [...templates, newTpl]
       setTemplates(updated)
-      saveTemplates(updated)
     }
     resetForm()
   }
@@ -169,7 +172,6 @@ export function TemplatesPanel() {
   function handleDelete(id: string) {
     const updated = templates.filter((t) => t.id !== id)
     setTemplates(updated)
-    saveTemplates(updated)
     if (previewTpl?.id === id) setPreviewTpl(null)
   }
 
@@ -199,7 +201,6 @@ export function TemplatesPanel() {
             }
           })
           setTemplates(merged)
-          saveTemplates(merged)
         }
       } catch {
         alert('❌ Archivo JSON inválido')

@@ -9,10 +9,11 @@
  * - CRM contact integration
  */
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Send, Globe, Server } from 'lucide-react'
 import { WhatsAppConfig, WhatsAppTemplate, CRMConfig } from '@/utils/storage'
 import { countVariables } from '@/utils/helpers'
+import { useWhatsAppApi } from '@/hooks'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -69,6 +70,9 @@ export function SendPanel({ config, templates, crmConfig }: SendPanelProps) {
   const [sending, setSending] = useState(false)
   const [result, setResult] = useState<SendResult | null>(null)
 
+  // ─── WhatsApp API Hook ────────────────────────────────────────────────────
+  const api = useWhatsAppApi({ config, crmConfig, retries: 2 })
+
   // ─── Derived ──────────────────────────────────────────────────────────────
   const selectedTpl = templates.find((t) => t.id === selectedTemplateId)
   const apiBase =
@@ -86,7 +90,7 @@ export function SendPanel({ config, templates, crmConfig }: SendPanelProps) {
 
   // ─── Handlers ─────────────────────────────────────────────────────────────
 
-  async function loadCrmContacts() {
+  const loadCrmContacts = useCallback(async () => {
     if (!crmConfig?.token) return
 
     setLoadingContacts(true)
@@ -104,7 +108,7 @@ export function SendPanel({ config, templates, crmConfig }: SendPanelProps) {
     } finally {
       setLoadingContacts(false)
     }
-  }
+  }, [crmConfig?.token, apiBase])
 
   async function handleSend() {
     // ─── CRM Mode ─────────────────────────────────────────────────────────
