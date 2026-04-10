@@ -1,12 +1,14 @@
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { LayoutDashboard, Users, CheckSquare, LogOut, Briefcase, Settings, Mail, MessageCircle, Sun, Moon } from 'lucide-react';
+import { LayoutDashboard, Users, CheckSquare, LogOut, Briefcase, Settings, Mail, MessageCircle, Sun, Moon, Download } from 'lucide-react';
+import { exportService } from '../services/api';
 
 export default function Layout() {
   const { user, logout } = useAuth();
   const location = useLocation();
   const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'dark');
+  const [showExportMenu, setShowExportMenu] = useState(false);
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
@@ -35,9 +37,29 @@ export default function Layout() {
             <img src="/Logo NEXO transparente.png" alt="Nexo CRM" className="h-12" />
             <h1 className="text-xl font-bold" style={{ color: 'var(--color-accent)' }}>NEXO CRM</h1>
           </div>
-          <button onClick={toggleTheme} className="p-1.5 rounded-lg transition-colors" style={{ color: 'var(--color-muted)', background: 'var(--color-surface-2)' }} title={theme === "dark" ? "Light mode" : "Dark mode"}>
-            {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
-          </button>
+          <div className="flex items-center gap-2">
+            <div className="relative">
+              <button onClick={() => setShowExportMenu(!showExportMenu)} className="p-1.5 rounded-lg transition-colors flex items-center gap-1" style={{ color: 'var(--color-muted)', background: 'var(--color-surface-2)' }} title="Export">
+                <Download size={16} />
+              </button>
+              {showExportMenu && (
+                <div className="absolute right-0 mt-2 w-48 rounded-lg shadow-lg z-50" style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}>
+                  <button onClick={() => { exportService.exportContacts('csv'); setShowExportMenu(false); }} className="w-full text-left px-4 py-2 text-sm hover:bg-opacity-80" style={{ color: 'var(--color-text)' }}>
+                    Contacts (CSV)
+                  </button>
+                  <button onClick={() => { exportService.exportContacts('pdf'); setShowExportMenu(false); }} className="w-full text-left px-4 py-2 text-sm hover:bg-opacity-80" style={{ color: 'var(--color-text)' }}>
+                    Contacts (PDF)
+                  </button>
+                  <button onClick={() => { exportService.exportDeals(); setShowExportMenu(false); }} className="w-full text-left px-4 py-2 text-sm hover:bg-opacity-80" style={{ color: 'var(--color-text)' }}>
+                    Deals (CSV)
+                  </button>
+                </div>
+              )}
+            </div>
+            <button onClick={toggleTheme} className="p-1.5 rounded-lg transition-colors" style={{ color: 'var(--color-muted)', background: 'var(--color-surface-2)' }} title={theme === "dark" ? "Light mode" : "Dark mode"}>
+              {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+            </button>
+          </div>
         </div>
         <nav className="flex-1 p-4 space-y-1">
           {navItems.map((item) => (
