@@ -94,11 +94,13 @@ export const whatsappService = {
 
 export const exportService = {
   exportContacts: (format = 'csv') => {
-    const token = localStorage.getItem('accessToken');
     window.open(`${API_URL}/api/contacts/export?format=${format}`, '_blank');
   },
   exportDeals: () => {
     window.open(`${API_URL}/api/deals/export`, '_blank');
+  },
+  exportTasks: () => {
+    window.open(`${API_URL}/api/tasks/export`, '_blank');
   },
 };
 

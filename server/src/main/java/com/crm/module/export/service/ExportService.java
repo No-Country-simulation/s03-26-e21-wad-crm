@@ -8,6 +8,9 @@ import com.crm.module.deal.entity.Deal;
 import com.crm.module.deal.repository.DealRepository;
 import com.crm.module.export.dto.ContactExportFilter;
 import com.crm.module.export.dto.DealExportFilter;
+import com.crm.module.export.dto.TaskExportFilter;
+import com.crm.module.task.entity.Task;
+import com.crm.module.task.repository.TaskRepository;
 import com.itextpdf.kernel.colors.ColorConstants;
 import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfWriter;
@@ -45,6 +48,7 @@ public class ExportService {
     private final ContactRepository contactRepository;
     private final DealRepository dealRepository;
     private final CompanyRepository companyRepository;
+    private final TaskRepository taskRepository;
 
     // ── CSV Headers ───────────────────────────────────────────────────────────
 
@@ -56,6 +60,12 @@ public class ExportService {
     private static final String[] DEAL_CSV_HEADERS = {
             "ID", "Nombre", "Valor", "Contacto ID", "Etapa", "Asignado a",
             "Workspace ID", "Creado en", "Actualizado en"
+    };
+
+    private static final String[] TASK_CSV_HEADERS = {
+            "ID", "Título", "Descripción", "Prioridad", "Fecha Límite",
+            "Completada", "Contacto ID", "Deal ID", "Asignado a",
+            "Workspace ID", "Creado en"
     };
 
     // ── PDF Column Widths ─────────────────────────────────────────────────────
@@ -136,6 +146,43 @@ public class ExportService {
         } catch (Exception e) {
             log.error("Error generando CSV de deals para workspace {}", workspaceId, e);
             throw new RuntimeException("Error al generar CSV de deals", e);
+        }
+
+        return out.toByteArray();
+    }
+
+    /**
+     * Exporta tareas del workspace como CSV, respetando los filtros dados.
+     * Req 8.2: siempre filtra por workspaceId.
+     */
+    @Transactional(readOnly = true)
+    public byte[] exportTasksCsv(UUID workspaceId, TaskExportFilter filters) {
+        List<Task> tasks = fetchTasks(workspaceId, filters);
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        try (CSVWriter writer = new CSVWriter(
+                new OutputStreamWriter(out, StandardCharsets.UTF_8))) {
+
+            writer.writeNext(TASK_CSV_HEADERS);
+
+            for (Task t : tasks) {
+                writer.writeNext(new String[]{
+                        str(t.getId()),
+                        str(t.getTitle()),
+                        str(t.getDescription()),
+                        t.getPriority() != null ? t.getPriority().name() : "",
+                        str(t.getDueAt()),
+                        t.isCompleted() ? "Sí" : "No",
+                        str(t.getContactId()),
+                        str(t.getDealId()),
+                        str(t.getAssignedTo()),
+                        str(t.getWorkspaceId()),
+                        str(t.getCreatedAt())
+                });
+            }
+        } catch (Exception e) {
+            log.error("Error generando CSV de tareas para workspace {}", workspaceId, e);
+            throw new RuntimeException("Error al generar CSV de tareas", e);
         }
 
         return out.toByteArray();
@@ -277,6 +324,38 @@ public class ExportService {
         };
 
         return dealRepository.findAll(spec);
+    }
+
+    /**
+     * Obtiene todas las tareas del workspace aplicando los filtros.
+     * Sin paginación: exporta todos los registros coincidentes.
+     */
+    private List<Task> fetchTasks(UUID workspaceId, TaskExportFilter f) {
+        Specification<Task> spec = (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+
+            predicates.add(cb.equal(root.get("workspaceId"), workspaceId));
+
+            if (f != null) {
+                if (f.search() != null && !f.search().isBlank()) {
+                    String pattern = "%" + f.search().toLowerCase() + "%";
+                    predicates.add(cb.or(
+                            cb.like(cb.lower(root.get("title")), pattern),
+                            cb.like(cb.lower(root.get("description")), pattern)
+                    ));
+                }
+                if (f.priority() != null && !f.priority().isBlank()) {
+                    predicates.add(cb.equal(root.get("priority"), f.priority()));
+                }
+                if (f.completed() != null) {
+                    predicates.add(cb.equal(root.get("completed"), f.completed()));
+                }
+            }
+
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+
+        return taskRepository.findAll(spec);
     }
 
     /**

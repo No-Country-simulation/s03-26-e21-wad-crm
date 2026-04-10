@@ -53,6 +53,9 @@ export default function Layout() {
                   <button onClick={() => { exportService.exportDeals(); setShowExportMenu(false); }} className="w-full text-left px-4 py-2 text-sm hover:bg-opacity-80" style={{ color: 'var(--color-text)' }}>
                     Deals (CSV)
                   </button>
+                  <button onClick={() => { exportService.exportTasks(); setShowExportMenu(false); }} className="w-full text-left px-4 py-2 text-sm hover:bg-opacity-80" style={{ color: 'var(--color-text)' }}>
+                    Tasks (CSV)
+                  </button>
                 </div>
               )}
             </div>

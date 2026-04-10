@@ -4,6 +4,7 @@ import com.crm.common.security.WorkspaceContext;
 import com.crm.module.contact.entity.ContactStatus;
 import com.crm.module.export.dto.ContactExportFilter;
 import com.crm.module.export.dto.DealExportFilter;
+import com.crm.module.export.dto.TaskExportFilter;
 import com.crm.module.export.service.ExportService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
@@ -73,6 +74,27 @@ public class ExportController {
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"deals.csv\"")
+                .contentType(MediaType.parseMediaType("text/csv"))
+                .body(data);
+    }
+
+    @GetMapping("/api/tasks/export")
+    public ResponseEntity<byte[]> exportTasks(
+            @RequestParam(defaultValue = "csv") String format,
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) String priority,
+            @RequestParam(required = false) Boolean completed) {
+
+        if (!"csv".equalsIgnoreCase(format)) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST, "Formato no soportado para tareas: '" + format + "'. Use 'csv'.");
+        }
+
+        TaskExportFilter filter = new TaskExportFilter(search, priority, completed);
+        byte[] data = exportService.exportTasksCsv(WorkspaceContext.getWorkspaceId(), filter);
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"tasks.csv\"")
                 .contentType(MediaType.parseMediaType("text/csv"))
                 .body(data);
     }
