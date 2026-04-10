@@ -1,29 +1,31 @@
 /**
  * AppMain - Main Application Container
  * 
- * Extracted and refactored version of AppOld.tsx
- * Manages tab navigation, state, and component layout
+ * Manages tab navigation, panel rendering, and RBAC filtering.
+ * Extracted from AppOld.tsx for type safety and modularity.
  * 
- * RBAC handled by parent App.tsx wrapper
+ * RBAC is enforced:
+ * - hasPermission() guard on each panel render
+ * - allowedTabs calculated per userRole
+ * - Auto-select first available tab on role change
  */
 
 import { useState, useEffect } from 'react'
 import { TABS } from '@/utils/constants'
 import { useRbac } from '@/hooks/useRbac'
-
-// Placeholder: These will be imported from components/panels/* when ready
-// import { ConversationsPanel } from '@/components/panels/ConversationsPanel'
-// import { SendPanel } from '@/components/panels/SendPanel'
-// import { TemplatesPanel } from '@/components/panels/TemplatesPanel'
-// import { ConfigPanel } from '@/components/panels/ConfigPanel'
-// import { CrmPanel } from '@/components/panels/CrmPanel'
-// import { LogsPanel } from '@/components/panels/LogsPanel'
-// import { WebhookSimulator } from '@/components/panels/WebhookSimulator'
-// import { UserDataPanel } from '@/components/panels/UserDataPanel'
+import { RoleType, CrmConfig } from '@/types'
+import { ConversationsPanel } from '@/components/panels/ConversationsPanel'
+import { SendPanel } from '@/components/panels/SendPanel'
+import { TemplatesPanel } from '@/components/panels/TemplatesPanel'
+import { ConfigPanel } from '@/components/panels/ConfigPanel'
+import { CrmPanel } from '@/components/panels/CrmPanel'
+import { LogsPanel } from '@/components/panels/LogsPanel'
+import { WebhookSimulator } from '@/components/panels/WebhookSimulator'
+import { ContactInfoPanel } from '@/components/panels/ContactInfoPanel'
 
 interface AppMainProps {
-  crmConfig?: any
-  userRole?: string
+  crmConfig?: CrmConfig
+  userRole?: RoleType
 }
 
 export function AppMain({ crmConfig, userRole }: AppMainProps) {
@@ -76,42 +78,14 @@ export function AppMain({ crmConfig, userRole }: AppMainProps) {
       {/* Content */}
       <main className="p-6">
         <div className="max-w-7xl mx-auto">
-          {/* Placeholder content until components are extracted */}
-          {activeTab === TABS.CONVERSATIONS && (
-            <div className="text-center text-slate-400 py-8">
-              <p>Conversations Panel - Coming Soon</p>
-            </div>
-          )}
-          {activeTab === TABS.SEND && (
-            <div className="text-center text-slate-400 py-8">
-              <p>Send Message Panel - Coming Soon</p>
-            </div>
-          )}
-          {activeTab === TABS.TEMPLATES && (
-            <div className="text-center text-slate-400 py-8">
-              <p>Templates Panel - Coming Soon</p>
-            </div>
-          )}
-          {activeTab === TABS.CONFIG && (
-            <div className="text-center text-slate-400 py-8">
-              <p>Configuration Panel - Coming Soon</p>
-            </div>
-          )}
-          {activeTab === TABS.CRM && (
-            <div className="text-center text-slate-400 py-8">
-              <p>CRM Panel - Coming Soon</p>
-            </div>
-          )}
-          {activeTab === TABS.LOGS && (
-            <div className="text-center text-slate-400 py-8">
-              <p>Logs Panel - Coming Soon</p>
-            </div>
-          )}
-          {activeTab === TABS.WEBHOOK && (
-            <div className="text-center text-slate-400 py-8">
-              <p>Webhook Simulator - Coming Soon</p>
-            </div>
-          )}
+          {activeTab === TABS.CONVERSATIONS && hasPermission(TABS.CONVERSATIONS) && <ConversationsPanel />}
+          {activeTab === TABS.SEND && hasPermission(TABS.SEND) && <SendPanel />}
+          {activeTab === TABS.TEMPLATES && hasPermission(TABS.TEMPLATES) && <TemplatesPanel />}
+          {activeTab === TABS.CONFIG && hasPermission(TABS.CONFIG) && <ConfigPanel />}
+          {activeTab === TABS.CRM && hasPermission(TABS.CRM) && <CrmPanel />}
+          {activeTab === TABS.LOGS && hasPermission(TABS.LOGS) && <LogsPanel />}
+          {activeTab === TABS.WEBHOOK && hasPermission(TABS.WEBHOOK) && <WebhookSimulator />}
+          {activeTab === 'contact' && hasPermission('contact') && <ContactInfoPanel />}
         </div>
       </main>
     </div>

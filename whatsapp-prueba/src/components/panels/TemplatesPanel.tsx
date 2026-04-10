@@ -18,7 +18,7 @@ import { generateId, countVariables } from '@/utils/helpers'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type WizardStep = 1 | 2 | 3 | 4
+type TemplateWizardStep = 1 | 2 | 3 | 4
 
 interface TemplateComponent {
   type: 'header' | 'body' | 'footer'
@@ -31,6 +31,44 @@ function renderPreview(text: string): string {
   return text.replace(/\{\{\d+\}\}/g, (match) => `<span class="bg-green-900/50 px-1 rounded">${match}</span>`)
 }
 
+/**
+ * Safely render template preview with variable highlighting
+ * Replaces {{1}}, {{2}} with styled spans without dangerouslySetInnerHTML
+ */
+function SafePreviewRender({ text }: { text: string }) {
+  const parts: (string | { var: string })[] = []
+  let lastIndex = 0
+  
+  const regex = /\{\{\d+\}\}/g
+  let match
+  
+  while ((match = regex.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      parts.push(text.slice(lastIndex, match.index))
+    }
+    parts.push({ var: match[0] })
+    lastIndex = regex.lastIndex
+  }
+  
+  if (lastIndex < text.length) {
+    parts.push(text.slice(lastIndex))
+  }
+  
+  return (
+    <span className="whitespace-pre-wrap">
+      {parts.map((part, i) =>
+        typeof part === 'string' ? (
+          <span key={i}>{part}</span>
+        ) : (
+          <span key={i} className="bg-green-900/50 px-1 rounded">
+            {part.var}
+          </span>
+        )
+      )}
+    </span>
+  )
+}
+
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export function TemplatesPanel() {
@@ -41,7 +79,7 @@ export function TemplatesPanel() {
   const [previewTpl, setPreviewTpl] = useState<WhatsAppTemplate | null>(null)
 
   // ─── State: Wizard ────────────────────────────────────────────────────────
-  const [step, setStep] = useState<WizardStep>(1)
+  const [step, setStep] = useState<TemplateWizardStep>(1)
   const TOTAL_STEPS = 4
 
   // ─── State: Form Fields ───────────────────────────────────────────────────
@@ -179,11 +217,11 @@ export function TemplatesPanel() {
   }
 
   function nextStep() {
-    if (canNext() && step < TOTAL_STEPS) setStep((step + 1) as WizardStep)
+    if (canNext() && step < TOTAL_STEPS) setStep((step + 1) as TemplateWizardStep)
   }
 
   function prevStep() {
-    if (step > 1) setStep((step - 1) as WizardStep)
+    if (step > 1) setStep((step - 1) as TemplateWizardStep)
   }
 
   const stepLabels = ['📋 Info Básica', '📌 Encabezado', '💬 Mensaje', '✅ Pie + Guardar']
@@ -300,15 +338,16 @@ export function TemplatesPanel() {
                             {c.text}
                           </div>
                         ))}
-                      {tpl.components
-                        .filter((c) => c.type === 'body')
-                        .map((c, i) => (
-                          <div
-                            key={i}
-                            className="text-sm text-white whitespace-pre-wrap mb-2"
-                            dangerouslySetInnerHTML={{ __html: renderPreview(c.text || '') }}
-                          />
-                        ))}
+                       {tpl.components
+                         .filter((c) => c.type === 'body')
+                         .map((c, i) => (
+                           <div
+                             key={i}
+                             className="text-sm text-white whitespace-pre-wrap mb-2"
+                           >
+                             <SafePreviewRender text={c.text || ''} />
+                           </div>
+                         ))}
                       {tpl.components
                         .filter((c) => c.type === 'footer')
                         .map((c, i) => (
@@ -470,9 +509,11 @@ export function TemplatesPanel() {
                       className="w-full rounded-lg border border-slate-600 bg-slate-900 px-3 py-2 text-white placeholder-slate-500 focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500 transition-colors resize-none"
                     />
                     <p className="text-xs text-slate-500 mt-1">
-                      Usa {{'{1}'}}
-                      {', '}
-                      {{'{2}'}} para variables
+                      Usa {'{'}
+                      {'1'}
+                      {'}'} , {'{'}
+                      {'2'}
+                      {'}'} para variables
                     </p>
                   </div>
                 </div>
