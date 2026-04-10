@@ -49,7 +49,7 @@ export default function Dashboard() {
           </h2>
           <div className="grid grid-cols-2 gap-4">
             <ChannelCard title="WhatsApp" description="Configura WhatsApp Business" icon={<MessageCircle className="w-8 h-8" />} color="#25D366" href="/settings" />
-            <ChannelCard title="Email" description="Configura SMTP o Gmail" icon={<Mail className="w-8 h-8" />} color="#2563eb" href="/settings" />
+            <ChannelCard title="Email" description="Configura SMTP o Gmail" icon={<Mail className="w-8 h-8" />} color="#EA4335" href="/settings" />
           </div>
         </div>
 

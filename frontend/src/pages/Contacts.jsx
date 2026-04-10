@@ -198,7 +198,7 @@ export default function Contacts() {
               <div className="mt-4 pt-4 flex justify-between items-center" style={{ borderTop: '1px solid var(--color-border)' }}>
                 <p className="text-xs" style={{ color: 'var(--color-muted)' }}>Created: {new Date(contact.createdAt).toLocaleDateString()}</p>
                 <div className="flex gap-2">
-                  <button onClick={() => handleSendEmail(contact.email)} className="p-2 rounded-lg transition-colors hover:bg-blue-100" style={{ color: '#2563eb' }} title="Send Email">
+                  <button onClick={() => handleSendEmail(contact.email)} className="p-2 rounded-lg transition-colors hover:bg-blue-100" style={{ color: '#EA4335' }} title="Send Email">
                     <Mail size={18} />
                   </button>
                   {contact.phone && (
