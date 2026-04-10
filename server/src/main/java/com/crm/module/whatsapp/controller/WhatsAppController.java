@@ -12,6 +12,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -36,8 +37,10 @@ public class WhatsAppController {
 
     /**
      * POST /api/whatsapp/send
+     * Only ADMIN and AGENT roles can send messages
      */
     @PostMapping("/send")
+    @PreAuthorize("hasAnyRole('ADMIN', 'AGENT')")
     public ResponseEntity<SendWhatsAppResponse> send(
             @Valid @RequestBody SendWhatsAppRequest request) {
 

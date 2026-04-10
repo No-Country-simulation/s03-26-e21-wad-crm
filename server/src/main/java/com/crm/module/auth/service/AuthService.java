@@ -11,6 +11,7 @@ import com.crm.module.auth.repository.RefreshTokenRepository;
 import com.crm.module.user.entity.User;
 import com.crm.module.user.entity.UserRole;
 import com.crm.module.user.repository.UserRepository;
+import com.crm.module.user.service.RoleService;
 import com.crm.module.workspace.entity.Workspace;
 import com.crm.module.workspace.repository.WorkspaceRepository;
 import com.crm.module.whatsapp.service.WhatsAppAutoConfigService;
@@ -41,6 +42,7 @@ public class AuthService {
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
     private final WhatsAppAutoConfigService whatsAppAutoConfigService;
+    private final RoleService roleService;
 
     // -------------------------------------------------------------------------
     // Register
@@ -69,27 +71,30 @@ public class AuthService {
                         .build()
         );
 
-        // Create admin user
-        User user = User.builder()
-                .email(request.getEmail())
-                .passwordHash(passwordEncoder.encode(request.getPassword()))
-                .name(request.getName())
-                .role(UserRole.ADMIN)
-                .isActive(true)
-                .timezone("UTC")
-                .build();
-        user.setWorkspaceId(workspace.getId());
+         // Create admin user
+         User user = User.builder()
+                 .email(request.getEmail())
+                 .passwordHash(passwordEncoder.encode(request.getPassword()))
+                 .name(request.getName())
+                 .role(UserRole.ADMIN)
+                 .isActive(true)
+                 .timezone("UTC")
+                 .build();
+         user.setWorkspaceId(workspace.getId());
 
-        user = userRepository.save(user);
+         user = userRepository.save(user);
 
-        // Auto-configure WhatsApp for the new workspace
-        whatsAppAutoConfigService.ensureWhatsAppConfigForWorkspace(workspace.getId());
+         // Initialize system roles for the workspace
+         roleService.initializeSystemRoles(workspace.getId());
 
-        return buildTokenResponse(user, workspace.getId());
-    }
+         // Auto-configure WhatsApp for the new workspace
+         whatsAppAutoConfigService.ensureWhatsAppConfigForWorkspace(workspace.getId());
 
-    // -------------------------------------------------------------------------
-    // Login
+         return buildTokenResponse(user, workspace.getId());
+     }
+
+     // -------------------------------------------------------------------------
+     // Login
     // -------------------------------------------------------------------------
 
     /**
