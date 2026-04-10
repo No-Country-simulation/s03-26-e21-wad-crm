@@ -1,6 +1,5 @@
 package com.crm.module.user.dto;
 
-import com.crm.module.user.entity.UserRole;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Value;
@@ -15,5 +14,5 @@ public class InviteUserRequest {
     @NotBlank
     String name;
 
-    UserRole role;
+    String role;
 }

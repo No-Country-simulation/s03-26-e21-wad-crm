@@ -1,7 +1,7 @@
 package com.crm.module.user.dto;
 
 import com.crm.module.user.entity.User;
-import com.crm.module.user.entity.UserRole;
+import com.crm.module.user.entity.Role;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Builder;
 import lombok.Value;
@@ -18,7 +18,7 @@ public class UserDto {
     String name;
     String phone;
     String timezone;
-    UserRole role;
+    Role role;
     boolean isActive;
     UUID workspaceId;
     
