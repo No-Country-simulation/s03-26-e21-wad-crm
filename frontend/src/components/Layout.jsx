@@ -32,7 +32,7 @@ export default function Layout() {
       <aside className="w-64 flex flex-col" style={{ background: 'var(--color-bg-deep)', borderRight: '1px solid var(--color-border)' }}>
         <div className="p-5 flex items-center justify-between" style={{ borderBottom: '1px solid var(--color-border)' }}>
           <div className="flex items-center gap-3">
-            <img src="/Logo NEXO copilot .png" alt="Nexo CRM" className="h-12" />
+            <img src="/Logo NEXO transparente.png" alt="Nexo CRM" className="h-12" />
             <h1 className="text-xl font-bold" style={{ color: 'var(--color-accent)' }}>NEXO CRM</h1>
           </div>
           <button onClick={toggleTheme} className="p-1.5 rounded-lg transition-colors" style={{ color: 'var(--color-muted)', background: 'var(--color-surface-2)' }} title={theme === "dark" ? "Light mode" : "Dark mode"}>
