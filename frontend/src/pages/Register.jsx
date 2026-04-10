@@ -33,7 +33,7 @@ export default function Register() {
       <div className="p-8 rounded-2xl shadow-xl w-full max-w-md" style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}>
         <div className="text-center mb-8">
           <div className="w-16 h-16 rounded-xl flex items-center justify-center mx-auto mb-4" style={{ background: 'var(--color-primary)' }}>
-            <span className="text-white text-2xl font-bold">CRM</span>
+            <span className="text-white text-2xl font-bold">NEXO</span>
           </div>
           <h1 className="text-2xl font-bold" style={{ color: 'var(--color-text)' }}>Create Account</h1>
           <p className="mt-1" style={{ color: 'var(--color-muted)' }}>Get started with your free account</p>
