@@ -9,7 +9,7 @@ import { useWhatsAppStore } from '@/store/whatsappStore';
 import { RoleType, ROLES, TabKey, TABS } from '@/types';
 import { useRbac } from '@/hooks/useRbac';
 import { LoginPanel } from '@/components/LoginPanel';
-import App from './App.jsx';
+import AppOld from './AppOld';
 
 /**
  * Component to display when user doesn't have permission
@@ -131,5 +131,5 @@ export default function AppWithRoles() {
 
   // Pass role and allowedTabs to App.jsx so it can filter UI elements
   // @ts-ignore - App.jsx is not typed, but it works
-  return <App currentRole={currentRole} allowedTabs={allowedTabs} />;
+  return <AppOld currentRole={currentRole} allowedTabs={allowedTabs} />;
 }

@@ -2169,7 +2169,7 @@ function SessionWarning({ session, onLogout, onRefresh }) {
 
 // ─── Main App ────────────────────────────────────────────────────────────────
 
-export default function App({ currentRole, allowedTabs }) {
+export default function AppOld({ currentRole, allowedTabs }) {
   const [session, setSession] = useState(() => loadSession())
   const [activeTab, setActiveTab] = useState(allowedTabs ? allowedTabs[0] : TABS.SEND)
   const [config, setConfig] = useState(() => loadConfig())
