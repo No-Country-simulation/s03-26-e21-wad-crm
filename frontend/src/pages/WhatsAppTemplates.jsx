@@ -40,7 +40,7 @@ export default function WhatsAppTemplates() {
     <div className="p-6 min-h-screen" style={{ background: 'var(--color-bg)' }}>
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <div className="p-2 rounded-lg" style={{ background: 'var(--color-primary)' }}>
+          <div className="p-2 rounded-lg" style={{ background: '#25D366' }}>
             <MessageCircle className="text-white" size={24} />
           </div>
           <div>
@@ -92,7 +92,7 @@ export default function WhatsAppTemplates() {
         </div>
       ) : templates.length === 0 ? (
         <div className="rounded-xl p-12 text-center" style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}>
-          <MessageCircle className="mx-auto mb-4" size={48} style={{ color: 'var(--color-border)' }} />
+          <MessageCircle className="mx-auto mb-4" size={48} style={{ color: '#25D366' }} />
           <h3 className="text-lg font-medium mb-2" style={{ color: 'var(--color-text)' }}>Sin templates</h3>
           <p className="text-sm" style={{ color: 'var(--color-muted)' }}>
             Crea templates en Meta Business Manager y aparecerán aquí una vez aprobados.

@@ -11,7 +11,7 @@ export default function Settings() {
     { id: 'profile',       label: 'Profile',            icon: User },
     { id: 'workspace',     label: 'Workspace',          icon: Building },
     { id: 'email',         label: 'Email Integration',  icon: Mail },
-    { id: 'whatsapp',      label: 'WhatsApp',           icon: MessageCircle },
+    { id: 'whatsapp',      label: 'WhatsApp',           icon: MessageCircle, color: '#25D366' },
     { id: 'notifications', label: 'Notifications',       icon: Bell },
     { id: 'security',      label: 'Security',            icon: Shield },
   ];
@@ -27,7 +27,7 @@ export default function Settings() {
                 className="w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all"
                 style={activeTab === tab.id
                   ? { background: 'var(--color-primary)', color: '#fff' }
-                  : { color: 'var(--color-muted)', background: 'transparent' }}>
+                  : { color: tab.color || 'var(--color-muted)', background: 'transparent' }}>
                 <tab.icon size={18} />
                 {tab.label}
               </button>
@@ -193,7 +193,7 @@ function WhatsAppSettings() {
     <div>
       <SectionTitle>WhatsApp Integration</SectionTitle>
       <div className="p-4 rounded-lg text-center" style={{ background: 'var(--color-surface-2)', border: '1px solid var(--color-border)' }}>
-        <MessageCircle className="w-12 h-12 mx-auto mb-2" style={{ color: 'var(--color-muted)' }} />
+        <MessageCircle className="w-12 h-12 mx-auto mb-2" style={{ color: '#25D366' }} />
         <p style={{ color: 'var(--color-muted)' }}>WhatsApp integration coming soon</p>
       </div>
     </div>

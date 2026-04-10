@@ -44,11 +44,11 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
         <div className="rounded-xl p-6" style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}>
           <h2 className="text-lg font-semibold mb-4 flex items-center gap-2" style={{ color: 'var(--color-text)' }}>
-            <MessageCircle size={20} style={{ color: 'var(--color-accent)' }} />
+            <MessageCircle size={20} style={{ color: '#25D366' }} />
             Canales de Comunicación
           </h2>
           <div className="grid grid-cols-2 gap-4">
-            <ChannelCard title="WhatsApp" description="Configura WhatsApp Business" icon={<MessageCircle className="w-8 h-8" />} color="#a855f7" href="/settings" />
+            <ChannelCard title="WhatsApp" description="Configura WhatsApp Business" icon={<MessageCircle className="w-8 h-8" />} color="#25D366" href="/settings" />
             <ChannelCard title="Email" description="Configura SMTP o Gmail" icon={<Mail className="w-8 h-8" />} color="#2563eb" href="/settings" />
           </div>
         </div>

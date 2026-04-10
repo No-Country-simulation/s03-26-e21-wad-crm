@@ -21,7 +21,7 @@ export default function Layout() {
     { path: '/deals',              label: 'Deals',              icon: Briefcase },
     { path: '/tasks',              label: 'Tasks',              icon: CheckSquare },
     { path: '/email-templates',    label: 'Email Templates',    icon: Mail },
-    { path: '/whatsapp-templates', label: 'WhatsApp Templates', icon: MessageCircle },
+    { path: '/whatsapp-templates', label: 'WhatsApp Templates', icon: MessageCircle, color: '#25D366' },
     { path: '/settings',           label: 'Settings',           icon: Settings },
   ];
 
@@ -44,7 +44,7 @@ export default function Layout() {
               className="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200"
               style={isActive(item.path)
                 ? { background: 'var(--color-primary)', color: '#fff' }
-                : { color: 'var(--color-muted)' }
+                : { color: item.color || 'var(--color-muted)' }
               }
             >
               <item.icon size={20} />
