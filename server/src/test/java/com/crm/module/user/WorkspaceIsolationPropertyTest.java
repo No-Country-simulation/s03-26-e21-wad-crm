@@ -3,7 +3,7 @@ package com.crm.module.user;
 import com.crm.common.security.WorkspaceContext;
 import com.crm.module.user.dto.UserDto;
 import com.crm.module.user.entity.User;
-import com.crm.module.user.entity.UserRole;
+import com.crm.module.user.entity.Role;
 import com.crm.module.user.repository.UserRepository;
 import com.crm.module.user.service.UserService;
 import net.jqwik.api.*;

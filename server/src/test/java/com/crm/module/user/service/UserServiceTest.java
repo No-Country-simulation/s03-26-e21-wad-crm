@@ -9,8 +9,9 @@ import com.crm.module.user.dto.InviteUserRequest;
 import com.crm.module.user.dto.UpdateRoleRequest;
 import com.crm.module.user.dto.UserDto;
 import com.crm.module.user.entity.User;
-import com.crm.module.user.entity.UserRole;
+import com.crm.module.user.entity.Role;
 import com.crm.module.user.repository.UserRepository;
+import com.crm.module.user.repository.RoleRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -37,6 +38,7 @@ import static org.mockito.Mockito.*;
 class UserServiceTest {
 
     @Mock private UserRepository userRepository;
+    @Mock private RoleRepository roleRepository;
     @Mock private PasswordEncoder passwordEncoder;
 
     @InjectMocks
@@ -54,7 +56,7 @@ class UserServiceTest {
         activeAdmin = User.builder()
                 .email("admin@example.com")
                 .name("Admin User")
-                .role(UserRole.ADMIN)
+                .role(createMockAdminRole())
                 .isActive(true)
                 .build();
         activeAdmin.setId(userId);
