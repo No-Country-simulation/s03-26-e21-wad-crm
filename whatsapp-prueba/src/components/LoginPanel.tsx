@@ -1,13 +1,14 @@
 import { useState } from 'react';
 import { useWhatsAppStore } from '@/store/whatsappStore';
 import { LogIn } from 'lucide-react';
+import { RoleType } from '@/types';
 
 interface LoginResponse {
   accessToken: string;
   refreshToken: string;
   tokenType: string;
   workspaceId: string;
-  role: string;
+  role: RoleType;
 }
 
 export function LoginPanel() {
@@ -17,8 +18,7 @@ export function LoginPanel() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const performLogin = async (emailToUse: string, passwordToUse: string) => {
     setLoading(true);
     setError('');
 
@@ -26,7 +26,7 @@ export function LoginPanel() {
       const response = await fetch('http://localhost:8080/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email: emailToUse, password: passwordToUse }),
       });
 
       if (!response.ok) {
@@ -45,16 +45,29 @@ export function LoginPanel() {
       setSession({
         userId: 'user-from-token',
         workspaceId: data.workspaceId,
-        role: data.role as any,
+        role: data.role,
       });
 
-      console.log('✅ Login successful:', { role: data.role, workspaceId: data.workspaceId });
+      console.log('✅ Login successful:', { email: emailToUse, role: data.role, workspaceId: data.workspaceId });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed');
       console.error('Login error:', err);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await performLogin(email, password);
+  };
+
+  const handleQuickLoginAdmin = async () => {
+    await performLogin('admin@test.com', 'password');
+  };
+
+  const handleQuickLoginAgent = async () => {
+    await performLogin('cj@gmail.com', 'password');
   };
 
   return (
@@ -112,6 +125,28 @@ export function LoginPanel() {
           <div className="font-mono text-xs space-y-1">
             <p>📧 <span className="text-blue-400">cj@gmail.com</span> / password</p>
             <p className="text-green-400">Role: AGENT</p>
+          </div>
+        </div>
+
+        <div className="mt-6 space-y-3">
+          <p className="text-xs text-slate-400 text-center">🚀 Quick Login:</p>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={handleQuickLoginAdmin}
+              disabled={loading}
+              className="py-2 px-3 rounded bg-red-600 hover:bg-red-700 disabled:bg-slate-600 text-white text-sm font-medium transition"
+            >
+              {loading ? '...' : '👑 Admin'}
+            </button>
+            <button
+              type="button"
+              onClick={handleQuickLoginAgent}
+              disabled={loading}
+              className="py-2 px-3 rounded bg-green-600 hover:bg-green-700 disabled:bg-slate-600 text-white text-sm font-medium transition"
+            >
+              {loading ? '...' : '👤 Agent'}
+            </button>
           </div>
         </div>
       </div>
