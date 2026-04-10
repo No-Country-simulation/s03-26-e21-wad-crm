@@ -35,7 +35,7 @@ export default function Layout() {
             <img src="/Logo NEXO copilot .png" alt="Nexo CRM" className="h-12" />
             <h1 className="text-xl font-bold" style={{ color: 'var(--color-accent)' }}>NEXO CRM</h1>
           </div>
-          <button onClick={toggleTheme} className="p-1.5 rounded-lg transition-colors" style={{ color: 'var(--color-muted)', background: 'var(--color-surface-2)' }} title={theme === 'dark' ? 'Modo claro' : 'Modo oscuro' }}>
+          <button onClick={toggleTheme} className="p-1.5 rounded-lg transition-colors" style={{ color: 'var(--color-muted)', background: 'var(--color-surface-2)' }} title={theme === "dark" ? "Light mode" : "Dark mode"}>
             {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
           </button>
         </div>
