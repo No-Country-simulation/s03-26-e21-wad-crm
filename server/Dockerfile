@@ -3,9 +3,8 @@ WORKDIR /app
 COPY mvnw .
 COPY .mvn .mvn
 COPY pom.xml .
+COPY src src                      # ← COPIAR SRC ANTES
 RUN ./mvnw package -DskipTests -q -Dmaven.test.skip=true
-COPY src src
-RUN ./mvnw package -DskipTests -q
 
 FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
