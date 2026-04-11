@@ -69,7 +69,14 @@ export const useWhatsAppStore = create<WhatsAppStore>()(
     (set, get) => ({
       // User & Session
       session: null,
-      setSession: (session) => set({ session, currentRole: session?.role || null }),
+      setSession: (session) => {
+        set({ session, currentRole: session?.role || null });
+        if (session?.role) {
+          localStorage.setItem('user-role', session.role);
+          localStorage.setItem('user-id', session.userId);
+          localStorage.setItem('workspace-id', session.workspaceId);
+        }
+      },
       currentRole: null,
 
       // Configuration
@@ -119,7 +126,7 @@ export const useWhatsAppStore = create<WhatsAppStore>()(
       logs: [],
       addLog: (log) =>
         set((state) => ({
-          logs: [log, ...state.logs].slice(0, 100), // Keep last 100 logs
+          logs: [log, ...state.logs].slice(0, 100),
         })),
       clearLogs: () => set({ logs: [] }),
 
@@ -132,9 +139,8 @@ export const useWhatsAppStore = create<WhatsAppStore>()(
       setError: (error) => set({ error }),
     }),
     {
-      name: 'wa-prueba-store', // localStorage key
+      name: 'wa-prueba-store',
       partialize: (state) => ({
-        // Only persist these fields
         config: state.config,
         crmConfig: state.crmConfig,
         templates: state.templates,

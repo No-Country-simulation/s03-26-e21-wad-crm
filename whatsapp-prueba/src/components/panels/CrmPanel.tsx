@@ -14,6 +14,7 @@ import { useState, useCallback, useEffect } from 'react'
 import { Server, Trash2 } from 'lucide-react'
 import { CRMConfig, saveCrmConfig } from '@/utils/storage'
 import { useLocalStorage } from '@/hooks/useLocalStorage'
+import { useWhatsAppStore } from '@/store/whatsappStore'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -31,6 +32,9 @@ interface CrmPanelProps {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export function CrmPanel({ crmConfig, onSave, onClear }: CrmPanelProps) {
+  const zustandCrmConfig = useWhatsAppStore((state) => state.crmConfig)
+  const session = useWhatsAppStore((state) => state.session)
+  
   // ──────────────────────────────────────────────────────────────────────────
   // State: Form & Testing
   // ──────────────────────────────────────────────────────────────────────────
@@ -64,10 +68,16 @@ export function CrmPanel({ crmConfig, onSave, onClear }: CrmPanelProps) {
   // ──────────────────────────────────────────────────────────────────────────
 
   useEffect(() => {
-    if (storedConfig && Object.keys(storedConfig).length > 0) {
+    if (zustandCrmConfig && zustandCrmConfig.token) {
+      setForm({
+        baseUrl: zustandCrmConfig.baseUrl || 'http://localhost:8080',
+        token: zustandCrmConfig.token,
+        workspaceId: session?.workspaceId || zustandCrmConfig.workspaceId || '',
+      })
+    } else if (storedConfig && Object.keys(storedConfig).length > 0) {
       setForm(storedConfig)
     }
-  }, [])
+  }, [zustandCrmConfig, session, storedConfig])
 
   // ──────────────────────────────────────────────────────────────────────────
   // Callback: Handle field changes
@@ -96,13 +106,7 @@ export function CrmPanel({ crmConfig, onSave, onClear }: CrmPanelProps) {
     setTestResult(null)
 
     try {
-      // Use proxy when running on localhost
-      const apiBase =
-        typeof window !== 'undefined' && window.location.hostname === 'localhost'
-          ? ''
-          : form.baseUrl
-
-      const res = await fetch(`${apiBase}/api/auth/me`, {
+      const res = await fetch(`${form.baseUrl}/api/auth/me`, {
         headers: { Authorization: `Bearer ${form.token}` },
       })
 
@@ -114,12 +118,7 @@ export function CrmPanel({ crmConfig, onSave, onClear }: CrmPanelProps) {
     } catch (err) {
       // Try actuator health as fallback
       try {
-        const apiBase =
-          typeof window !== 'undefined' && window.location.hostname === 'localhost'
-            ? ''
-            : form.baseUrl
-
-        const healthRes = await fetch(`${apiBase}/actuator/health`)
+        const healthRes = await fetch(`${form.baseUrl}/actuator/health`)
         if (!healthRes.ok) throw new Error(`HTTP ${healthRes.status}`)
 
         const healthData = await healthRes.json()

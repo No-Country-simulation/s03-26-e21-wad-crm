@@ -13,6 +13,7 @@ interface LoginResponse {
 
 export function LoginPanel() {
   const setSession = useWhatsAppStore((state) => state.setSession);
+  const setCrmConfig = useWhatsAppStore((state) => state.setCrmConfig);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -35,20 +36,34 @@ export function LoginPanel() {
 
       const data: LoginResponse = await response.json();
 
-      // Save to localStorage
-      localStorage.setItem('token', data.accessToken);
-      localStorage.setItem('refreshToken', data.refreshToken);
-      localStorage.setItem('user-role', data.role);
-      localStorage.setItem('workspace-id', data.workspaceId);
+      // Decode JWT to get userId
+      const tokenPayload = JSON.parse(atob(data.accessToken.split('.')[1]));
+      const userId = tokenPayload.sub || tokenPayload.userId || tokenPayload.id || 'unknown';
 
-      // Set store session
+      const baseUrl = window.location.hostname === 'localhost' 
+        ? 'http://localhost:8080' 
+        : 'https://api.yourcrm.com';
+
       setSession({
-        userId: 'user-from-token',
+        userId: userId,
         workspaceId: data.workspaceId,
         role: data.role,
       });
 
-      console.log('✅ Login successful:', { email: emailToUse, role: data.role, workspaceId: data.workspaceId });
+      setCrmConfig({
+        token: data.accessToken,
+        baseUrl: baseUrl,
+        userId: userId,
+      });
+
+      localStorage.setItem('token', data.accessToken);
+      localStorage.setItem('refreshToken', data.refreshToken);
+
+      console.log('✅ Login successful:', { email: emailToUse, role: data.role, userId, workspaceId: data.workspaceId });
+      
+      setTimeout(() => {
+        window.location.reload();
+      }, 200);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed');
       console.error('Login error:', err);

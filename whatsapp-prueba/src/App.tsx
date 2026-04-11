@@ -70,22 +70,23 @@ function getAllowedTabs(role: RoleType | null): TabKey[] {
 }
 
 /**
- * Detect role from JWT token or session
+ * Detect role from JWT token or session on mount
+ * Only runs ONCE on app load to restore persisted session
  */
 function useDetectRole() {
   const setSession = useWhatsAppStore((state) => state.setSession);
 
   useEffect(() => {
-    // Try to get role from token or /me endpoint
     async function detectRole() {
       try {
-        // This would normally call /api/me or decode JWT
-        // For now, we'll use localStorage or default to USER
         const storedRole = localStorage.getItem('user-role') as RoleType | null;
-        if (storedRole) {
+        const storedUserId = localStorage.getItem('user-id');
+        const storedWorkspaceId = localStorage.getItem('workspace-id');
+
+        if (storedRole && storedUserId && storedWorkspaceId) {
           setSession({
-            userId: localStorage.getItem('user-id') || 'unknown',
-            workspaceId: localStorage.getItem('workspace-id') || 'unknown',
+            userId: storedUserId,
+            workspaceId: storedWorkspaceId,
             role: storedRole,
           });
         }
@@ -128,19 +129,17 @@ export function TabGuard({
  * - AppMain panel renderer
  */
 export default function AppWithRoles() {
-  useDetectRole();
-  const { currentRole } = useRbac();
+  const currentRole = useWhatsAppStore((state) => state.currentRole);
   const [activeTab, setActiveTab] = useState<TabKey>(TABS.CONVERSATIONS);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const clearSession = useWhatsAppStore((state) => state.setSession);
 
-  // If user doesn't have any role, show login
   if (!currentRole) {
     return <LoginPanel />;
   }
 
   const allowedTabs = getAllowedTabs(currentRole);
 
-  // Auto-select first allowed tab
   useEffect(() => {
     if (!allowedTabs.includes(activeTab) && allowedTabs.length > 0) {
       setActiveTab(allowedTabs[0])
@@ -150,13 +149,16 @@ export default function AppWithRoles() {
   const handleLogout = async () => {
     setIsLoggingOut(true);
     try {
-      // Clear session
+      clearSession(null);
+      
       localStorage.removeItem('user-role');
       localStorage.removeItem('user-id');
       localStorage.removeItem('workspace-id');
       localStorage.removeItem('auth-token');
+      localStorage.removeItem('token');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('user-name');
       
-      // Refresh to trigger re-render
       window.location.href = '/';
     } catch (error) {
       console.error('Logout failed:', error);
@@ -174,7 +176,7 @@ export default function AppWithRoles() {
       onLogout={handleLogout}
       connectionStatus="connected"
     >
-      <AppMain crmConfig={undefined} userRole={currentRole} />
+      <AppMain activeTab={activeTab} />
     </MainLayout>
   );
 }

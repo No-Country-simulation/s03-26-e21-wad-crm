@@ -288,7 +288,12 @@ export function ConversationsPanel({ config, crmConfig }: ConversationsPanelProp
   // ──────────────────────────────────────────────────────────────────────────
 
   const sendMessage = useCallback(async () => {
-    if (!newMessage.trim() || !selectedConv || !crmConfig?.token) return
+    if (!newMessage.trim() || !selectedConv) return
+
+    if (!crmConfig?.token || !crmConfig?.baseUrl) {
+      setError('No estás autenticado. Cerrá sesión y volvé a iniciar.')
+      return
+    }
 
     try {
       const res = await fetch(
@@ -303,7 +308,14 @@ export function ConversationsPanel({ config, crmConfig }: ConversationsPanelProp
         }
       )
 
-      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      if (!res.ok) {
+        if (res.status === 401 || res.status === 403) {
+          setError('Sesión expirada. Cerrá sesión y volvé a iniciar.')
+        } else {
+          throw new Error(`HTTP ${res.status}`)
+        }
+        return
+      }
 
       setNewMessage('')
       fetchMessages(selectedConv)
