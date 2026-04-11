@@ -31,4 +31,10 @@ public class Conversation extends AuditableEntity {
 
     @Column(name = "last_message_at")
     private LocalDateTime lastMessageAt;
+
+    @Column(name = "locked_by")
+    private UUID lockedBy;
+
+    @Column(name = "locked_at")
+    private LocalDateTime lockedAt;
 }

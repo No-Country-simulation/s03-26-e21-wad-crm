@@ -49,7 +49,7 @@ public class WhatsAppService {
      * Req 21.5: actualiza lastMessageAt.
      */
     @Transactional
-    public SendWhatsAppResponse sendMessage(SendWhatsAppRequest request, UUID workspaceId) {
+    public SendWhatsAppResponse sendMessage(SendWhatsAppRequest request, UUID workspaceId, UUID userId) {
         log.info("[WA-OUTBOUND] Sending message: contactId={}, workspaceId={}, template={}",
                 request.contactId(), workspaceId, request.templateName());
 
