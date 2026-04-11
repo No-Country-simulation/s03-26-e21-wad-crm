@@ -39,7 +39,7 @@ export default function Layout() {
               alt="Nexo CRM"
               className="h-12"
             />
-            <h1 className="text-xl font-bold" style={{ color: 'var(--color-accent)' }}>NEXO CRM</h1>
+            <h1 className="text-xl font-bold" style={{ color: theme === 'dark' ? '#ffffff' : 'var(--color-accent)' }}>NEXO CRM</h1>
           </div>
           <div className="flex items-center gap-2">
             <div className="relative">
