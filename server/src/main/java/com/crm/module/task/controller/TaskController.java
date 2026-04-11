@@ -76,4 +76,11 @@ public class TaskController {
             @AuthenticationPrincipal UUID userId) {
         return ResponseEntity.ok(taskService.complete(id, WorkspaceContext.getWorkspaceId(), userId));
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(
+            @PathVariable UUID id) {
+        taskService.delete(id, WorkspaceContext.getWorkspaceId());
+        return ResponseEntity.noContent().build();
+    }
 }

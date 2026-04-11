@@ -49,6 +49,7 @@ export const tasksService = {
   create: (data) => api.post('/api/tasks', data),
   update: (id, data) => api.patch(`/api/tasks/${id}`, data),
   complete: (id) => api.patch(`/api/tasks/${id}/complete`),
+  delete: (id) => api.delete(`/api/tasks/${id}`),
 };
 
 export const dashboardService = {

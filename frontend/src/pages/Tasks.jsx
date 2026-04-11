@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { contactsService, tasksService } from '../services/api';
-import { Plus, CheckCircle, Circle, Clock, ListTodo, AlertCircle } from 'lucide-react';
+import { Plus, CheckCircle, Circle, Clock, ListTodo, AlertCircle, Pencil, Trash2, X } from 'lucide-react';
 
 const inp = { background: 'var(--color-surface-2)', border: '1px solid var(--color-border)', color: 'var(--color-text)' };
 
@@ -17,6 +17,7 @@ export default function Tasks() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({ title: '', description: '', priority: 'MEDIUM', dueAt: '', contactId: '' });
+  const [editingTask, setEditingTask] = useState(null);
 
   useEffect(() => { loadTasks(); loadContacts(); }, []);
 
@@ -46,6 +47,46 @@ export default function Tasks() {
     try { await tasksService.complete(id); loadTasks(); } catch (e) { console.error(e); }
   };
 
+  const handleEdit = (task) => {
+    setEditingTask(task);
+    const dueAt = task.dueAt ? new Date(task.dueAt).toISOString().slice(0, 16) : '';
+    setFormData({
+      title: task.title,
+      description: task.description || '',
+      priority: task.priority || 'MEDIUM',
+      dueAt: dueAt,
+      contactId: task.contactId || '',
+    });
+    setShowForm(true);
+  };
+
+  const handleDelete = async (id) => {
+    if (!confirm('¿Eliminar esta tarea?')) return;
+    try {
+      await tasksService.delete(id);
+      loadTasks();
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleUpdate = async (e) => {
+    e.preventDefault();
+    try {
+      await tasksService.update(editingTask.id, { ...formData, dueAt: new Date(formData.dueAt).toISOString() });
+      resetForm();
+      loadTasks();
+    } catch (err) {
+      alert(err?.response?.data?.message || 'Failed to update task.');
+    }
+  };
+
+  const resetForm = () => {
+    setEditingTask(null);
+    setFormData({ title: '', description: '', priority: 'MEDIUM', dueAt: '', contactId: '' });
+    setShowForm(false);
+  };
+
   const formatDate = (d) => d ? new Date(d).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : 'Sin fecha';
   const isOverdue = (d) => d && new Date(d) < new Date();
 
@@ -61,15 +102,22 @@ export default function Tasks() {
           </div>
           <h1 className="text-2xl font-bold" style={{ color: 'var(--color-accent)' }}>Tareas</h1>
         </div>
-        <button onClick={() => setShowForm(!showForm)} className="px-4 py-2 rounded-lg flex items-center gap-2 font-medium" style={{ background: 'var(--color-primary)', color: '#fff' }}>
+        <button onClick={() => { resetForm(); setShowForm(true); }} className="px-4 py-2 rounded-lg flex items-center gap-2 font-medium" style={{ background: 'var(--color-primary)', color: '#fff' }}>
           <Plus size={20} /> Nueva Tarea
         </button>
       </div>
 
       {showForm && (
         <div className="rounded-xl p-6 mb-6" style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}>
-          <h2 className="text-lg font-semibold mb-4" style={{ color: 'var(--color-text)' }}>Crear Nueva Tarea</h2>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-lg font-semibold" style={{ color: 'var(--color-text)' }}>
+              {editingTask ? 'Editar Tarea' : 'Nueva Tarea'}
+            </h2>
+            <button onClick={resetForm} className="p-1 rounded" style={{ color: 'var(--color-muted)' }}>
+              <X size={20} />
+            </button>
+          </div>
+          <form onSubmit={editingTask ? handleUpdate : handleSubmit} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium mb-2" style={{ color: 'var(--color-text)' }}>Titulo</label>
@@ -128,13 +176,23 @@ export default function Tasks() {
               const overdue = isOverdue(task.dueAt);
               return (
                 <div key={task.id} className="rounded-xl p-5 relative" style={{ background: p.bg, border: `2px solid ${p.border}` }}>
-                  {overdue && <AlertCircle className="absolute top-3 right-3 text-red-500" size={18} />}
+                  {overdue && <AlertCircle className="absolute top-3 right-8 text-red-500" size={18} />}
                   <div className="flex items-start gap-3">
                     <button onClick={() => handleComplete(task.id)} className="mt-1" style={{ color: 'var(--color-muted)' }}>
                       <Circle size={22} />
                     </button>
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold truncate" style={{ color: 'var(--color-text)' }}>{task.title}</h3>
+                      <div className="flex justify-between items-start">
+                        <h3 className="font-semibold truncate flex-1" style={{ color: 'var(--color-text)' }}>{task.title}</h3>
+                        <div className="flex gap-1 ml-2">
+                          <button onClick={() => handleEdit(task)} className="p-1 rounded hover:bg-white/20" style={{ color: 'var(--color-muted)' }}>
+                            <Pencil size={16} />
+                          </button>
+                          <button onClick={() => handleDelete(task.id)} className="p-1 rounded hover:bg-white/20" style={{ color: 'var(--color-muted)' }}>
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      </div>
                       {task.description && <p className="text-sm mt-1 line-clamp-2" style={{ color: overdue ? '#f87171' : 'var(--color-muted)' }}>{task.description}</p>}
                       <div className="flex items-center gap-2 mt-3 flex-wrap">
                         <span className="px-2 py-0.5 text-xs font-medium rounded-full" style={{ background: p.bg, color: p.text, border: `1px solid ${p.border}` }}>{task.priority}</span>
@@ -156,8 +214,13 @@ export default function Tasks() {
               <div key={task.id} className="rounded-xl p-5 opacity-60" style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}>
                 <div className="flex items-start gap-3">
                   <CheckCircle size={22} style={{ color: '#16a34a', marginTop: 2 }} />
-                  <div>
-                    <h3 className="font-semibold line-through" style={{ color: 'var(--color-muted)' }}>{task.title}</h3>
+                  <div className="flex-1">
+                    <div className="flex justify-between items-start">
+                      <h3 className="font-semibold line-through flex-1" style={{ color: 'var(--color-muted)' }}>{task.title}</h3>
+                      <button onClick={() => handleDelete(task.id)} className="p-1 rounded hover:bg-white/20 ml-2" style={{ color: 'var(--color-muted)' }}>
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
                     {task.description && <p className="text-sm mt-1 line-clamp-2" style={{ color: 'var(--color-muted)' }}>{task.description}</p>}
                   </div>
                 </div>

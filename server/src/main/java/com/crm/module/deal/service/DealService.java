@@ -6,6 +6,7 @@ import com.crm.module.contact.repository.ContactRepository;
 import com.crm.module.deal.dto.*;
 import com.crm.module.deal.entity.Deal;
 import com.crm.module.deal.entity.DealStageHistory;
+import com.crm.module.deal.entity.Pipeline;
 import com.crm.module.deal.entity.Stage;
 import com.crm.module.deal.repository.*;
 import lombok.RequiredArgsConstructor;
@@ -154,12 +155,45 @@ public class DealService {
             return stageRepository.findByIdAndWorkspaceId(stageId, workspaceId)
                     .orElseThrow(() -> new ResourceNotFoundException("Stage", stageId));
         }
-        // Fall back to first stage of the default pipeline (Req 14.4)
+        // Try to find default pipeline
         return pipelineRepository.findByWorkspaceIdAndIsDefaultTrue(workspaceId)
-                .flatMap(p -> stageRepository.findFirstByPipelineIdAndWorkspaceIdOrderByOrderAsc(
-                        p.getId(), workspaceId))
-                .orElseThrow(() -> new IllegalStateException(
-                        "No default pipeline or stages configured for this workspace"));
+                .flatMap(p -> stageRepository.findFirstByPipelineIdAndWorkspaceIdOrderByOrderAsc(p.getId(), workspaceId))
+                .orElseGet(() -> createDefaultPipelineAndReturnFirstStage(workspaceId));
+    }
+
+    private Stage createDefaultPipelineAndReturnFirstStage(UUID workspaceId) {
+        // Create pipeline
+        Pipeline pipeline = Pipeline.builder()
+                .name("Pipeline de Ventas")
+                .isDefault(true)
+                .build();
+        pipeline.setWorkspaceId(workspaceId);
+        pipeline = pipelineRepository.save(pipeline);
+
+        // Create default stages
+        var stages = List.of(
+                createStage(workspaceId, pipeline.getId(), "Nuevo Lead", 1, false, false),
+                createStage(workspaceId, pipeline.getId(), "Contactado", 2, false, false),
+                createStage(workspaceId, pipeline.getId(), "Propuesta", 3, false, false),
+                createStage(workspaceId, pipeline.getId(), "Negociación", 4, false, false),
+                createStage(workspaceId, pipeline.getId(), "Cerrado Ganado", 5, true, false),
+                createStage(workspaceId, pipeline.getId(), "Cerrado Perdido", 6, false, true)
+        );
+        stageRepository.saveAll(stages);
+
+        return stages.get(0);
+    }
+
+    private Stage createStage(UUID workspaceId, UUID pipelineId, String name, int order, boolean isWon, boolean isLost) {
+        Stage stage = Stage.builder()
+                .name(name)
+                .order(order)
+                .isWon(isWon)
+                .isLost(isLost)
+                .pipelineId(pipelineId)
+                .build();
+        stage.setWorkspaceId(workspaceId);
+        return stage;
     }
 
     private DealResponse toResponse(Deal d) {
