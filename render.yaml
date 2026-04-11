@@ -35,7 +35,6 @@ services:
       - key: VITE_API_URL
         sync: false
 
-  # Marketing: Astro (rama landing fusionada en dev). Static Site aparte del CRM.
   - type: web
     name: startup-crm-landing
     runtime: static
