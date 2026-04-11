@@ -17,7 +17,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.crm.module.user.entity.Role;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;

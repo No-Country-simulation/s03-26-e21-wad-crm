@@ -63,7 +63,7 @@ public class ConversationController {
                 request.body(),
                 null, null, null
         );
-        SendWhatsAppResponse waResponse = whatsAppService.sendMessage(waRequest, workspaceId);
+        SendWhatsAppResponse waResponse = whatsAppService.sendMessage(waRequest, workspaceId, null);
 
         // 3. Obtener el mensaje actualizado (con status SENT y externalId) y retornarlo
         PageRequest pageable = PageRequest.of(0, 1, Sort.by(Sort.Direction.DESC, "sentAt"));
