@@ -58,6 +58,7 @@ export const dashboardService = {
 export const userService = {
   getProfile: () => api.get('/api/users/me'),
   updateProfile: (data) => api.patch('/api/users/me', data),
+  changePassword: (data) => api.patch('/api/users/me/password', data),
 };
 
 export const workspaceService = {

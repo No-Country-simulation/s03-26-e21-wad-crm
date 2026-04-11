@@ -1,11 +1,13 @@
-import { useState } from 'react';
-import { emailConfigService } from '../services/api';
+import { useState, useEffect } from 'react';
+import { useAuth } from '../context/AuthContext';
+import { userService, workspaceService, emailConfigService } from '../services/api';
 import { User, Building, Bell, Shield, Mail, MessageCircle } from 'lucide-react';
 
 const inp = { background: 'var(--color-surface-2)', border: '1px solid var(--color-border)', color: 'var(--color-text)' };
 
 export default function Settings() {
   const [activeTab, setActiveTab] = useState('profile');
+  const { user, refreshUser } = useAuth();
 
   const tabs = [
     { id: 'profile',       label: 'Profile',            icon: User },
@@ -24,7 +26,7 @@ export default function Settings() {
           <nav className="space-y-1">
             {tabs.map((tab) => (
               <button key={tab.id} onClick={() => setActiveTab(tab.id)}
-                className="w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all"
+                className="w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all text-left"
                 style={activeTab === tab.id
                   ? { background: 'var(--color-primary)', color: '#fff' }
                   : { color: tab.color || 'var(--color-muted)', background: 'transparent' }}>
@@ -35,7 +37,7 @@ export default function Settings() {
           </nav>
         </div>
         <div className="flex-1 rounded-xl p-6" style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}>
-          {activeTab === 'profile'       && <ProfileSettings />}
+          {activeTab === 'profile'       && <ProfileSettings user={user} refreshUser={refreshUser} />}
           {activeTab === 'workspace'     && <WorkspaceSettings />}
           {activeTab === 'email'         && <EmailSettings />}
           {activeTab === 'whatsapp'      && <WhatsAppSettings />}
@@ -63,46 +65,137 @@ function SaveBtn({ children = 'Save Changes', disabled, onClick }) {
   );
 }
 
-function ProfileSettings() {
+function ProfileSettings({ user, refreshUser }) {
+  const [formData, setFormData] = useState({ name: '', email: '', phone: '' });
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState(null);
+
+  useEffect(() => {
+    if (user) {
+      setFormData({ name: user.name || '', email: user.email || '', phone: user.phone || '' });
+    }
+  }, [user]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setMessage(null);
+    try {
+      await userService.updateProfile(formData);
+      await refreshUser();
+      setMessage({ type: 'success', text: 'Profile updated successfully' });
+    } catch (error) {
+      setMessage({ type: 'error', text: error.response?.data?.message || 'Failed to update profile' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div>
       <SectionTitle>Profile Settings</SectionTitle>
-      <div className="space-y-4">
-        {['Name', 'Email', 'Phone'].map((f) => (
-          <div key={f}>
-            <Label>{f}</Label>
-            <input type={f === 'Email' ? 'email' : f === 'Phone' ? 'tel' : 'text'} className="w-full px-4 py-2 rounded-lg focus:outline-none" style={{ ...{ background: 'var(--color-surface-2)', border: '1px solid var(--color-border)', color: 'var(--color-text)' } }} />
-          </div>
-        ))}
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <Label>Name</Label>
+          <input type="text" value={formData.name}
+            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            className="w-full px-4 py-2 rounded-lg focus:outline-none" style={inp} required />
+        </div>
+        <div>
+          <Label>Email</Label>
+          <input type="email" value={formData.email}
+            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+            className="w-full px-4 py-2 rounded-lg focus:outline-none" style={inp} required />
+        </div>
+        <div>
+          <Label>Phone</Label>
+          <input type="tel" value={formData.phone}
+            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+            className="w-full px-4 py-2 rounded-lg focus:outline-none" style={inp} />
+        </div>
         <div>
           <Label>Timezone</Label>
-          <select className="w-full px-4 py-2 rounded-lg focus:outline-none" style={{ background: 'var(--color-surface-2)', border: '1px solid var(--color-border)', color: 'var(--color-text)' }}>
+          <select className="w-full px-4 py-2 rounded-lg focus:outline-none" style={inp}>
             <option>UTC</option>
             <option>America/New_York</option>
             <option>America/Mexico_City</option>
           </select>
         </div>
-        <SaveBtn />
-      </div>
+        {message && (
+          <div className="p-3 rounded-lg" style={message.type === 'success'
+            ? { background: '#16a34a22', border: '1px solid #16a34a', color: '#4ade80' }
+            : { background: '#dc262622', border: '1px solid #dc2626', color: '#f87171' }}>
+            {message.text}
+          </div>
+        )}
+        <SaveBtn disabled={loading}>{loading ? 'Saving...' : 'Save Changes'}</SaveBtn>
+      </form>
     </div>
   );
 }
 
 function WorkspaceSettings() {
+  const [formData, setFormData] = useState({ name: '', description: '' });
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState(null);
+
+  useEffect(() => {
+    loadWorkspace();
+  }, []);
+
+  const loadWorkspace = async () => {
+    try {
+      const r = await workspaceService.get();
+      setFormData({ name: r.data.name || '', description: r.data.description || '' });
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+    setMessage(null);
+    try {
+      await workspaceService.update(formData);
+      setMessage({ type: 'success', text: 'Workspace updated successfully' });
+    } catch (error) {
+      setMessage({ type: 'error', text: error.response?.data?.message || 'Failed to update workspace' });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading) return <div style={{ color: 'var(--color-muted)' }}>Loading...</div>;
+
   return (
     <div>
       <SectionTitle>Workspace Settings</SectionTitle>
-      <div className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <Label>Workspace Name</Label>
-          <input type="text" className="w-full px-4 py-2 rounded-lg focus:outline-none" style={{ background: 'var(--color-surface-2)', border: '1px solid var(--color-border)', color: 'var(--color-text)' }} />
+          <input type="text" value={formData.name}
+            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            className="w-full px-4 py-2 rounded-lg focus:outline-none" style={inp} required />
         </div>
         <div>
-          <Label>Plan</Label>
-          <div className="px-4 py-2 rounded-lg" style={{ background: 'var(--color-surface-2)', color: 'var(--color-muted)' }}>FREE</div>
+          <Label>Description</Label>
+          <textarea value={formData.description}
+            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+            className="w-full px-4 py-2 rounded-lg focus:outline-none resize-none" style={inp} rows={3} />
         </div>
-        <SaveBtn />
-      </div>
+        {message && (
+          <div className="p-3 rounded-lg" style={message.type === 'success'
+            ? { background: '#16a34a22', border: '1px solid #16a34a', color: '#4ade80' }
+            : { background: '#dc262622', border: '1px solid #dc2626', color: '#f87171' }}>
+            {message.text}
+          </div>
+        )}
+        <SaveBtn disabled={saving}>{saving ? 'Saving...' : 'Save Changes'}</SaveBtn>
+      </form>
     </div>
   );
 }
@@ -136,13 +229,13 @@ function EmailSettings() {
             <Label>SMTP Host</Label>
             <input type="text" placeholder="smtp.gmail.com" value={formData.host}
               onChange={(e) => setFormData({ ...formData, host: e.target.value })}
-              className="w-full px-4 py-2 rounded-lg focus:outline-none" style={{ background: 'var(--color-surface-2)', border: '1px solid var(--color-border)', color: 'var(--color-text)' }} required />
+              className="w-full px-4 py-2 rounded-lg focus:outline-none" style={inp} required />
           </div>
           <div>
             <Label>Port</Label>
             <input type="number" value={formData.port}
               onChange={(e) => setFormData({ ...formData, port: parseInt(e.target.value) })}
-              className="w-full px-4 py-2 rounded-lg focus:outline-none" style={{ background: 'var(--color-surface-2)', border: '1px solid var(--color-border)', color: 'var(--color-text)' }} required />
+              className="w-full px-4 py-2 rounded-lg focus:outline-none" style={inp} required />
           </div>
         </div>
         <div className="grid grid-cols-2 gap-4">
@@ -150,19 +243,19 @@ function EmailSettings() {
             <Label>Username</Label>
             <input type="text" placeholder="your@email.com" value={formData.username}
               onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-              className="w-full px-4 py-2 rounded-lg focus:outline-none" style={{ background: 'var(--color-surface-2)', border: '1px solid var(--color-border)', color: 'var(--color-text)' }} required />
+              className="w-full px-4 py-2 rounded-lg focus:outline-none" style={inp} required />
           </div>
           <div>
             <Label>Password</Label>
             <input type="password" placeholder="App password" value={formData.password}
               onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-              className="w-full px-4 py-2 rounded-lg focus:outline-none" style={{ background: 'var(--color-surface-2)', border: '1px solid var(--color-border)', color: 'var(--color-text)' }} required />
+              className="w-full px-4 py-2 rounded-lg focus:outline-none" style={inp} required />
           </div>
         </div>
         <div>
           <Label>Encryption</Label>
           <select value={formData.encryption} onChange={(e) => setFormData({ ...formData, encryption: e.target.value })}
-            className="w-full px-4 py-2 rounded-lg focus:outline-none" style={{ background: 'var(--color-surface-2)', border: '1px solid var(--color-border)', color: 'var(--color-text)' }}>
+            className="w-full px-4 py-2 rounded-lg focus:outline-none" style={inp}>
             <option value="TLS">TLS (recommended)</option>
             <option value="SSL">SSL</option>
             <option value="NONE">None</option>
@@ -192,44 +285,130 @@ function WhatsAppSettings() {
   return (
     <div>
       <SectionTitle>WhatsApp Integration</SectionTitle>
-      <div className="p-4 rounded-lg text-center" style={{ background: 'var(--color-surface-2)', border: '1px solid var(--color-border)' }}>
-        <MessageCircle className="w-12 h-12 mx-auto mb-2" style={{ color: '#25D366' }} />
-        <p style={{ color: 'var(--color-muted)' }}>WhatsApp integration coming soon</p>
+      <div className="p-8 rounded-lg text-center" style={{ background: 'var(--color-surface-2)', border: '1px solid var(--color-border)' }}>
+        <MessageCircle className="w-16 h-16 mx-auto mb-4" style={{ color: '#25D366' }} />
+        <h3 className="text-lg font-semibold mb-2" style={{ color: 'var(--color-text)' }}>Coming Soon</h3>
+        <p style={{ color: 'var(--color-muted)' }}>WhatsApp Business API integration is being developed.</p>
+        <p className="text-sm mt-2" style={{ color: 'var(--color-muted)' }}>Contact support for early access.</p>
       </div>
     </div>
   );
 }
 
 function NotificationsSettings() {
+  const [preferences, setPreferences] = useState({
+    emailNewDeals: true,
+    emailTaskAssignments: true,
+    dailySummary: false,
+  });
+  const [message, setMessage] = useState(null);
+
+  const handleToggle = (key) => {
+    setPreferences({ ...preferences, [key]: !preferences[key] });
+  };
+
+  const handleSave = () => {
+    localStorage.setItem('notificationPreferences', JSON.stringify(preferences));
+    setMessage({ type: 'success', text: 'Preferences saved successfully' });
+    setTimeout(() => setMessage(null), 3000);
+  };
+
   return (
     <div>
       <SectionTitle>Notification Preferences</SectionTitle>
       <div className="space-y-4">
-        {['Email notifications for new deals', 'Email notifications for task assignments', 'Daily summary emails'].map((label, i) => (
-          <label key={label} className="flex items-center gap-3" style={{ color: 'var(--color-text)' }}>
-            <input type="checkbox" className="w-5 h-5" defaultChecked={i < 2} />
-            {label}
-          </label>
-        ))}
-        <SaveBtn>Save Preferences</SaveBtn>
+        <label className="flex items-center justify-between cursor-pointer p-3 rounded-lg" style={{ background: 'var(--color-surface-2)' }}>
+          <span style={{ color: 'var(--color-text)' }}>Email notifications for new deals</span>
+          <button type="button" onClick={() => handleToggle('emailNewDeals')}
+            className="w-12 h-6 rounded-full transition-colors relative" style={{ background: preferences.emailNewDeals ? '#16a34a' : '#6b7280' }}>
+            <span className="absolute top-1 w-4 h-4 bg-white rounded-full transition-transform" style={{ transform: preferences.emailNewDeals ? 'translateX(26px)' : 'translateX(2px)' }} />
+          </button>
+        </label>
+        <label className="flex items-center justify-between cursor-pointer p-3 rounded-lg" style={{ background: 'var(--color-surface-2)' }}>
+          <span style={{ color: 'var(--color-text)' }}>Email notifications for task assignments</span>
+          <button type="button" onClick={() => handleToggle('emailTaskAssignments')}
+            className="w-12 h-6 rounded-full transition-colors relative" style={{ background: preferences.emailTaskAssignments ? '#16a34a' : '#6b7280' }}>
+            <span className="absolute top-1 w-4 h-4 bg-white rounded-full transition-transform" style={{ transform: preferences.emailTaskAssignments ? 'translateX(26px)' : 'translateX(2px)' }} />
+          </button>
+        </label>
+        <label className="flex items-center justify-between cursor-pointer p-3 rounded-lg" style={{ background: 'var(--color-surface-2)' }}>
+          <span style={{ color: 'var(--color-text)' }}>Daily summary emails</span>
+          <button type="button" onClick={() => handleToggle('dailySummary')}
+            className="w-12 h-6 rounded-full transition-colors relative" style={{ background: preferences.dailySummary ? '#16a34a' : '#6b7280' }}>
+            <span className="absolute top-1 w-4 h-4 bg-white rounded-full transition-transform" style={{ transform: preferences.dailySummary ? 'translateX(26px)' : 'translateX(2px)' }} />
+          </button>
+        </label>
+        {message && (
+          <div className="p-3 rounded-lg" style={message.type === 'success'
+            ? { background: '#16a34a22', border: '1px solid #16a34a', color: '#4ade80' }
+            : { background: '#dc262622', border: '1px solid #dc2626', color: '#f87171' }}>
+            {message.text}
+          </div>
+        )}
+        <SaveBtn onClick={handleSave}>Save Preferences</SaveBtn>
       </div>
     </div>
   );
 }
 
 function SecuritySettings() {
+  const [formData, setFormData] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState(null);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (formData.newPassword !== formData.confirmPassword) {
+      setMessage({ type: 'error', text: 'Passwords do not match' });
+      return;
+    }
+    setLoading(true);
+    setMessage(null);
+    try {
+      await userService.changePassword({
+        currentPassword: formData.currentPassword,
+        newPassword: formData.newPassword,
+      });
+      setFormData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+      setMessage({ type: 'success', text: 'Password changed successfully' });
+    } catch (error) {
+      setMessage({ type: 'error', text: error.response?.data?.message || 'Failed to change password' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div>
       <SectionTitle>Security Settings</SectionTitle>
-      <div className="space-y-4">
-        {['Current Password', 'New Password', 'Confirm New Password'].map((label) => (
-          <div key={label}>
-            <Label>{label}</Label>
-            <input type="password" className="w-full px-4 py-2 rounded-lg focus:outline-none" style={{ background: 'var(--color-surface-2)', border: '1px solid var(--color-border)', color: 'var(--color-text)' }} />
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <Label>Current Password</Label>
+          <input type="password" value={formData.currentPassword}
+            onChange={(e) => setFormData({ ...formData, currentPassword: e.target.value })}
+            className="w-full px-4 py-2 rounded-lg focus:outline-none" style={inp} required />
+        </div>
+        <div>
+          <Label>New Password</Label>
+          <input type="password" value={formData.newPassword}
+            onChange={(e) => setFormData({ ...formData, newPassword: e.target.value })}
+            className="w-full px-4 py-2 rounded-lg focus:outline-none" style={inp} required />
+        </div>
+        <div>
+          <Label>Confirm New Password</Label>
+          <input type="password" value={formData.confirmPassword}
+            onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+            className="w-full px-4 py-2 rounded-lg focus:outline-none" style={inp} required />
+        </div>
+        {message && (
+          <div className="p-3 rounded-lg" style={message.type === 'success'
+            ? { background: '#16a34a22', border: '1px solid #16a34a', color: '#4ade80' }
+            : { background: '#dc262622', border: '1px solid #dc2626', color: '#f87171' }}>
+            {message.text}
           </div>
-        ))}
-        <SaveBtn>Update Password</SaveBtn>
-      </div>
+        )}
+        <SaveBtn disabled={loading}>{loading ? 'Updating...' : 'Update Password'}</SaveBtn>
+      </form>
     </div>
   );
 }
