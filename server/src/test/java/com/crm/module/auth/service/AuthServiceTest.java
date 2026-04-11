@@ -9,6 +9,7 @@ import com.crm.module.auth.dto.TokenResponse;
 import com.crm.module.auth.entity.RefreshToken;
 import com.crm.module.auth.repository.RefreshTokenRepository;
 import com.crm.module.user.entity.User;
+import com.crm.module.user.entity.Role;
 import com.crm.module.user.entity.UserRole;
 import com.crm.module.user.repository.UserRepository;
 import com.crm.module.workspace.entity.Workspace;
@@ -67,7 +68,7 @@ class AuthServiceTest {
                 .email("user@example.com")
                 .passwordHash("$2a$10$hashedpassword")
                 .name("Test User")
-                .role(UserRole.ADMIN)
+                .role(Role.builder().name("ADMIN").permissions("read,write").isSystem(true).isActive(true).build())
                 .isActive(true)
                 .build();
         user.setId(userId);
