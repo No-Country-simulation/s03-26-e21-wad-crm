@@ -131,6 +131,15 @@ public class TaskService {
         return toDto(taskRepository.save(task));
     }
 
+    /**
+     * Elimina una tarea.
+     */
+    @Transactional
+    public void delete(UUID taskId, UUID workspaceId) {
+        Task task = findByIdAndWorkspace(taskId, workspaceId);
+        taskRepository.delete(task);
+    }
+
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     private Task findByIdAndWorkspace(UUID taskId, UUID workspaceId) {
