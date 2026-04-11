@@ -38,6 +38,22 @@ public class Message {
     @Column(name = "body", columnDefinition = "TEXT")
     private String body;
 
+    /** Tipo de mensaje: text, image, audio, video, document, sticker */
+    @Column(name = "type")
+    private String type = "text";
+
+    /** URL del archivo multimedia (imagen, audio, video, documento) */
+    @Column(name = "media_url")
+    private String mediaUrl;
+
+    /** Tipo MIME del archivo multimedia */
+    @Column(name = "mime_type")
+    private String mimeType;
+
+    /** Caption o descripción del archivo multimedia */
+    @Column(name = "caption", columnDefinition = "TEXT")
+    private String caption;
+
     /** ID externo del proveedor (Meta, Gmail Message-ID, etc.) */
     @Column(name = "external_id")
     private String externalId;

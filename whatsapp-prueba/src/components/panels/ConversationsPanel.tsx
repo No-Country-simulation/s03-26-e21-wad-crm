@@ -26,6 +26,10 @@ export interface Message {
   direction: 'INBOUND' | 'OUTBOUND'
   status?: 'SENT' | 'DELIVERED' | 'READ' | 'FAILED' | 'PENDING'
   sentAt: string
+  type?: 'text' | 'image' | 'audio' | 'video' | 'document' | 'sticker'
+  mediaUrl?: string
+  mimeType?: string
+  caption?: string
 }
 
 export interface Conversation {
@@ -435,6 +439,97 @@ export function ConversationsPanel({ config, crmConfig }: ConversationsPanelProp
   }
 
   // ──────────────────────────────────────────────────────────────────────────
+  // Message Content Renderer
+  // ──────────────────────────────────────────────────────────────────────────
+
+  function MessageContent({ message }: { message: Message }) {
+    const type = message.type || 'text'
+
+    switch (type) {
+      case 'image':
+        return (
+          <div className="space-y-2">
+            {message.mediaUrl && (
+              <img
+                src={message.mediaUrl}
+                alt="Imagen"
+                className="max-w-full max-h-96 rounded-lg cursor-pointer hover:opacity-90 transition"
+                onClick={() => window.open(message.mediaUrl, '_blank')}
+              />
+            )}
+            {message.caption && (
+              <p className="whitespace-pre-wrap break-words text-sm">{message.caption}</p>
+            )}
+          </div>
+        )
+
+      case 'audio':
+        return (
+          <div className="space-y-2">
+            {message.mediaUrl && (
+              <audio controls className="w-full max-w-xs">
+                <source src={message.mediaUrl} type={message.mimeType || 'audio/ogg'} />
+                Tu navegador no soporta audio.
+              </audio>
+            )}
+            {message.caption && (
+              <p className="whitespace-pre-wrap break-words text-sm">{message.caption}</p>
+            )}
+          </div>
+        )
+
+      case 'video':
+        return (
+          <div className="space-y-2">
+            {message.mediaUrl && (
+              <video controls className="max-w-full max-h-96 rounded-lg">
+                <source src={message.mediaUrl} type={message.mimeType || 'video/mp4'} />
+                Tu navegador no soporta video.
+              </video>
+            )}
+            {message.caption && (
+              <p className="whitespace-pre-wrap break-words text-sm">{message.caption}</p>
+            )}
+          </div>
+        )
+
+      case 'document':
+        return (
+          <div className="space-y-2">
+            <a
+              href={message.mediaUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 text-blue-400 hover:text-blue-300 underline"
+            >
+              📄 {message.body || 'Documento'}
+            </a>
+            {message.caption && (
+              <p className="whitespace-pre-wrap break-words text-sm">{message.caption}</p>
+            )}
+          </div>
+        )
+
+      case 'sticker':
+        return (
+          <div>
+            {message.mediaUrl && (
+              <img
+                src={message.mediaUrl}
+                alt="Sticker"
+                className="w-32 h-32 object-contain"
+              />
+            )}
+          </div>
+        )
+
+      case 'text':
+      default:
+        return <p className="whitespace-pre-wrap break-words">{message.body}</p>
+    }
+  }
+
+  // ──────────────────────────────────────────────────────────────────────────
   // Computed
   // ──────────────────────────────────────────────────────────────────────────
 
@@ -640,7 +735,7 @@ export function ConversationsPanel({ config, crmConfig }: ConversationsPanelProp
                             : 'bg-slate-700 text-white rounded-bl-md'
                         }`}
                       >
-                        <p className="whitespace-pre-wrap break-words">{msg.body}</p>
+                        <MessageContent message={msg} />
 
                         <div
                           className={`flex items-center justify-end gap-2 mt-1 ${
