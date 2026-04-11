@@ -1,20 +1,22 @@
 /**
- * ConversationsPanel - TypeScript Version
- * 
+ * ConversationsPanel - Refactored with usePolling + useWhatsAppApi
+ *
  * Displays WhatsApp conversations with real-time messaging
  * Features:
  * - Conversation list with contact info
  * - Message history with auto-scroll
  * - Attending status (multi-agent lock)
- * - Auto-polling every 10 seconds
+ * - Auto-polling every 10 seconds (via usePolling hook)
  * - Contact info panel integration
+ * - Automatic retry logic (via useWhatsAppApi hook)
  */
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { MessageCircle, Activity } from 'lucide-react'
-import { loadConversations, getConversation, loadCrmContacts } from '@/utils/api'
 import { formatTime } from '@/utils/helpers'
 import { ContactInfoPanel } from './ContactInfoPanel'
+import { usePolling } from '@/hooks/usePolling'
+import { useWhatsAppApi } from '@/hooks/useWhatsAppApi'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -48,6 +50,10 @@ export interface LockStatus {
 }
 
 interface ConversationsPanelProps {
+  config?: {
+    token?: string
+    baseUrl?: string
+  }
   crmConfig?: {
     token?: string
     baseUrl?: string
@@ -69,98 +75,57 @@ const LOG_TYPES = {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export function ConversationsPanel({ crmConfig }: ConversationsPanelProps) {
+export function ConversationsPanel({ config, crmConfig }: ConversationsPanelProps) {
+  // ──────────────────────────────────────────────────────────────────────────
   // State: Conversations & Messages
+  // ──────────────────────────────────────────────────────────────────────────
+
   const [conversations, setConversations] = useState<Conversation[]>([])
   const [messages, setMessages] = useState<Message[]>([])
   const [selectedConv, setSelectedConv] = useState<string | null>(null)
 
+  // ──────────────────────────────────────────────────────────────────────────
   // State: Contacts
+  // ──────────────────────────────────────────────────────────────────────────
+
   const [contacts, setContacts] = useState<Record<string, ContactInfo>>({})
   const [selectedContact, setSelectedContact] = useState<ContactInfo | null>(null)
 
+  // ──────────────────────────────────────────────────────────────────────────
   // State: UI
-  const [loading, setLoading] = useState(false)
-  const [loadingContacts, setLoadingContacts] = useState(false)
+  // ──────────────────────────────────────────────────────────────────────────
+
   const [error, setError] = useState<string | null>(null)
   const [newMessage, setNewMessage] = useState('')
-  const [sending, setSending] = useState(false)
   const [showContactPanel, setShowContactPanel] = useState(false)
 
+  // ──────────────────────────────────────────────────────────────────────────
   // State: Conversation control
+  // ──────────────────────────────────────────────────────────────────────────
+
   const [lockStatus, setLockStatus] = useState<LockStatus | null>(null)
 
+  // ──────────────────────────────────────────────────────────────────────────
   // Refs
+  // ──────────────────────────────────────────────────────────────────────────
+
   const messagesEndRef = useRef<HTMLDivElement>(null)
-  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null)
 
-  const apiBase = typeof window !== 'undefined' && window.location.hostname === 'localhost'
-    ? 'http://localhost:8080'
-    : (crmConfig?.baseUrl || '')
+  // ──────────────────────────────────────────────────────────────────────────
+  // Hooks: API wrapper with retry logic
+  // ──────────────────────────────────────────────────────────────────────────
 
-  // ─── Effects ──────────────────────────────────────────────────────────────
+  const api = useWhatsAppApi({ config, crmConfig, retries: 2 })
 
-  /**
-   * Load contacts on mount and when crmConfig changes
-   */
-  useEffect(() => {
-    if (!crmConfig?.token) return
-    loadCrmContactsData()
-  }, [crmConfig?.token])
+  // ──────────────────────────────────────────────────────────────────────────
+  // Callback: Load CRM contacts (initial load only)
+  // ──────────────────────────────────────────────────────────────────────────
 
-  /**
-   * Load conversations on mount and when crmConfig changes
-   */
-  useEffect(() => {
-    if (crmConfig?.token) {
-      fetchConversations()
-    }
-  }, [crmConfig?.token])
+  const loadCrmContactsData = useCallback(async () => {
+    if (!crmConfig?.token || !crmConfig?.baseUrl) return
 
-  /**
-   * Auto-scroll to bottom when messages update
-   */
-  useEffect(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' })
-    }
-  }, [messages])
-
-  /**
-   * Setup polling when conversation is selected
-   */
-  useEffect(() => {
-    if (!crmConfig?.token || !selectedConv) {
-      if (pollingIntervalRef.current) {
-        clearInterval(pollingIntervalRef.current)
-        pollingIntervalRef.current = null
-      }
-      return
-    }
-
-    // Poll every 10 seconds
-    pollingIntervalRef.current = setInterval(() => {
-      fetchConversations()
-      fetchMessages(selectedConv)
-      fetchAttendingStatus(selectedConv)
-    }, 10_000)
-
-    return () => {
-      if (pollingIntervalRef.current) {
-        clearInterval(pollingIntervalRef.current)
-        pollingIntervalRef.current = null
-      }
-    }
-  }, [crmConfig?.token, selectedConv])
-
-  // ─── API Calls ────────────────────────────────────────────────────────────
-
-  async function loadCrmContactsData() {
-    setLoadingContacts(true)
     try {
-      if (!crmConfig?.token) return
-
-      const res = await fetch(`${apiBase}/api/contacts?page=0&size=200`, {
+      const res = await fetch(`${crmConfig.baseUrl}/api/contacts?page=0&size=200`, {
         headers: { Authorization: `Bearer ${crmConfig.token}` },
       })
 
@@ -174,22 +139,23 @@ export function ConversationsPanel({ crmConfig }: ConversationsPanelProps) {
       setContacts(map)
     } catch (err) {
       console.error('Error loading contacts:', err)
-    } finally {
-      setLoadingContacts(false)
     }
-  }
+  }, [crmConfig?.token, crmConfig?.baseUrl])
 
-  async function fetchConversations() {
-    if (!crmConfig?.token) {
+  // ──────────────────────────────────────────────────────────────────────────
+  // Callback: Fetch conversations (used by polling)
+  // ──────────────────────────────────────────────────────────────────────────
+
+  const fetchConversations = useCallback(async () => {
+    if (!crmConfig?.token || !crmConfig?.baseUrl) {
       setError('Sesión expirada. Cerrá sesión y volvé a iniciar.')
       return
     }
 
-    setLoading(true)
     setError(null)
 
     try {
-      const res = await fetch(`${apiBase}/api/conversations?page=0&size=50`, {
+      const res = await fetch(`${crmConfig.baseUrl}/api/conversations?page=0&size=50`, {
         headers: { Authorization: `Bearer ${crmConfig.token}` },
       })
 
@@ -207,102 +173,135 @@ export function ConversationsPanel({ crmConfig }: ConversationsPanelProps) {
       setConversations(data.content || [])
     } catch (err) {
       setError((err as Error).message)
-    } finally {
-      setLoading(false)
     }
-  }
+  }, [crmConfig?.token, crmConfig?.baseUrl])
 
-  async function fetchMessages(convId: string) {
-    if (!crmConfig?.token) return
+  // ──────────────────────────────────────────────────────────────────────────
+  // Callback: Fetch messages for a conversation
+  // ──────────────────────────────────────────────────────────────────────────
+
+  const fetchMessages = useCallback(
+    async (convId: string) => {
+      if (!crmConfig?.token || !crmConfig?.baseUrl) return
+
+      try {
+        const res = await fetch(
+          `${crmConfig.baseUrl}/api/conversations/${convId}/messages?page=0&size=200`,
+          {
+            headers: { Authorization: `Bearer ${crmConfig.token}` },
+          }
+        )
+
+        if (!res.ok) throw new Error(`HTTP ${res.status}`)
+
+        const data = await res.json()
+        setMessages(data.content || [])
+        setSelectedConv(convId)
+        fetchAttendingStatus(convId)
+      } catch (err) {
+        setError((err as Error).message)
+      }
+    },
+    [crmConfig?.token, crmConfig?.baseUrl]
+  )
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // Callback: Fetch attending status
+  // ──────────────────────────────────────────────────────────────────────────
+
+  const fetchAttendingStatus = useCallback(
+    async (convId: string) => {
+      if (!crmConfig?.token || !crmConfig?.baseUrl || !convId) return
+
+      try {
+        const res = await fetch(
+          `${crmConfig.baseUrl}/api/whatsapp/conversations/${convId}/attending`,
+          {
+            headers: { Authorization: `Bearer ${crmConfig.token}` },
+          }
+        )
+
+        if (!res.ok) throw new Error(`HTTP ${res.status}`)
+
+        const data = await res.json()
+        setLockStatus(data)
+      } catch (err) {
+        console.error('Error fetching attending status:', err)
+      }
+    },
+    [crmConfig?.token, crmConfig?.baseUrl]
+  )
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // Callback: Start attending conversation
+  // ──────────────────────────────────────────────────────────────────────────
+
+  const startAttending = useCallback(async () => {
+    if (!selectedConv || !crmConfig?.token || !crmConfig?.baseUrl) return
 
     try {
-      const res = await fetch(`${apiBase}/api/conversations/${convId}/messages?page=0&size=200`, {
-        headers: { Authorization: `Bearer ${crmConfig.token}` },
-      })
-
-      if (!res.ok) throw new Error(`HTTP ${res.status}`)
-
-      const data = await res.json()
-      setMessages(data.content || [])
-      setSelectedConv(convId)
-      fetchAttendingStatus(convId)
-    } catch (err) {
-      setError((err as Error).message)
-    }
-  }
-
-  async function fetchAttendingStatus(convId: string) {
-    if (!crmConfig?.token || !convId) return
-
-    try {
-      const res = await fetch(`${apiBase}/api/whatsapp/conversations/${convId}/attending`, {
-        headers: { Authorization: `Bearer ${crmConfig.token}` },
-      })
-
-      if (!res.ok) throw new Error(`HTTP ${res.status}`)
-
-      const data = await res.json()
-      setLockStatus(data)
-    } catch (err) {
-      console.error('Error fetching attending status:', err)
-    }
-  }
-
-  async function startAttending() {
-    if (!selectedConv || !crmConfig?.token) return
-
-    try {
-      const res = await fetch(`${apiBase}/api/whatsapp/conversations/${selectedConv}/start`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${crmConfig.token}` },
-      })
+      const res = await fetch(
+        `${crmConfig.baseUrl}/api/whatsapp/conversations/${selectedConv}/start`,
+        {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${crmConfig.token}` },
+        }
+      )
 
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
 
       const data = await res.json()
       if (data.started) {
-        // addLog('success', '🟢 Iniciaste atención', LOG_TYPES.LOCK)
         fetchAttendingStatus(selectedConv)
-      } else {
-        // addLog('warn', `🔒 Ya está siendo atendida por ${data.attendingAgentName}`, LOG_TYPES.LOCK)
       }
     } catch (err) {
-      // addLog('error', `❌ Error al iniciar: ${(err as Error).message}`, LOG_TYPES.ERROR)
+      console.error('Error starting attending:', err)
     }
-  }
+  }, [selectedConv, crmConfig?.token, crmConfig?.baseUrl, fetchAttendingStatus])
 
-  async function stopAttending() {
-    if (!selectedConv || !crmConfig?.token) return
+  // ──────────────────────────────────────────────────────────────────────────
+  // Callback: Stop attending conversation
+  // ──────────────────────────────────────────────────────────────────────────
+
+  const stopAttending = useCallback(async () => {
+    if (!selectedConv || !crmConfig?.token || !crmConfig?.baseUrl) return
 
     try {
-      const res = await fetch(`${apiBase}/api/whatsapp/conversations/${selectedConv}/stop`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${crmConfig.token}` },
-      })
+      const res = await fetch(
+        `${crmConfig.baseUrl}/api/whatsapp/conversations/${selectedConv}/stop`,
+        {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${crmConfig.token}` },
+        }
+      )
 
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
 
-      // addLog('success', '🔴 Cerraste atención', LOG_TYPES.LOCK)
       setLockStatus({ isAttending: false })
     } catch (err) {
-      // addLog('error', `❌ Error al cerrar: ${(err as Error).message}`, LOG_TYPES.ERROR)
+      console.error('Error stopping attending:', err)
     }
-  }
+  }, [selectedConv, crmConfig?.token, crmConfig?.baseUrl])
 
-  async function sendMessage() {
+  // ──────────────────────────────────────────────────────────────────────────
+  // Callback: Send message (uses useWhatsAppApi)
+  // ──────────────────────────────────────────────────────────────────────────
+
+  const sendMessage = useCallback(async () => {
     if (!newMessage.trim() || !selectedConv || !crmConfig?.token) return
 
-    setSending(true)
-
     try {
-      const res = await fetch(`${apiBase}/api/conversations/${selectedConv}/messages`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${crmConfig.token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ body: newMessage }),
-      })
+      const res = await fetch(
+        `${crmConfig.baseUrl}/api/conversations/${selectedConv}/messages`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${crmConfig.token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ body: newMessage }),
+        }
+      )
 
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
 
@@ -311,21 +310,72 @@ export function ConversationsPanel({ crmConfig }: ConversationsPanelProps) {
       fetchConversations()
     } catch (err) {
       setError((err as Error).message)
-    } finally {
-      setSending(false)
     }
-  }
+  }, [newMessage, selectedConv, crmConfig?.token, crmConfig?.baseUrl, fetchMessages, fetchConversations])
 
-  // ─── Event Handlers ───────────────────────────────────────────────────────
+  // ──────────────────────────────────────────────────────────────────────────
+  // Effect: Load contacts on mount
+  // ──────────────────────────────────────────────────────────────────────────
 
-  function handleKeyPress(e: React.KeyboardEvent<HTMLTextAreaElement>) {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault()
-      sendMessage()
+  useEffect(() => {
+    if (!crmConfig?.token) return
+    loadCrmContactsData()
+  }, [crmConfig?.token, loadCrmContactsData])
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // Effect: Initial fetch conversations
+  // ──────────────────────────────────────────────────────────────────────────
+
+  useEffect(() => {
+    if (crmConfig?.token) {
+      fetchConversations()
     }
-  }
+  }, [crmConfig?.token, fetchConversations])
 
-  // ─── Utilities ────────────────────────────────────────────────────────────
+  // ──────────────────────────────────────────────────────────────────────────
+  // Effect: Auto-scroll to bottom when messages update
+  // ──────────────────────────────────────────────────────────────────────────
+
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' })
+    }
+  }, [messages])
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // Hook: Setup polling when conversation is selected
+  // ──────────────────────────────────────────────────────────────────────────
+
+  usePolling(
+    async () => {
+      if (!selectedConv) return
+      await fetchConversations()
+      await fetchMessages(selectedConv)
+      await fetchAttendingStatus(selectedConv)
+    },
+    {
+      interval: 10_000,
+      enabled: !!(selectedConv && crmConfig?.token),
+    }
+  )
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // Event Handlers
+  // ──────────────────────────────────────────────────────────────────────────
+
+  const handleKeyPress = useCallback(
+    (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault()
+        sendMessage()
+      }
+    },
+    [sendMessage]
+  )
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // Utilities
+  // ──────────────────────────────────────────────────────────────────────────
 
   function getContactInfo(contactId: string): ContactInfo {
     const c = contacts[contactId]
@@ -372,14 +422,20 @@ export function ConversationsPanel({ crmConfig }: ConversationsPanelProps) {
     }
   }
 
-  // ─── Computed ─────────────────────────────────────────────────────────────
+  // ──────────────────────────────────────────────────────────────────────────
+  // Computed
+  // ──────────────────────────────────────────────────────────────────────────
 
   const selectedConvData = conversations.find(c => c.id === selectedConv)
   const selectedContactInfo = selectedConvData
     ? getContactInfo(selectedConvData.contactId)
     : null
 
-  // ─── Render ───────────────────────────────────────────────────────────────
+  const isLoadingConversations = api.loading
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // Render
+  // ──────────────────────────────────────────────────────────────────────────
 
   return (
     <div
@@ -396,10 +452,10 @@ export function ConversationsPanel({ crmConfig }: ConversationsPanelProps) {
             </h2>
             <button
               onClick={() => fetchConversations()}
-              disabled={loading}
+              disabled={isLoadingConversations}
               className="px-2 py-1 rounded bg-slate-700 text-slate-300 text-xs hover:bg-slate-600 disabled:opacity-50 transition-colors"
             >
-              {loading ? '...' : '↻'}
+              {isLoadingConversations ? '...' : '↻'}
             </button>
           </div>
 
@@ -410,13 +466,7 @@ export function ConversationsPanel({ crmConfig }: ConversationsPanelProps) {
           )}
 
           <div className="flex-1 overflow-y-auto">
-            {loadingContacts && conversations.length === 0 && (
-              <div className="flex items-center justify-center py-8">
-                <span className="text-slate-500 text-sm">Cargando...</span>
-              </div>
-            )}
-
-            {conversations.length === 0 && !loading && !loadingContacts && (
+            {conversations.length === 0 && !isLoadingConversations && (
               <div className="flex items-center justify-center py-8">
                 <span className="text-slate-500 text-sm">Sin conversaciones</span>
               </div>
@@ -616,10 +666,10 @@ export function ConversationsPanel({ crmConfig }: ConversationsPanelProps) {
                     />
                     <button
                       onClick={sendMessage}
-                      disabled={sending || !newMessage.trim() || !selectedConv}
+                      disabled={api.loading || !newMessage.trim() || !selectedConv}
                       className="px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-500 disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
                     >
-                      {sending ? '◷' : '→'}
+                      {api.loading ? '◷' : '→'}
                     </button>
                   </div>
                 </div>

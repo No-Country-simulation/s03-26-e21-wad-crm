@@ -63,11 +63,11 @@ export function LoginPanel() {
   };
 
   const handleQuickLoginAdmin = async () => {
-    await performLogin('admin@test.com', 'password');
+    await performLogin('test@test.com', 'Test1234!');
   };
 
   const handleQuickLoginAgent = async () => {
-    await performLogin('cj@gmail.com', 'password');
+    await performLogin('test@test.com', 'Test1234!');
   };
 
   return (
@@ -123,8 +123,8 @@ export function LoginPanel() {
         <div className="mt-6 p-4 rounded bg-slate-800 text-sm text-slate-300">
           <p className="font-mono text-xs mb-2">Test Credentials:</p>
           <div className="font-mono text-xs space-y-1">
-            <p>📧 <span className="text-blue-400">cj@gmail.com</span> / password</p>
-            <p className="text-green-400">Role: AGENT</p>
+            <p>📧 <span className="text-blue-400">test@test.com</span> / Test1234!</p>
+            <p className="text-green-400">Role: ADMIN</p>
           </div>
         </div>
 

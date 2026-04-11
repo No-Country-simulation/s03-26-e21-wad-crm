@@ -1,17 +1,19 @@
 /**
- * CrmPanel - TypeScript Version
- * 
+ * CrmPanel - TypeScript Version with useLocalStorage
+ *
  * CRM backend configuration management
  * Features:
- * - Base URL configuration
- * - JWT token management
+ * - Base URL configuration (auto-persisted)
+ * - JWT token management (auto-persisted)
  * - Connection testing to /api/auth/me
  * - Fallback health check on failure
+ * - Auto-sync across browser tabs
  */
 
-import { useState } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { Server, Trash2 } from 'lucide-react'
 import { CRMConfig, saveCrmConfig } from '@/utils/storage'
+import { useLocalStorage } from '@/hooks/useLocalStorage'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -29,6 +31,10 @@ interface CrmPanelProps {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export function CrmPanel({ crmConfig, onSave, onClear }: CrmPanelProps) {
+  // ──────────────────────────────────────────────────────────────────────────
+  // State: Form & Testing
+  // ──────────────────────────────────────────────────────────────────────────
+
   const [form, setForm] = useState<CRMConfig>(
     crmConfig || {
       baseUrl: 'http://localhost:8080',
@@ -40,13 +46,47 @@ export function CrmPanel({ crmConfig, onSave, onClear }: CrmPanelProps) {
   const [testing, setTesting] = useState(false)
   const [testResult, setTestResult] = useState<TestResult | null>(null)
 
-  // ─── Handlers ─────────────────────────────────────────────────────────────
+  // ──────────────────────────────────────────────────────────────────────────
+  // Hook: useLocalStorage for auto-persistence
+  // ──────────────────────────────────────────────────────────────────────────
 
-  function handleChange(field: keyof CRMConfig, value: string) {
-    setForm((prev) => ({ ...prev, [field]: value }))
-  }
+  const { value: storedConfig, setValue: setStoredConfig } = useLocalStorage<CRMConfig>(
+    'crm_config',
+    {
+      baseUrl: 'http://localhost:8080',
+      token: '',
+      workspaceId: '',
+    }
+  )
 
-  async function testConnection() {
+  // ──────────────────────────────────────────────────────────────────────────
+  // Effect: Sync stored config to form on mount
+  // ──────────────────────────────────────────────────────────────────────────
+
+  useEffect(() => {
+    if (storedConfig && Object.keys(storedConfig).length > 0) {
+      setForm(storedConfig)
+    }
+  }, [])
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // Callback: Handle field changes
+  // ──────────────────────────────────────────────────────────────────────────
+
+  const handleChange = useCallback((field: keyof CRMConfig, value: string) => {
+    setForm((prev) => {
+      const updated = { ...prev, [field]: value }
+      // Auto-persist on change
+      setStoredConfig(updated)
+      return updated
+    })
+  }, [setStoredConfig])
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // Callback: Test connection
+  // ──────────────────────────────────────────────────────────────────────────
+
+  const testConnection = useCallback(async () => {
     if (!form.baseUrl || !form.token) {
       setTestResult({ ok: false, msg: 'Completá baseUrl y token' })
       return
@@ -94,25 +134,38 @@ export function CrmPanel({ crmConfig, onSave, onClear }: CrmPanelProps) {
     } finally {
       setTesting(false)
     }
-  }
+  }, [form.baseUrl, form.token])
 
-  function handleSave() {
+  // ──────────────────────────────────────────────────────────────────────────
+  // Callback: Save (explicit save + callback)
+  // ──────────────────────────────────────────────────────────────────────────
+
+  const handleSave = useCallback(() => {
     saveCrmConfig(form)
+    setStoredConfig(form)
     onSave?.(form)
-  }
+  }, [form, setStoredConfig, onSave])
 
-  function handleClear() {
+  // ──────────────────────────────────────────────────────────────────────────
+  // Callback: Clear (reset form + storage)
+  // ──────────────────────────────────────────────────────────────────────────
+
+  const handleClear = useCallback(() => {
     const reset: CRMConfig = {
       baseUrl: 'http://localhost:8080',
       token: '',
       workspaceId: '',
     }
     setForm(reset)
+    setStoredConfig(reset)
     setTestResult(null)
+    saveCrmConfig(reset)
     onClear?.()
-  }
+  }, [setStoredConfig, onClear])
 
-  // ─── Render ───────────────────────────────────────────────────────────────
+  // ──────────────────────────────────────────────────────────────────────────
+  // Render
+  // ──────────────────────────────────────────────────────────────────────────
 
   return (
     <div className="space-y-4">

@@ -32,8 +32,25 @@ const ROLE_PERMISSIONS: Record<RoleType, string[]> = {
   ],
 };
 
-export function useRbac() {
-  const currentRole = useWhatsAppStore((state) => state.currentRole);
+// Define tabs each role can access
+const ROLE_TABS: Record<RoleType, string[]> = {
+  [ROLES.ADMIN]: ['conversations', 'send', 'templates', 'config', 'crm', 'logs', 'webhook', 'contact'],
+  [ROLES.AGENT]: ['conversations', 'send', 'templates', 'contact'],
+  [ROLES.USER]: ['conversations', 'contact'],
+  [ROLES.VIEWER]: ['conversations'],
+};
+
+export function useRbac(userRole?: RoleType) {
+  const storeRole = useWhatsAppStore((state) => state.currentRole);
+  const currentRole = userRole || storeRole;
+
+  /**
+   * Get allowed tabs for current role
+   */
+  const tabs = (): string[] => {
+    if (!currentRole) return ['conversations'];
+    return ROLE_TABS[currentRole] || ['conversations'];
+  };
 
   /**
    * Check if current user has a specific permission
@@ -110,5 +127,6 @@ export function useRbac() {
     canViewCrm,
     canViewLogs,
     canViewContactInfo,
+    tabs,
   };
 }

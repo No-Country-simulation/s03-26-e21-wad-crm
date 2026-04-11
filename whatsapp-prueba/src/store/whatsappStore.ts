@@ -139,6 +139,7 @@ export const useWhatsAppStore = create<WhatsAppStore>()(
         crmConfig: state.crmConfig,
         templates: state.templates,
         session: state.session,
+        currentRole: state.currentRole,
         activeTab: state.activeTab,
       }),
     }

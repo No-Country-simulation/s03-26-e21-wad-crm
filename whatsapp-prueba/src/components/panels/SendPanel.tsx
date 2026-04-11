@@ -67,7 +67,6 @@ export function SendPanel({ config, templates, crmConfig }: SendPanelProps) {
   const [templateParams, setTemplateParams] = useState('')
 
   // ─── State: Send Progress ─────────────────────────────────────────────────
-  const [sending, setSending] = useState(false)
   const [result, setResult] = useState<SendResult | null>(null)
 
   // ─── WhatsApp API Hook ────────────────────────────────────────────────────
@@ -110,7 +109,7 @@ export function SendPanel({ config, templates, crmConfig }: SendPanelProps) {
     }
   }, [crmConfig?.token, apiBase])
 
-  async function handleSend() {
+  const handleSend = useCallback(async () => {
     // ─── CRM Mode ─────────────────────────────────────────────────────────
     if (sendVia === 'crm') {
       if (!crmConfig?.baseUrl || !crmConfig?.token) {
@@ -134,142 +133,89 @@ export function SendPanel({ config, templates, crmConfig }: SendPanelProps) {
       return
     }
 
-    setSending(true)
     setResult(null)
 
     try {
       const cleanPhone = phone.replace(/[^0-9]/g, '')
-
-      let payload: any
+      let result: any = null
 
       if (mode === 'template') {
         if (!selectedTpl) {
           setResult({ ok: false, msg: '❌ Seleccioná un template guardado' })
-          setSending(false)
           return
         }
 
         const bodyComp = selectedTpl.components.find((c) => c.type === 'body')
-        let finalBody = bodyComp?.text || ''
         const params = templateParams.split(',').map((p) => p.trim()).filter(Boolean)
-
-        params.forEach((val, i) => {
-          finalBody = finalBody.replace(new RegExp(`\\{\\{${i + 1}\\}\\}`, 'g'), val)
-        })
-
-        const apiComponents: any[] = []
-        const headerComp = selectedTpl.components.find((c) => c.type === 'header')
-
-        if (headerComp) {
-          apiComponents.push({ type: 'header', parameters: [] })
-        }
-
         const varCount = countVariables(bodyComp?.text || '')
-        if (varCount > 0) {
-          apiComponents.push({
-            type: 'body',
-            parameters: params.slice(0, varCount).map((p) => ({ type: 'text', text: p })),
-          })
-        }
 
-        payload = {
-          messaging_product: 'whatsapp',
-          recipient_type: 'individual',
-          to: cleanPhone,
-          type: 'template',
-          template: {
-            name: selectedTpl.name,
-            language: { code: selectedTpl.language },
-            ...(apiComponents.length > 0 && { components: apiComponents }),
-          },
-        }
+        result = await api.sendTemplateDirect(
+          cleanPhone,
+          selectedTpl.name,
+          selectedTpl.language,
+          params.slice(0, varCount)
+        )
       } else {
         if (!body) {
           setResult({ ok: false, msg: '❌ Completá el mensaje' })
-          setSending(false)
           return
         }
 
-        payload = {
-          messaging_product: 'whatsapp',
-          recipient_type: 'individual',
-          to: cleanPhone,
-          type: 'text',
-          text: { preview_url: false, body },
-        }
+        result = await api.sendTextDirect(cleanPhone, body)
       }
 
-      const res = await fetch(`${config.baseUrl}/${config.phoneNumberId}/messages`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${config.accessToken}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      })
-
-      if (!res.ok) {
-        const data = await res.json()
-        const msg = data.error?.message || `HTTP ${res.status}`
-        const code = data.error?.code
-        setResult({ ok: false, msg: `❌ Error ${code ? `(${code})` : ''}: ${msg}`, data })
+      if (!result) {
+        setResult({ ok: false, msg: `❌ Error: ${api.error || 'Error desconocido'}` })
         return
       }
 
-      const data = await res.json()
-      const externalId = data.messages?.[0]?.id
-      setResult({ ok: true, msg: `✅ Enviado! ID: ${externalId || 'N/A'}`, data })
+      const externalId = result.messages?.[0]?.id
+      setResult({ ok: true, msg: `✅ Enviado! ID: ${externalId || 'N/A'}`, data: result })
       setBody('')
       setTemplateParams('')
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Error desconocido'
       setResult({ ok: false, msg: `❌ Error: ${msg}` })
     } finally {
-      setSending(false)
     }
-  }
+  }, [
+    sendVia,
+    crmConfig,
+    config,
+    phone,
+    body,
+    mode,
+    selectedTpl,
+    templateParams,
+    api,
+    contactId,
+  ])
 
-  async function handleSendViaCrm() {
-    setSending(true)
+  const handleSendViaCrm = useCallback(async () => {
     setResult(null)
 
     try {
       const payload: any = {
-        contactId,
-        body: body || `[Template: ${selectedTpl?.name || 'N/A'}]`,
+        recipient: contactId,
+        message: body || `[Template: ${selectedTpl?.name || 'N/A'}]`,
       }
 
       if (mode === 'template' && selectedTpl) {
-        payload.templateName = selectedTpl.name
-        payload.templateLanguage = selectedTpl.language
-        const params = templateParams.split(',').map((p) => p.trim()).filter(Boolean)
-
-        if (params.length > 0) {
-          payload.templateParameters = params.map((p) => ({ type: 'text', value: p }))
-        }
+        payload.templateId = selectedTpl.id
+        payload.type = 'template'
       }
 
-      const res = await fetch(`${apiBase}/api/whatsapp/send`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${crmConfig?.token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      })
+      const result = await api.sendViaCRM(payload)
 
-      if (!res.ok) {
-        const data = await res.json()
-        const msg = data.message || data.error || `HTTP ${res.status}`
-        setResult({ ok: false, msg: `❌ CRM Error: ${msg}`, data })
+      if (!result) {
+        setResult({ ok: false, msg: `❌ CRM Error: ${api.error || 'Error desconocido'}` })
         return
       }
 
-      const data = await res.json()
       setResult({
         ok: true,
-        msg: `✅ CRM: Enviado! msgId=${data.messageId}, externalId=${data.externalId}`,
-        data,
+        msg: `✅ CRM: Enviado! messageId=${result.messageId || 'N/A'}`,
+        data: result,
       })
       setBody('')
       setTemplateParams('')
@@ -277,9 +223,8 @@ export function SendPanel({ config, templates, crmConfig }: SendPanelProps) {
       const msg = err instanceof Error ? err.message : 'Error desconocido'
       setResult({ ok: false, msg: `❌ CRM Error: ${msg}` })
     } finally {
-      setSending(false)
     }
-  }
+  }, [api, contactId, body, selectedTpl, mode])
 
   // ─── Render ───────────────────────────────────────────────────────────────
 
@@ -519,11 +464,11 @@ export function SendPanel({ config, templates, crmConfig }: SendPanelProps) {
         {/* Send Button */}
         <button
           onClick={handleSend}
-          disabled={sending}
+          disabled={api.loading}
           className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-green-600 text-white font-medium hover:bg-green-500 disabled:opacity-50 transition-colors"
         >
           <Send className="w-4 h-4" />
-          {sending ? 'Enviando...' : `Enviar ${sendVia === 'crm' ? 'vía CRM' : ''}`}
+          {api.loading ? 'Enviando...' : `Enviar ${sendVia === 'crm' ? 'vía CRM' : ''}`}
         </button>
 
         {/* Result Message */}

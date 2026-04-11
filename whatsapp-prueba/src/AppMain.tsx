@@ -30,7 +30,8 @@ interface AppMainProps {
 
 export function AppMain({ crmConfig, userRole }: AppMainProps) {
   const [activeTab, setActiveTab] = useState(TABS.CONVERSATIONS)
-  const { hasPermission, tabs: allowedTabs } = useRbac(userRole)
+  const { hasPermission, tabs: getAllowedTabs } = useRbac(userRole)
+  const allowedTabs = getAllowedTabs()
 
   // Auto-select first available tab on role change
   useEffect(() => {
