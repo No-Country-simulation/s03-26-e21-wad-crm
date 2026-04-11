@@ -141,3 +141,7 @@ vite.config.ts.timestamp-*
 .idea/
 *.iml
 target/
+
+# Temporary test files
+thoughts/
+test-login.js
