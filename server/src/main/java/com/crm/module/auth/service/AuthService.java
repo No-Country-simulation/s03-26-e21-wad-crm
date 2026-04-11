@@ -9,6 +9,7 @@ import com.crm.module.auth.dto.TokenResponse;
 import com.crm.module.auth.entity.RefreshToken;
 import com.crm.module.auth.repository.RefreshTokenRepository;
 import com.crm.module.user.entity.User;
+import com.crm.module.user.entity.Role;
 import com.crm.module.user.repository.UserRepository;
 import com.crm.module.user.service.RoleService;
 import com.crm.module.workspace.entity.Workspace;
