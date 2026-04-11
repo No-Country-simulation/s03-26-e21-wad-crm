@@ -20,10 +20,10 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
 
   # Flyway
-  flyway:
-    enabled: true
-    locations: classpath:db/migration
-    baseline-on-migrate: true
+  spring:
+    flyway:
+      validate-on-migrate: false
+      enabled: false
 
   # Redis
   data:
