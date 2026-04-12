@@ -556,10 +556,10 @@ export function ConversationsPanel({ config, crmConfig }: ConversationsPanelProp
     <Card className="overflow-hidden" style={{ height: 'calc(100vh - 200px)', minHeight: '500px' }}>
       <div className="flex h-full">
         {/* ── Left Sidebar: Conversations List ── */}
-        <div className="w-80 border-r border-border bg-card flex flex-col">
+        <div className="w-80 border-r border-border flex flex-col">
           <CardHeader className="p-4 border-b border-border">
             <div className="flex items-center justify-between">
-              <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
+              <h2 className="text-sm font-semibold flex items-center gap-2">
                 <MessageCircle className="size-4 text-green-600" />
                 Conversaciones
               </h2>
@@ -648,7 +648,7 @@ export function ConversationsPanel({ config, crmConfig }: ConversationsPanelProp
         </div>
 
         {/* ── Right Panel: Messages ── */}
-        <div className="flex-1 flex flex-col bg-muted/30">
+        <div className="flex-1 flex flex-col">
           {!selectedConv ? (
             <div className="flex-1 flex items-center justify-center">
               <div className="text-center">
@@ -660,7 +660,7 @@ export function ConversationsPanel({ config, crmConfig }: ConversationsPanelProp
           ) : (
             <>
               {/* Header */}
-              <CardHeader className="p-4 border-b border-border bg-card">
+              <CardHeader className="p-4 border-b border-border">
                 <div className="flex items-center gap-3 justify-between">
                   <Button
                     variant="ghost"
@@ -687,7 +687,7 @@ export function ConversationsPanel({ config, crmConfig }: ConversationsPanelProp
                     </Avatar>
 
                     <div className="text-left">
-                      <p className="text-sm font-semibold text-foreground">
+                      <p className="text-sm font-semibold">
                         {selectedContactInfo?.name || 'Contacto'}
                       </p>
                       <p className="text-xs text-muted-foreground">
@@ -785,7 +785,7 @@ export function ConversationsPanel({ config, crmConfig }: ConversationsPanelProp
 
               {/* Message Input - Solo mostrar si YO estoy atendiendo */}
               {lockStatus?.isAttending && lockStatus?.agentId === crmConfig?.userId ? (
-                <CardContent className="p-4 border-t border-border bg-card">
+                <CardContent className="p-4 border-t border-border">
                   <div className="flex gap-2">
                     <Textarea
                       value={newMessage}
@@ -805,7 +805,7 @@ export function ConversationsPanel({ config, crmConfig }: ConversationsPanelProp
                   </div>
                 </CardContent>
               ) : !lockStatus?.isAttending ? (
-                <CardContent className="p-4 border-t border-border bg-card">
+                <CardContent className="p-4 border-t border-border">
                   <Alert>
                     <AlertDescription className="text-sm text-center">
                       📖 Solo lectura - Hacé clic en <strong>"Iniciar"</strong> para
@@ -814,7 +814,7 @@ export function ConversationsPanel({ config, crmConfig }: ConversationsPanelProp
                   </Alert>
                 </CardContent>
               ) : (
-                <CardContent className="p-4 border-t border-border bg-card">
+                <CardContent className="p-4 border-t border-border">
                   <Alert className="bg-warning/20 border-warning">
                     <AlertDescription className="text-warning text-sm text-center">
                       🔒 Atendido por: <strong>{lockStatus?.agentName}</strong>
