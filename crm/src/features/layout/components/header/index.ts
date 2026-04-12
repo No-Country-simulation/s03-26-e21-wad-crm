@@ -1,0 +1,8 @@
+export { Header } from './Header'
+export { ConnectionStatusBadge } from './components/ConnectionStatusBadge'
+export { RoleBadge } from './components/RoleBadge'
+export { UserAvatar } from './components/UserAvatar'
+export { UserMenu } from './components/UserMenu'
+export { getInitials } from './utils/header.utils'
+export type { ConnectionStatus } from './types/header.config'
+export { STATUS_CONFIG, ROLE_CONFIG } from './types/header.config'

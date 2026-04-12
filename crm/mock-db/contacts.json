@@ -1,0 +1,79 @@
+{
+  "contacts": [
+    {
+      "id": "c1",
+      "workspaceId": "ws-1",
+      "name": "Juan Pérez",
+      "email": "juan.perez@example.com",
+      "phone": "+5491123456789",
+      "jobTitle": "CEO",
+      "status": "NEW",
+      "assignedTo": "1",
+      "companyId": "comp-1",
+      "tags": ["vip", "hot-lead"],
+      "isDeleted": false,
+      "createdAt": "2024-01-15T10:30:00Z",
+      "updatedAt": "2024-01-15T10:30:00Z"
+    },
+    {
+      "id": "c2",
+      "workspaceId": "ws-1",
+      "name": "María González",
+      "email": "maria.gonzalez@example.com",
+      "phone": "+5491198765432",
+      "jobTitle": "Marketing Manager",
+      "status": "CONTACTED",
+      "assignedTo": "2",
+      "companyId": "comp-2",
+      "tags": ["marketing"],
+      "isDeleted": false,
+      "createdAt": "2024-01-16T14:20:00Z",
+      "updatedAt": "2024-01-17T09:15:00Z"
+    },
+    {
+      "id": "c3",
+      "workspaceId": "ws-1",
+      "name": "Carlos Rodríguez",
+      "email": "carlos.rodriguez@example.com",
+      "phone": "+5491187654321",
+      "jobTitle": "CTO",
+      "status": "QUALIFIED",
+      "assignedTo": "1",
+      "companyId": "comp-3",
+      "tags": ["tech", "enterprise"],
+      "isDeleted": false,
+      "createdAt": "2024-01-18T11:00:00Z",
+      "updatedAt": "2024-01-20T16:45:00Z"
+    },
+    {
+      "id": "c4",
+      "workspaceId": "ws-1",
+      "name": "Ana Martínez",
+      "email": "ana.martinez@example.com",
+      "phone": "+5491176543210",
+      "jobTitle": "Sales Director",
+      "status": "CONVERTED",
+      "assignedTo": "3",
+      "companyId": "comp-1",
+      "tags": ["vip", "closed"],
+      "isDeleted": false,
+      "createdAt": "2024-01-10T08:30:00Z",
+      "updatedAt": "2024-01-25T12:00:00Z"
+    },
+    {
+      "id": "c5",
+      "workspaceId": "ws-1",
+      "name": "Luis Fernández",
+      "email": "luis.fernandez@example.com",
+      "phone": "+5491165432109",
+      "jobTitle": "Product Manager",
+      "status": "LOST",
+      "assignedTo": "2",
+      "companyId": "comp-4",
+      "tags": ["cold"],
+      "isDeleted": false,
+      "createdAt": "2024-01-12T15:45:00Z",
+      "updatedAt": "2024-01-22T10:30:00Z"
+    }
+  ]
+}

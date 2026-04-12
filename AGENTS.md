@@ -129,6 +129,7 @@ Las skills se auto-cargan según el contexto detected. Están en `setup-ai-skill
 | react-19 | Componentes React | React 19 con React Compiler |
 | nextjs-15 | Next.js, App Router | Next.js 15 patterns |
 | tailwind-4 | Tailwind, styling | Tailwind CSS 4 patterns |
+| shadcn-v5 | shadcn/ui, components | shadcn/ui v5 patterns, CLI, composition |
 | zustand-5 | Zustand, state | Zustand 5 state management |
 | typescript | TypeScript code | TypeScript strict patterns |
 | zod-4 | Zod, validation | Zod 4 schema validation |

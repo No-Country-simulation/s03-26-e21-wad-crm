@@ -8,8 +8,16 @@
  * - Status indicators
  */
 
-import { LogOut, MessageCircle } from 'lucide-react'
+import { LogOut, MessageCircle, Moon, Sun, User, ChevronDown } from 'lucide-react'
 import { RoleType } from '@/types'
+import { useThemeStore } from '@/store/themeStore'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 
 interface HeaderProps {
   userRole?: RoleType
@@ -24,6 +32,8 @@ export function Header({
   onLogout,
   connectionStatus = 'connected',
 }: HeaderProps) {
+  const { theme, toggleTheme } = useThemeStore()
+  
   const roleColors: Record<RoleType, string> = {
     ADMIN: 'bg-red-600',
     AGENT: 'bg-blue-600',
@@ -38,7 +48,7 @@ export function Header({
   }
 
   return (
-    <header className="border-b border-slate-800 bg-slate-900/50 backdrop-blur-sm sticky top-0 z-40">
+    <header className="border-b border-slate-800 dark:border-slate-800 bg-slate-100 dark:bg-slate-900/50 backdrop-blur-sm sticky top-0 z-40">
       <div className="flex items-center justify-between px-6 py-4 max-w-full">
         {/* Left: Logo & Title */}
         <div className="flex items-center gap-3 min-w-0">
@@ -46,8 +56,8 @@ export function Header({
             <MessageCircle className="w-5 h-5 text-white" />
           </div>
           <div className="min-w-0">
-            <h1 className="text-lg font-bold text-white truncate">WhatsApp CRM</h1>
-            <p className="text-xs text-slate-500 truncate">Gestión inteligente de conversaciones</p>
+            <h1 className="text-lg font-bold text-slate-900 dark:text-white truncate">WhatsApp CRM</h1>
+            <p className="text-xs text-slate-500 dark:text-slate-500 truncate">Gestión inteligente de conversaciones</p>
           </div>
         </div>
 
@@ -58,7 +68,7 @@ export function Header({
             <div
               className={`w-2 h-2 rounded-full ${statusColors[connectionStatus]} animate-pulse`}
             />
-            <span className="text-xs text-slate-400 whitespace-nowrap">
+            <span className="text-xs text-slate-600 dark:text-slate-400 whitespace-nowrap">
               {connectionStatus === 'connected'
                 ? 'Conectado'
                 : connectionStatus === 'connecting'
@@ -68,31 +78,36 @@ export function Header({
           </div>
 
           {/* Role Badge */}
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700">
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-200 dark:bg-slate-800 border border-slate-300 dark:border-slate-700">
             <span className={`w-2 h-2 rounded-full ${roleColors[userRole]}`} />
-            <span className="text-xs font-medium text-slate-300 whitespace-nowrap">
+            <span className="text-xs font-medium text-slate-700 dark:text-slate-300 whitespace-nowrap">
               {userRole}
             </span>
           </div>
 
-          {/* User Name (optional) */}
-          {userName && (
-            <div className="hidden sm:flex items-center px-3 py-1.5 rounded-lg bg-slate-800/50">
-              <span className="text-sm text-slate-300">{userName}</span>
-            </div>
-          )}
-
-          {/* Logout Button */}
-          {onLogout && (
-            <button
-              onClick={onLogout}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-red-900/20 hover:bg-red-900/40 text-red-400 hover:text-red-300 transition-colors border border-red-800/50"
-              title="Cerrar sesión"
-            >
-              <LogOut className="w-4 h-4" />
-              <span className="text-sm font-medium hidden sm:inline">Salir</span>
-            </button>
-          )}
+          {/* User Menu Dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-200 dark:bg-slate-800/50 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors border border-slate-300 dark:border-slate-700">
+                <User className="w-4 h-4" />
+                {userName && <span className="text-sm font-medium hidden sm:inline">{userName}</span>}
+                <ChevronDown className="w-4 h-4" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuItem onClick={toggleTheme}>
+                {theme === 'dark' ? <Sun className="w-4 h-4 mr-2" /> : <Moon className="w-4 h-4 mr-2" />}
+                <span>{theme === 'dark' ? 'Modo claro' : 'Modo oscuro'}</span>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              {onLogout && (
+                <DropdownMenuItem onClick={onLogout} className="text-red-600 dark:text-red-400 focus:text-red-600 dark:focus:text-red-400">
+                  <LogOut className="w-4 h-4 mr-2" />
+                  <span>Cerrar sesión</span>
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
     </header>

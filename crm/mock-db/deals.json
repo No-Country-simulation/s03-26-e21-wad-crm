@@ -1,0 +1,89 @@
+{
+  "deals": [
+    {
+      "id": "d1",
+      "workspaceId": "ws-1",
+      "name": "Implementación CRM Enterprise",
+      "value": 50000.00,
+      "contactId": "c1",
+      "assignedTo": "1",
+      "stage": {
+        "id": "stage-1",
+        "name": "Prospección",
+        "order": 1,
+        "probability": 10
+      },
+      "deleted": false,
+      "createdAt": "2024-01-15T10:30:00Z",
+      "updatedAt": "2024-01-15T10:30:00Z"
+    },
+    {
+      "id": "d2",
+      "workspaceId": "ws-1",
+      "name": "Consultoría Marketing Digital",
+      "value": 25000.00,
+      "contactId": "c2",
+      "assignedTo": "2",
+      "stage": {
+        "id": "stage-2",
+        "name": "Calificación",
+        "order": 2,
+        "probability": 25
+      },
+      "deleted": false,
+      "createdAt": "2024-01-16T14:20:00Z",
+      "updatedAt": "2024-01-18T09:15:00Z"
+    },
+    {
+      "id": "d3",
+      "workspaceId": "ws-1",
+      "name": "Desarrollo App Mobile",
+      "value": 80000.00,
+      "contactId": "c3",
+      "assignedTo": "1",
+      "stage": {
+        "id": "stage-3",
+        "name": "Propuesta",
+        "order": 3,
+        "probability": 50
+      },
+      "deleted": false,
+      "createdAt": "2024-01-18T11:00:00Z",
+      "updatedAt": "2024-01-20T16:45:00Z"
+    },
+    {
+      "id": "d4",
+      "workspaceId": "ws-1",
+      "name": "Licencias Software",
+      "value": 15000.00,
+      "contactId": "c4",
+      "assignedTo": "3",
+      "stage": {
+        "id": "stage-4",
+        "name": "Negociación",
+        "order": 4,
+        "probability": 75
+      },
+      "deleted": false,
+      "createdAt": "2024-01-10T08:30:00Z",
+      "updatedAt": "2024-01-24T12:00:00Z"
+    },
+    {
+      "id": "d5",
+      "workspaceId": "ws-1",
+      "name": "Soporte Técnico Anual",
+      "value": 12000.00,
+      "contactId": "c4",
+      "assignedTo": "3",
+      "stage": {
+        "id": "stage-5",
+        "name": "Ganado",
+        "order": 5,
+        "probability": 100
+      },
+      "deleted": false,
+      "createdAt": "2024-01-10T08:30:00Z",
+      "updatedAt": "2024-01-25T12:00:00Z"
+    }
+  ]
+}

@@ -1,0 +1,64 @@
+{
+  "conversations": [
+    {
+      "id": "conv-1",
+      "workspaceId": "ws-1",
+      "contactId": "c1",
+      "contactName": "Juan Pérez",
+      "contactPhone": "+5491123456789",
+      "channel": "WHATSAPP",
+      "status": "ACTIVE",
+      "assignedTo": "1",
+      "lastMessage": "Perfecto, quedamos para el jueves entonces",
+      "lastMessageAt": "2024-01-28T16:30:00Z",
+      "unreadCount": 2,
+      "createdAt": "2024-01-15T10:30:00Z",
+      "updatedAt": "2024-01-28T16:30:00Z"
+    },
+    {
+      "id": "conv-2",
+      "workspaceId": "ws-1",
+      "contactId": "c2",
+      "contactName": "María González",
+      "contactPhone": "+5491198765432",
+      "channel": "WHATSAPP",
+      "status": "ACTIVE",
+      "assignedTo": "2",
+      "lastMessage": "Gracias por la propuesta, la reviso y te comento",
+      "lastMessageAt": "2024-01-27T14:20:00Z",
+      "unreadCount": 0,
+      "createdAt": "2024-01-16T14:20:00Z",
+      "updatedAt": "2024-01-27T14:20:00Z"
+    },
+    {
+      "id": "conv-3",
+      "workspaceId": "ws-1",
+      "contactId": "c3",
+      "contactName": "Carlos Rodríguez",
+      "contactPhone": "+5491187654321",
+      "channel": "EMAIL",
+      "status": "ACTIVE",
+      "assignedTo": "1",
+      "lastMessage": "Excelente demo, me interesa avanzar",
+      "lastMessageAt": "2024-01-20T12:45:00Z",
+      "unreadCount": 1,
+      "createdAt": "2024-01-18T11:00:00Z",
+      "updatedAt": "2024-01-20T12:45:00Z"
+    },
+    {
+      "id": "conv-4",
+      "workspaceId": "ws-1",
+      "contactId": "c4",
+      "contactName": "Ana Martínez",
+      "contactPhone": "+5491176543210",
+      "channel": "WHATSAPP",
+      "status": "ARCHIVED",
+      "assignedTo": "3",
+      "lastMessage": "Muchas gracias por todo, nos vemos el lunes",
+      "lastMessageAt": "2024-01-25T12:00:00Z",
+      "unreadCount": 0,
+      "createdAt": "2024-01-10T08:30:00Z",
+      "updatedAt": "2024-01-25T12:00:00Z"
+    }
+  ]
+}

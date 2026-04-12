@@ -1,0 +1,44 @@
+{
+  "users": [
+    {
+      "id": "1",
+      "email": "admin@nexo.com",
+      "name": "Admin Nexo",
+      "role": "ADMIN",
+      "workspaceId": "ws-1",
+      "avatar": null,
+      "createdAt": "2024-01-01T00:00:00Z",
+      "updatedAt": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": "2",
+      "email": "manager@nexo.com",
+      "name": "Manager Nexo",
+      "role": "MANAGER",
+      "workspaceId": "ws-1",
+      "avatar": null,
+      "createdAt": "2024-01-01T00:00:00Z",
+      "updatedAt": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": "3",
+      "email": "agent@nexo.com",
+      "name": "Agent Nexo",
+      "role": "AGENT",
+      "workspaceId": "ws-1",
+      "avatar": null,
+      "createdAt": "2024-01-01T00:00:00Z",
+      "updatedAt": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": "4",
+      "email": "viewer@nexo.com",
+      "name": "Viewer Nexo",
+      "role": "VIEWER",
+      "workspaceId": "ws-1",
+      "avatar": null,
+      "createdAt": "2024-01-01T00:00:00Z",
+      "updatedAt": "2024-01-01T00:00:00Z"
+    }
+  ]
+}

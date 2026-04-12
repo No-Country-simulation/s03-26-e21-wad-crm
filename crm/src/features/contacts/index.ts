@@ -1,0 +1,6 @@
+export { ContactsPageContainer as ContactsPage } from './components/ContactsPageContainer'
+export { ContactCard } from './components/ContactCard'
+export { ContactsSearchBar } from './components/ContactsSearchBar'
+export { ContactsFilter } from './components/ContactsFilter'
+export { useContacts } from './hooks/useContacts'
+export type { Contact, ContactStatus, ContactCardProps } from './types'

@@ -35,6 +35,25 @@ services:
     networks:
       - crm_network
 
+  mongodb:
+    image: mongo:7
+    container_name: crm_mongodb
+    environment:
+      MONGO_INITDB_DATABASE: crm_data
+      MONGO_INITDB_ROOT_USERNAME: mongoadmin
+      MONGO_INITDB_ROOT_PASSWORD: MongoAdmin2026!
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - crm_network
+
   app:
     build:
       context: ./server
@@ -49,6 +68,7 @@ services:
       DB_PASSWORD: crm_pass
       REDIS_HOST: redis
       REDIS_PORT: 6379
+      SPRING_DATA_MONGODB_URI: mongodb://mongoadmin:MongoAdmin2026!@mongodb:27017/crm_data
       JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
       ENCRYPTION_KEY: ${ENCRYPTION_KEY:-change-me-in-production}
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
@@ -57,12 +77,15 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      mongodb:
+        condition: service_healthy
     networks:
       - crm_network
 
 volumes:
   postgres_data:
   redis_data:
+  mongodb_data:
 
 networks:
   crm_network:

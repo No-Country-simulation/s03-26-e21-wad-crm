@@ -1,0 +1,118 @@
+import { useEffect, useState } from 'react'
+import { useContactsStore } from '@/features/contacts/store'
+import { Button } from '@/shared/ui/button'
+import { Input } from '@/shared/ui/input'
+import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card'
+import { LoadingSpinner } from '@/shared/ui/loading-spinner'
+import { PageHeader } from '@/shared/components/page-header'
+import { StatusBadge } from '@/shared/components/status-badge'
+import { EmptyState } from '@/shared/components/empty-state'
+import { STATUS_COLORS } from '@/shared/constants/colorMaps'
+import { Search, Plus, Mail, Phone, Building } from 'lucide-react'
+
+export function ContactsPage() {
+  const { contacts, isLoading, fetchContacts } = useContactsStore()
+  const [searchTerm, setSearchTerm] = useState('')
+  const [statusFilter, setStatusFilter] = useState<string>('all')
+
+  useEffect(() => {
+    fetchContacts()
+  }, [fetchContacts])
+
+  const filteredContacts = contacts.filter((contact) => {
+    const matchesSearch = contact.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      contact.email?.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesStatus = statusFilter === 'all' || contact.status === statusFilter
+    return matchesSearch && matchesStatus && !contact.isDeleted
+  })
+
+  if (isLoading) {
+    return <LoadingSpinner />
+  }
+
+  return (
+    <div className="p-6 space-y-6">
+      <PageHeader
+        title="Contactos"
+        subtitle={`${filteredContacts.length} contactos encontrados`}
+        actions={
+          <Button>
+            <Plus className="w-4 h-4" />
+            Nuevo Contacto
+          </Button>
+        }
+      />
+
+      <div className="flex gap-4">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+          <Input
+            placeholder="Buscar por nombre o email..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+          className="px-4 py-2 border border-gray-300 rounded-md bg-white text-sm"
+        >
+          <option value="all">Todos los estados</option>
+          <option value="NEW">Nuevo</option>
+          <option value="CONTACTED">Contactado</option>
+          <option value="QUALIFIED">Calificado</option>
+          <option value="CONVERTED">Convertido</option>
+          <option value="LOST">Perdido</option>
+        </select>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {filteredContacts.map((contact) => (
+          <Card key={contact.id} className="hover:shadow-md transition-shadow cursor-pointer">
+            <CardHeader>
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <CardTitle className="text-lg">{contact.name}</CardTitle>
+                  <p className="text-sm text-gray-500 mt-1">{contact.jobTitle}</p>
+                </div>
+                <span><StatusBadge status={contact.status} /></span>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {contact.email && (
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <Mail className="w-4 h-4" />
+                  <span className="truncate">{contact.email}</span>
+                </div>
+              )}
+              {contact.phone && (
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <Phone className="w-4 h-4" />
+                  <span>{contact.phone}</span>
+                </div>
+              )}
+              {contact.companyId && (
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <Building className="w-4 h-4" />
+                  <span>Empresa #{contact.companyId}</span>
+                </div>
+              )}
+              {contact.tags && contact.tags.length > 0 && (
+                <div className="flex flex-wrap gap-1 mt-2">
+                  {contact.tags.map((tag) => (
+                    <span key={tag} className="px-2 py-0.5 bg-gray-100 text-gray-700 rounded text-xs">
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {filteredContacts.length === 0 && <EmptyState message="No se encontraron contactos" />}
+    </div>
+  )
+}

@@ -1,0 +1,6 @@
+export { DealsPageContainer as DealsPage } from './components/DealsPageContainer'
+export { DealCard } from './components/DealCard'
+export { DealStageColumn } from './components/DealStageColumn'
+export { DealsTable } from './components/DealsTable'
+export { useDeals } from './hooks/useDeals'
+export type { Deal, DealStage, DealView, DealCardProps, DealStageColumnProps, DealsTableProps } from './types'

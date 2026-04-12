@@ -1,0 +1,409 @@
+import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card'
+import {
+  dashboardMetrics,
+  salesFiguresData,
+  averageTotalSalesData,
+  salesReportData,
+  visitorsData,
+  pendingActions,
+  kpiData,
+} from '@/mock/dashboardData'
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+} from 'recharts'
+import { TrendingUp, TrendingDown, Users, Calendar, CheckSquare, MessageSquare, Briefcase } from 'lucide-react'
+
+const COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444']
+
+export function Dashboard() {
+  return (
+    <div className="p-6 space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Overview</h1>
+          <p className="text-slate-500 dark:text-slate-400">Panel de control principal</p>
+        </div>
+        <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+          Generate Report
+        </button>
+      </div>
+
+      {/* Metrics Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <MetricCard
+          title="Sales"
+          value={dashboardMetrics.sales.value}
+          change={dashboardMetrics.sales.change}
+          trend={dashboardMetrics.sales.trend}
+          comparison={dashboardMetrics.sales.comparison}
+        />
+        <MetricCard
+          title="Purchase"
+          value={dashboardMetrics.purchase.value}
+          change={dashboardMetrics.purchase.change}
+          trend={dashboardMetrics.purchase.trend}
+          comparison={dashboardMetrics.purchase.comparison}
+        />
+        <MetricCard
+          title="Return"
+          value={dashboardMetrics.return.value}
+          change={dashboardMetrics.return.change}
+          trend={dashboardMetrics.return.trend}
+          comparison={dashboardMetrics.return.comparison}
+        />
+        <MetricCard
+          title="Marketing"
+          value={dashboardMetrics.marketing.value}
+          change={dashboardMetrics.marketing.change}
+          trend={dashboardMetrics.marketing.trend}
+          comparison={dashboardMetrics.marketing.comparison}
+        />
+      </div>
+
+      {/* KPIs Row */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        <KPICard
+          icon={<Users className="w-5 h-5" />}
+          label="Contactos activos"
+          value={kpiData.contactsActive}
+          color="blue"
+        />
+        <KPICard
+          icon={<MessageSquare className="w-5 h-5" />}
+          label="Mensajes hoy"
+          value={kpiData.messagesToday}
+          color="green"
+        />
+        <KPICard
+          icon={<Briefcase className="w-5 h-5" />}
+          label="Deals abiertos"
+          value={kpiData.dealsOpen}
+          color="purple"
+        />
+        <KPICard
+          icon={<CheckSquare className="w-5 h-5" />}
+          label="Tareas pendientes"
+          value={kpiData.tasksPending}
+          color="orange"
+        />
+        <KPICard
+          icon={<Users className="w-5 h-5" />}
+          label="Leads nuevos"
+          value={kpiData.newLeads}
+          color="pink"
+        />
+        <KPICard
+          icon={<Calendar className="w-5 h-5" />}
+          label="Tiempo respuesta"
+          value={kpiData.responseTime}
+          color="teal"
+        />
+      </div>
+
+      {/* Charts Row 1 */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Sales Figures Chart */}
+        <Card className="lg:col-span-2">
+          <CardHeader>
+            <CardTitle>Sales Figures</CardTitle>
+            <div className="flex gap-4 mt-2">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-blue-500" />
+                <span className="text-sm text-slate-500">Marketing Sales</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-emerald-500" />
+                <span className="text-sm text-slate-500">Cases Sales</span>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="h-80">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={salesFiguresData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                  <XAxis dataKey="month" stroke="#94a3b8" />
+                  <YAxis stroke="#94a3b8" />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: '#1e293b',
+                      border: '1px solid #334155',
+                      borderRadius: '8px',
+                    }}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="marketingSales"
+                    stroke="#3b82f6"
+                    strokeWidth={2}
+                    dot={{ fill: '#3b82f6' }}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="casesSales"
+                    stroke="#10b981"
+                    strokeWidth={2}
+                    dot={{ fill: '#10b981' }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Visitors Card */}
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-2 mb-4">
+              <Users className="w-5 h-5 text-slate-500" />
+              <span className="text-sm text-slate-500">Visitors this year</span>
+            </div>
+            <div className="text-4xl font-bold text-slate-900 dark:text-white mb-2">
+              {visitorsData.count.toLocaleString()}
+            </div>
+            <div className="flex items-center gap-2">
+              <TrendingDown className="w-4 h-4 text-red-500" />
+              <span className="text-sm text-red-500">{visitorsData.change}%</span>
+            </div>
+            <div className="mt-8 h-20">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={salesFiguresData.slice(0, 6)}>
+                  <Line
+                    type="monotone"
+                    dataKey="marketingSales"
+                    stroke="#3b82f6"
+                    strokeWidth={2}
+                    dot={false}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Charts Row 2 */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Average Total Sales */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Average Total Sales</CardTitle>
+            <p className="text-sm text-slate-500">2017-2018</p>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-around">
+              {averageTotalSalesData.map((item, index) => (
+                <div key={item.name} className="flex flex-col items-center">
+                  <div className="relative w-24 h-24">
+                    <svg className="w-full h-full" viewBox="0 0 100 100">
+                      <circle
+                        cx="50"
+                        cy="50"
+                        r="40"
+                        fill="none"
+                        stroke="#334155"
+                        strokeWidth="8"
+                      />
+                      <circle
+                        cx="50"
+                        cy="50"
+                        r="40"
+                        fill="none"
+                        stroke={COLORS[index]}
+                        strokeWidth="8"
+                        strokeDasharray={`${item.percentage * 2.51} ${251 - item.percentage * 2.51}`}
+                        strokeLinecap="round"
+                        transform="rotate(-90 50 50)"
+                      />
+                    </svg>
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <span className="text-lg font-bold text-slate-900 dark:text-white">
+                        {item.percentage}%
+                      </span>
+                    </div>
+                  </div>
+                  <div className="mt-2 text-center">
+                    <p className="text-2xl font-bold text-slate-900 dark:text-white">
+                      {item.value.toLocaleString()}
+                    </p>
+                    <p className="text-sm text-slate-500">{item.name}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Sales Report */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Sales Report</CardTitle>
+            <p className="text-sm text-slate-500">2017-2018</p>
+            <div className="flex gap-4 mt-2">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-blue-500" />
+                <span className="text-sm text-slate-500">Online Sales</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-emerald-500" />
+                <span className="text-sm text-slate-500">Offline Sales</span>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={salesReportData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                  <XAxis dataKey="month" stroke="#94a3b8" />
+                  <YAxis stroke="#94a3b8" />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: '#1e293b',
+                      border: '1px solid #334155',
+                      borderRadius: '8px',
+                    }}
+                  />
+                  <Bar dataKey="onlineSales" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="offlineSales" fill="#10b981" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Pending Actions */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            ⚡ Acciones para hoy
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="divide-y max-h-[500px] overflow-y-auto">
+          {pendingActions.map((action) => (
+            <div
+              key={action.id}
+              className="py-4 first:pt-0 last:pb-0 hover:bg-slate-50 dark:hover:bg-slate-800/50 flex items-center gap-4 transition-colors"
+            >
+              <span className="text-2xl">{getTypeIcon(action.type)}</span>
+              <div className="flex-1">
+                <p className="font-medium text-slate-900 dark:text-white">{action.title}</p>
+                <p className="text-sm text-slate-500 dark:text-slate-400">{action.subtitle}</p>
+              </div>
+              <div className="text-right">
+                <span
+                  className={`text-xs px-2 py-1 rounded ${getPriorityColor(action.priority)}`}
+                >
+                  {action.time}
+                </span>
+              </div>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+    </div>
+  )
+}
+
+function getTypeIcon(type: string) {
+  switch (type) {
+    case 'appointment':
+      return '📅'
+    case 'task':
+      return '✅'
+    case 'conversation':
+      return '💬'
+    case 'deal':
+      return '🎯'
+    default:
+      return '📌'
+  }
+}
+
+function getPriorityColor(priority: string) {
+  switch (priority) {
+    case 'high':
+      return 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20'
+    case 'medium':
+      return 'text-yellow-600 dark:text-yellow-400 bg-yellow-50 dark:bg-yellow-900/20'
+    case 'low':
+      return 'text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20'
+    default:
+      return 'text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-800'
+  }
+}
+
+interface KPICardProps {
+  icon: React.ReactNode
+  label: string
+  value: number | string
+  color: 'blue' | 'green' | 'purple' | 'orange' | 'pink' | 'teal'
+}
+
+function KPICard({ icon, label, value, color }: KPICardProps) {
+  const colorClasses = {
+    blue: 'text-blue-600 dark:text-blue-400',
+    green: 'text-green-600 dark:text-green-400',
+    purple: 'text-purple-600 dark:text-purple-400',
+    orange: 'text-orange-600 dark:text-orange-400',
+    pink: 'text-pink-600 dark:text-pink-400',
+    teal: 'text-teal-600 dark:text-teal-400',
+  }
+
+  return (
+    <Card>
+      <CardContent className="pt-6">
+        <div className={`mb-2 ${colorClasses[color]}`}>{icon}</div>
+        <p className="text-sm text-slate-500 dark:text-slate-400">{label}</p>
+        <p className={`text-2xl font-bold ${colorClasses[color]}`}>{value}</p>
+      </CardContent>
+    </Card>
+  )
+}
+
+interface MetricCardProps {
+  title: string
+  value: number
+  change: number
+  trend: 'up' | 'down'
+  comparison: string
+}
+
+function MetricCard({ title, value, change, trend, comparison }: MetricCardProps) {
+  return (
+    <Card>
+      <CardContent className="pt-6">
+        <p className="text-sm text-slate-500 mb-2">{title}</p>
+        <div className="flex items-baseline gap-2">
+          <p className="text-2xl font-bold text-slate-900 dark:text-white">
+            ${value.toLocaleString()}
+          </p>
+          <div className="flex items-center gap-1">
+            {trend === 'up' ? (
+              <TrendingUp className="w-4 h-4 text-emerald-500" />
+            ) : (
+              <TrendingDown className="w-4 h-4 text-red-500" />
+            )}
+            <span
+              className={`text-sm font-medium ${
+                trend === 'up' ? 'text-emerald-500' : 'text-red-500'
+              }`}
+            >
+              {change > 0 ? '+' : ''}{change}%
+            </span>
+          </div>
+        </div>
+        <p className="text-xs text-slate-500 mt-2">{comparison}</p>
+      </CardContent>
+    </Card>
+  )
+}
