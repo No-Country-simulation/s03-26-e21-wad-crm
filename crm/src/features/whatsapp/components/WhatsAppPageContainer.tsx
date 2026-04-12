@@ -19,9 +19,9 @@ export function WhatsAppPageContainer() {
   }
 
   return (
-    <div className="flex h-full bg-gray-50">
+    <div className="flex h-full bg-background">
       {/* Conversations List */}
-      <div className="w-1/3 border-r border-gray-200 bg-white overflow-hidden">
+      <div className="w-1/3 border-r border-border bg-sidebar overflow-hidden">
         <ConversationsPanel 
           selectedId={selectedConversationId}
           onSelect={setSelectedConversationId}
@@ -29,7 +29,7 @@ export function WhatsAppPageContainer() {
       </div>
 
       {/* Send Panel */}
-      <div className="w-2/3 overflow-hidden">
+      <div className="w-2/3 overflow-hidden bg-sidebar">
         {selectedConversationId ? (
           <SendPanel 
             conversationId={selectedConversationId}
