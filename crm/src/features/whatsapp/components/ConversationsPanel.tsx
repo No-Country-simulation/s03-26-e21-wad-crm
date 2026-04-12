@@ -17,6 +17,14 @@ import { formatTime } from '@/utils/helpers'
 import { ContactInfoPanel } from './ContactInfoPanel'
 import { usePolling } from '@/hooks/usePolling'
 import { useWhatsAppApi } from '@/hooks/useWhatsAppApi'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Badge } from '@/components/ui/badge'
+import { Textarea } from '@/components/ui/textarea'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { cn } from '@/lib/utils'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -545,34 +553,35 @@ export function ConversationsPanel({ config, crmConfig }: ConversationsPanelProp
   // ──────────────────────────────────────────────────────────────────────────
 
   return (
-    <div
-      className="rounded-xl border border-border bg-card overflow-hidden"
-      style={{ height: 'calc(100vh - 200px)', minHeight: '500px' }}
-    >
+    <Card className="overflow-hidden" style={{ height: 'calc(100vh - 200px)', minHeight: '500px' }}>
       <div className="flex h-full">
         {/* ── Left Sidebar: Conversations List ── */}
         <div className="w-80 border-r border-border bg-card flex flex-col">
-          <div className="p-4 border-b border-border flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
-              <MessageCircle className="w-4 h-4 text-green-600" />
-              Conversaciones
-            </h2>
-            <button
-              onClick={() => fetchConversations()}
-              disabled={isLoadingConversations}
-              className="px-2 py-1 rounded bg-secondary text-secondary-foreground text-xs hover:bg-secondary/80 disabled:opacity-50 transition-colors"
-            >
-              {isLoadingConversations ? '...' : '↻'}
-            </button>
-          </div>
+          <CardHeader className="p-4 border-b border-border">
+            <div className="flex items-center justify-between">
+              <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                <MessageCircle className="size-4 text-green-600" />
+                Conversaciones
+              </h2>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => fetchConversations()}
+                disabled={isLoadingConversations}
+                className="h-7 px-2 text-xs"
+              >
+                {isLoadingConversations ? '...' : '↻'}
+              </Button>
+            </div>
+          </CardHeader>
 
           {error && (
-            <div className="mx-3 mt-3 p-2 rounded bg-destructive/20 text-destructive text-xs border border-destructive">
-              ❌ {error}
-            </div>
+            <Alert variant="destructive" className="mx-3 mt-3">
+              <AlertDescription className="text-xs">❌ {error}</AlertDescription>
+            </Alert>
           )}
 
-          <div className="flex-1 overflow-y-auto">
+          <ScrollArea className="flex-1">
             {conversations.length === 0 && !isLoadingConversations && (
               <div className="flex items-center justify-center py-8">
                 <span className="text-muted-foreground text-sm">Sin conversaciones</span>
@@ -584,29 +593,31 @@ export function ConversationsPanel({ config, crmConfig }: ConversationsPanelProp
               const isSelected = selectedConv === conv.id
 
               return (
-                <button
+                <Button
                   key={conv.id}
+                  variant="ghost"
                   onClick={() => fetchMessages(conv.id)}
-                  className={`w-full text-left p-3 border-b border-border transition-colors ${
-                    isSelected
-                      ? 'bg-green-600/20 border-l-2 border-l-green-600'
-                      : 'hover:bg-muted'
-                  }`}
+                  className={cn(
+                    'w-full justify-start h-auto p-3 border-b border-border rounded-none',
+                    isSelected && 'bg-green-600/20 text-green-600 dark:text-green-400 border-l-2 border-l-green-600'
+                  )}
                 >
-                  <div className="flex items-center gap-3">
-                    <div
-                      className={`size-10 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 ${
-                        conv.channel === 'WHATSAPP'
-                          ? 'bg-green-600 text-white'
-                          : 'bg-primary text-primary-foreground'
-                      }`}
-                    >
-                      {info.name.charAt(0).toUpperCase()}
-                    </div>
+                  <div className="flex items-center gap-3 w-full">
+                    <Avatar className="size-10 flex-shrink-0">
+                      <AvatarFallback
+                        className={cn(
+                          conv.channel === 'WHATSAPP'
+                            ? 'bg-green-600 text-white'
+                            : 'bg-primary text-primary-foreground'
+                        )}
+                      >
+                        {info.name.charAt(0).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
 
-                    <div className="flex-1 min-w-0">
+                    <div className="flex-1 min-w-0 text-left">
                       <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium text-foreground truncate">
+                        <span className="text-sm font-medium truncate">
                           {info.name}
                         </span>
                         <span className="text-xs text-muted-foreground flex-shrink-0 ml-2">
@@ -618,22 +629,22 @@ export function ConversationsPanel({ config, crmConfig }: ConversationsPanelProp
                         <span className="text-xs text-muted-foreground truncate">
                           {info.phone || info.email || 'Sin datos'}
                         </span>
-                        <span
-                          className={`text-xs px-1.5 py-0.5 rounded flex-shrink-0 ml-2 ${
-                            conv.channel === 'WHATSAPP'
-                              ? 'bg-green-600/20 text-green-600'
-                              : 'bg-primary/20 text-primary'
-                          }`}
+                        <Badge
+                          variant={conv.channel === 'WHATSAPP' ? 'default' : 'secondary'}
+                          className={cn(
+                            'text-xs px-1.5 py-0.5 flex-shrink-0 ml-2',
+                            conv.channel === 'WHATSAPP' && 'bg-green-600/20 text-green-600 hover:bg-green-600/30'
+                          )}
                         >
                           {conv.channel === 'WHATSAPP' ? 'WA' : 'EM'}
-                        </span>
+                        </Badge>
                       </div>
                     </div>
                   </div>
-                </button>
+                </Button>
               )
             })}
-          </div>
+          </ScrollArea>
         </div>
 
         {/* ── Right Panel: Messages ── */}
@@ -649,10 +660,11 @@ export function ConversationsPanel({ config, crmConfig }: ConversationsPanelProp
           ) : (
             <>
               {/* Header */}
-              <div className="p-4 border-b border-border bg-card">
+              <CardHeader className="p-4 border-b border-border bg-card">
                 <div className="flex items-center gap-3 justify-between">
-                  <div
-                    className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition"
+                  <Button
+                    variant="ghost"
+                    className="flex items-center gap-3 h-auto p-0 hover:opacity-80"
                     onClick={() => {
                       setSelectedContact(
                         selectedConvData?.contactId
@@ -662,17 +674,19 @@ export function ConversationsPanel({ config, crmConfig }: ConversationsPanelProp
                       setShowContactPanel(true)
                     }}
                   >
-                    <div
-                      className={`size-10 rounded-full flex items-center justify-center text-sm font-bold ${
-                        selectedConvData?.channel === 'WHATSAPP'
-                          ? 'bg-green-600 text-white'
-                          : 'bg-primary text-primary-foreground'
-                      }`}
-                    >
-                      {selectedContactInfo?.name?.charAt(0).toUpperCase() || '?'}
-                    </div>
+                    <Avatar className="size-10">
+                      <AvatarFallback
+                        className={cn(
+                          selectedConvData?.channel === 'WHATSAPP'
+                            ? 'bg-green-600 text-white'
+                            : 'bg-primary text-primary-foreground'
+                        )}
+                      >
+                        {selectedContactInfo?.name?.charAt(0).toUpperCase() || '?'}
+                      </AvatarFallback>
+                    </Avatar>
 
-                    <div>
+                    <div className="text-left">
                       <p className="text-sm font-semibold text-foreground">
                         {selectedContactInfo?.name || 'Contacto'}
                       </p>
@@ -682,119 +696,133 @@ export function ConversationsPanel({ config, crmConfig }: ConversationsPanelProp
                           ''}
                       </p>
                     </div>
-                  </div>
+                  </Button>
 
                   {/* Botón Iniciar/Cerrar */}
                   {!lockStatus?.isAttending ? (
-                    <button
+                    <Button
                       onClick={startAttending}
-                      className="px-3 py-1.5 rounded-lg text-sm font-medium bg-green-600 text-white hover:bg-green-500 transition-colors"
+                      className="bg-green-600 text-white hover:bg-green-500"
+                      size="sm"
                     >
                       🟢 Iniciar
-                    </button>
+                    </Button>
                   ) : lockStatus?.agentId === crmConfig?.userId ? (
-                    <button
+                    <Button
                       onClick={stopAttending}
-                      className="px-3 py-1.5 rounded-lg text-sm font-medium bg-red-600/40 text-red-300 border border-red-600/50 hover:bg-red-600/50 transition-colors"
+                      variant="destructive"
+                      size="sm"
+                      className="bg-red-600/40 text-red-300 border border-red-600/50 hover:bg-red-600/50"
                     >
                       🔴 Cerrar
-                    </button>
+                    </Button>
                   ) : null}
                 </div>
-              </div>
+              </CardHeader>
 
               {/* Banner - solo mostrar si está siendo atendida por OTRO agente */}
               {lockStatus?.isAttending && lockStatus?.agentId !== crmConfig?.userId && (
-                <div className="bg-warning/20 border-b border-warning p-4 flex items-center gap-2 text-warning text-sm">
+                <Alert className="rounded-none border-x-0 border-t-0 bg-warning/20 border-warning">
                   <Activity className="size-5" />
-                  <span className="font-medium">🔒 Atendiendo: {lockStatus.agentName}</span>
-                  <span className="text-xs ml-auto">Solo lectura</span>
-                </div>
+                  <AlertDescription className="flex items-center gap-2 text-warning text-sm">
+                    <span className="font-medium">🔒 Atendiendo: {lockStatus.agentName}</span>
+                    <span className="text-xs ml-auto">Solo lectura</span>
+                  </AlertDescription>
+                </Alert>
               )}
 
               {/* Messages area */}
-              <div className="flex-1 overflow-y-auto p-4 space-y-3">
-                {messages.length === 0 ? (
-                  <div className="flex items-center justify-center h-full">
-                    <p className="text-muted-foreground text-sm">
-                      Sin mensajes en esta conversación
-                    </p>
-                  </div>
-                ) : (
-                  messages.map(msg => (
-                    <div
-                      key={msg.id}
-                      className={`flex ${
-                        msg.direction === 'OUTBOUND' ? 'justify-end' : 'justify-start'
-                      }`}
-                    >
+              <ScrollArea className="flex-1 p-4">
+                <div className="space-y-3">
+                  {messages.length === 0 ? (
+                    <div className="flex items-center justify-center h-full">
+                      <p className="text-muted-foreground text-sm">
+                        Sin mensajes en esta conversación
+                      </p>
+                    </div>
+                  ) : (
+                    messages.map(msg => (
                       <div
-                        className={`max-w-md px-4 py-2.5 rounded-2xl text-sm ${
-                          msg.direction === 'OUTBOUND'
-                            ? 'bg-green-600 text-white rounded-br-md'
-                            : 'bg-muted text-foreground rounded-bl-md'
-                        }`}
+                        key={msg.id}
+                        className={cn(
+                          'flex',
+                          msg.direction === 'OUTBOUND' ? 'justify-end' : 'justify-start'
+                        )}
                       >
-                        <MessageContent message={msg} />
-
                         <div
-                          className={`flex items-center justify-end gap-2 mt-1 ${
+                          className={cn(
+                            'max-w-md px-4 py-2.5 rounded-2xl text-sm',
                             msg.direction === 'OUTBOUND'
-                              ? 'text-green-100'
-                              : 'text-muted-foreground'
-                          }`}
-                        >
-                          <span className="text-xs">{formatMsgTime(msg.sentAt)}</span>
-
-                          {msg.status && msg.direction === 'OUTBOUND' && (
-                            <span className="text-xs">
-                              {getMessageStatusIcon(msg.status)}
-                            </span>
+                              ? 'bg-green-600 text-white rounded-br-md'
+                              : 'bg-muted text-foreground rounded-bl-md'
                           )}
+                        >
+                          <MessageContent message={msg} />
+
+                          <div
+                            className={cn(
+                              'flex items-center justify-end gap-2 mt-1 text-xs',
+                              msg.direction === 'OUTBOUND'
+                                ? 'text-green-100'
+                                : 'text-muted-foreground'
+                            )}
+                          >
+                            <span>{formatMsgTime(msg.sentAt)}</span>
+
+                            {msg.status && msg.direction === 'OUTBOUND' && (
+                              <span>
+                                {getMessageStatusIcon(msg.status)}
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))
-                )}
-                <div ref={messagesEndRef} />
-              </div>
+                    ))
+                  )}
+                  <div ref={messagesEndRef} />
+                </div>
+              </ScrollArea>
 
               {/* Message Input - Solo mostrar si YO estoy atendiendo */}
               {lockStatus?.isAttending && lockStatus?.agentId === crmConfig?.userId ? (
-                <div className="p-4 border-t border-border bg-card">
+                <CardContent className="p-4 border-t border-border bg-card">
                   <div className="flex gap-2">
-                    <textarea
+                    <Textarea
                       value={newMessage}
                       onChange={e => setNewMessage(e.target.value)}
                       onKeyDown={handleKeyPress}
                       placeholder="Escribí un mensaje..."
                       rows={1}
-                      className="flex-1 rounded-lg border border-input bg-background px-3 py-2 text-foreground placeholder:text-muted-foreground focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500 resize-none min-h-[40px] max-h-[120px]"
+                      className="resize-none min-h-[40px] max-h-[120px]"
                     />
-                    <button
+                    <Button
                       onClick={sendMessage}
                       disabled={api.loading || !newMessage.trim() || !selectedConv}
-                      className="px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-500 disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+                      className="bg-green-600 text-white hover:bg-green-500"
                     >
                       {api.loading ? '◷' : '→'}
-                    </button>
+                    </Button>
                   </div>
-                </div>
+                </CardContent>
               ) : !lockStatus?.isAttending ? (
-                <div className="p-4 border-t border-border bg-card">
-                  <div className="p-3 rounded-lg bg-muted text-muted-foreground text-sm text-center border border-border">
-                    📖 Solo lectura - Hacé clic en <strong>"Iniciar"</strong> para
-                    atender esta conversación
-                  </div>
-                </div>
+                <CardContent className="p-4 border-t border-border bg-card">
+                  <Alert>
+                    <AlertDescription className="text-sm text-center">
+                      📖 Solo lectura - Hacé clic en <strong>"Iniciar"</strong> para
+                      atender esta conversación
+                    </AlertDescription>
+                  </Alert>
+                </CardContent>
               ) : (
-                <div className="p-4 border-t border-border bg-card">
-                  <div className="p-3 rounded-lg bg-warning/20 text-warning text-sm text-center border border-warning">
-                    🔒 Atendido por: <strong>{lockStatus?.agentName}</strong>
-                    <br />
-                    <span className="text-xs">Esperá a que cierre la atención</span>
-                  </div>
-                </div>
+                <CardContent className="p-4 border-t border-border bg-card">
+                  <Alert className="bg-warning/20 border-warning">
+                    <AlertDescription className="text-warning text-sm text-center">
+                      🔒 Atendido por: <strong>{lockStatus?.agentName}</strong>
+                      <br />
+                      <span className="text-xs">Esperá a que cierre la atención</span>
+                    </AlertDescription>
+                  </Alert>
+                </CardContent>
               )}
             </>
           )}
@@ -807,7 +835,7 @@ export function ConversationsPanel({ config, crmConfig }: ConversationsPanelProp
         onClose={() => setShowContactPanel(false)}
         contact={selectedContact}
       />
-    </div>
+    </Card>
   )
 }
 
