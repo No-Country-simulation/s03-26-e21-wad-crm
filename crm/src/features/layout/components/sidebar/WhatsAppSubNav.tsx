@@ -150,7 +150,7 @@ export function WhatsAppSubNav({
 
   if (collapsed) {
     return (
-      <nav className="flex-1 flex flex-col gap-1 px-2 py-4 overflow-y-auto">
+      <nav className="flex-1 flex flex-col gap-1 px-2 py-4 overflow-y-auto overflow-x-hidden">
         <Button
           variant="secondary"
           className={cn(
