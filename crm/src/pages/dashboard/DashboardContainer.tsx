@@ -16,6 +16,7 @@ import {
   AverageTotalSalesChart,
   SalesReportChart,
   PendingActionsList,
+  ResponseMetricsCard,
 } from './components'
 
 export function DashboardContainer() {
@@ -29,37 +30,6 @@ export function DashboardContainer() {
         <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
           Generate Report
         </button>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <MetricCard
-          title="Sales"
-          value={dashboardMetrics.sales.value}
-          change={dashboardMetrics.sales.change}
-          trend={dashboardMetrics.sales.trend}
-          comparison={dashboardMetrics.sales.comparison}
-        />
-        <MetricCard
-          title="Purchase"
-          value={dashboardMetrics.purchase.value}
-          change={dashboardMetrics.purchase.change}
-          trend={dashboardMetrics.purchase.trend}
-          comparison={dashboardMetrics.purchase.comparison}
-        />
-        <MetricCard
-          title="Return"
-          value={dashboardMetrics.return.value}
-          change={dashboardMetrics.return.change}
-          trend={dashboardMetrics.return.trend}
-          comparison={dashboardMetrics.return.comparison}
-        />
-        <MetricCard
-          title="Marketing"
-          value={dashboardMetrics.marketing.value}
-          change={dashboardMetrics.marketing.change}
-          trend={dashboardMetrics.marketing.trend}
-          comparison={dashboardMetrics.marketing.comparison}
-        />
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
@@ -101,14 +71,14 @@ export function DashboardContainer() {
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <SalesFiguresChart data={salesFiguresData} />
-        <VisitorsCard data={visitorsData} chartData={salesFiguresData} />
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <AverageTotalSalesChart data={averageTotalSalesData} />
-        <SalesReportChart data={salesReportData} />
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+        <div className="lg:col-span-3">
+          <SalesFiguresChart data={salesFiguresData} />
+        </div>
+        <div className="lg:col-span-2 flex flex-col gap-6">
+          <AverageTotalSalesChart data={averageTotalSalesData} />
+          <ResponseMetricsCard />
+        </div>
       </div>
 
       <PendingActionsList actions={pendingActions} />

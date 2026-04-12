@@ -24,7 +24,7 @@ export const mockNotifications: Notification[] = [
     id: '4',
     type: 'info',
     message: 'Recordatorio: Reunión en 30 minutos',
-    section: 'calendar' as TabKey,
+    section: 'appointments' as TabKey,
   },
   {
     id: '5',

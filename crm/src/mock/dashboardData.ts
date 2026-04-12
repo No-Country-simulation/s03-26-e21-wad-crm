@@ -26,24 +26,24 @@ export const dashboardMetrics = {
 }
 
 export const salesFiguresData = [
-  { month: 'Jan', marketingSales: 400, casesSales: 240 },
-  { month: 'Feb', marketingSales: 300, casesSales: 139 },
-  { month: 'Mar', marketingSales: 200, casesSales: 980 },
-  { month: 'Apr', marketingSales: 278, casesSales: 390 },
-  { month: 'May', marketingSales: 189, casesSales: 480 },
-  { month: 'Jun', marketingSales: 239, casesSales: 380 },
-  { month: 'Jul', marketingSales: 349, casesSales: 430 },
-  { month: 'Aug', marketingSales: 400, casesSales: 240 },
-  { month: 'Sep', marketingSales: 300, casesSales: 139 },
-  { month: 'Oct', marketingSales: 200, casesSales: 980 },
-  { month: 'Nov', marketingSales: 278, casesSales: 390 },
-  { month: 'Dec', marketingSales: 189, casesSales: 480 },
+  { month: 'Ene', marketingSales: 420, casesSales: 340 },
+  { month: 'Feb', marketingSales: 380, casesSales: 290 },
+  { month: 'Mar', marketingSales: 510, casesSales: 420 },
+  { month: 'Abr', marketingSales: 480, casesSales: 390 },
+  { month: 'May', marketingSales: 550, casesSales: 460 },
+  { month: 'Jun', marketingSales: 620, casesSales: 510 },
+  { month: 'Jul', marketingSales: 590, casesSales: 480 },
+  { month: 'Ago', marketingSales: 640, casesSales: 520 },
+  { month: 'Sep', marketingSales: 680, casesSales: 560 },
+  { month: 'Oct', marketingSales: 720, casesSales: 590 },
+  { month: 'Nov', marketingSales: 760, casesSales: 630 },
+  { month: 'Dic', marketingSales: 800, casesSales: 670 },
 ]
 
 export const averageTotalSalesData = [
-  { name: 'Cases', value: 92980, percentage: 46 },
-  { name: 'Applications', value: 28546, percentage: 74 },
-  { name: 'Products', value: 14008, percentage: 14 },
+  { name: 'Activos', value: 1247, percentage: 62 },
+  { name: 'Leads', value: 485, percentage: 24 },
+  { name: 'Inactivos', value: 268, percentage: 14 },
 ]
 
 export const salesReportData = [

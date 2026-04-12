@@ -1,28 +1,31 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
-type Theme = 'light' | 'dark'
+type Theme = 'light' | 'dark' | 'system'
 
 interface ThemeStore {
   theme: Theme
-  toggleTheme: () => void
   setTheme: (theme: Theme) => void
+}
+
+const applyTheme = (theme: Theme) => {
+  if (theme === 'system') {
+    const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+    const effectiveTheme = isDark ? 'dark' : 'light'
+    document.documentElement.classList.remove('light', 'dark')
+    document.documentElement.classList.add(effectiveTheme)
+  } else {
+    document.documentElement.classList.remove('light', 'dark')
+    document.documentElement.classList.add(theme)
+  }
 }
 
 export const useThemeStore = create<ThemeStore>()(
   persist(
     (set) => ({
-      theme: 'dark',
-      toggleTheme: () =>
-        set((state) => {
-          const newTheme = state.theme === 'dark' ? 'light' : 'dark'
-          document.documentElement.classList.remove('light', 'dark')
-          document.documentElement.classList.add(newTheme)
-          return { theme: newTheme }
-        }),
+      theme: 'system',
       setTheme: (theme) => {
-        document.documentElement.classList.remove('light', 'dark')
-        document.documentElement.classList.add(theme)
+        applyTheme(theme)
         set({ theme })
       },
     }),
@@ -30,8 +33,7 @@ export const useThemeStore = create<ThemeStore>()(
       name: 'theme-storage',
       onRehydrateStorage: () => (state) => {
         if (state) {
-          document.documentElement.classList.remove('light', 'dark')
-          document.documentElement.classList.add(state.theme)
+          applyTheme(state.theme)
         }
       },
     }

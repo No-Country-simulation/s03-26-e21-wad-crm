@@ -1,4 +1,4 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ResponsiveContainer, LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip } from 'recharts'
 import { ChartDataPoint } from '../types'
 
@@ -10,20 +10,20 @@ export function SalesFiguresChart({ data }: SalesFiguresChartProps) {
   return (
     <Card className="lg:col-span-2">
       <CardHeader>
-        <CardTitle>Sales Figures</CardTitle>
+        <CardTitle>Actividad de Contactos</CardTitle>
         <div className="flex gap-4 mt-2">
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full bg-blue-500" />
-            <span className="text-sm text-slate-500">Marketing Sales</span>
+            <span className="text-sm text-slate-500">Mensajes enviados</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full bg-emerald-500" />
-            <span className="text-sm text-slate-500">Cases Sales</span>
+            <span className="text-sm text-slate-500">Conversaciones activas</span>
           </div>
         </div>
       </CardHeader>
       <CardContent>
-        <div className="h-80">
+        <div className="h-[600px]">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={data}>
               <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
@@ -42,6 +42,7 @@ export function SalesFiguresChart({ data }: SalesFiguresChartProps) {
                 stroke="#3b82f6"
                 strokeWidth={2}
                 dot={{ fill: '#3b82f6' }}
+                name="Mensajes"
               />
               <Line
                 type="monotone"
@@ -49,6 +50,7 @@ export function SalesFiguresChart({ data }: SalesFiguresChartProps) {
                 stroke="#10b981"
                 strokeWidth={2}
                 dot={{ fill: '#10b981' }}
+                name="Conversaciones"
               />
             </LineChart>
           </ResponsiveContainer>

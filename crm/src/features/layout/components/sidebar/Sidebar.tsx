@@ -5,6 +5,7 @@ import { SidebarProps, NavItem } from './types'
 import { cn } from '@/lib/utils'
 import { SidebarNav } from './SidebarNav'
 import { WhatsAppSubNav } from './WhatsAppSubNav'
+import { SidebarFooter } from './SidebarFooter'
 
 interface SidebarHeaderProps {
   collapsed: boolean
@@ -154,6 +155,8 @@ export function Sidebar({
         onSearchChange={setSearchQuery}
         onExpandAndFocus={toggleCollapse}
       />
+
+      <SidebarFooter collapsed={collapsed} />
     </aside>
   )
 }

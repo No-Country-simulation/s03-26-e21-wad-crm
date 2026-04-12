@@ -2,9 +2,11 @@ import { Bell } from 'lucide-react'
 import { EventTickerProps } from './types'
 import { useEventTicker } from './useEventTicker'
 import { EventTickerItem } from './EventTickerItem'
+import { useState } from 'react'
 
 export function EventTicker({ data, interval = 40000, onNotificationClick }: EventTickerProps) {
   const { notifications, handleNotificationClick } = useEventTicker(data, onNotificationClick)
+  const [isPaused, setIsPaused] = useState(false)
 
   const renderNotification = (notification: typeof notifications[0], index: number, isDuplicate = false) => (
     <div key={`${isDuplicate ? 'dup-' : ''}${notification.id}-${index}`} className="inline-flex items-center">
@@ -42,6 +44,8 @@ export function EventTicker({ data, interval = 40000, onNotificationClick }: Eve
 
         <div 
           className="flex-1 overflow-hidden"
+          onMouseEnter={() => setIsPaused(true)}
+          onMouseLeave={() => setIsPaused(false)}
           style={{
             WebkitMaskImage: 'linear-gradient(90deg, transparent, currentColor 5%, currentColor 95%, transparent)',
             maskImage: 'linear-gradient(90deg, transparent, currentColor 5%, currentColor 95%, transparent)',
@@ -49,7 +53,9 @@ export function EventTicker({ data, interval = 40000, onNotificationClick }: Eve
         >
           <div 
             className="inline-flex items-center"
-            style={{ animation: `ticker-scroll ${interval}ms linear infinite` }}
+            style={{ 
+              animation: isPaused ? 'none' : `ticker-scroll ${interval}ms linear infinite`
+            }}
           >
             {notifications.map((notif, index) => renderNotification(notif, index))}
             {notifications.map((notif, index) => renderNotification(notif, index, true))}

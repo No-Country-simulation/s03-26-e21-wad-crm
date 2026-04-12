@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { TooltipProvider } from '@/components/ui/tooltip'
 import { useAuthStore } from './features/auth/store'
 import { TABS } from './utils/constants'
 import type { TabKey } from './types'
@@ -15,6 +16,13 @@ import { MainLayout } from './features/layout'
 function AppContent() {
   const { user, isAuthenticated, isLoading } = useAuthStore()
   const [activeTab, setActiveTab] = useState<TabKey>(TABS.DASHBOARD)
+
+  const ALLOWED_TABS: TabKey[] = [TABS.DASHBOARD, TABS.CONTACTS, TABS.DEALS, TABS.TASKS, TABS.APPOINTMENTS, TABS.WHATSAPP, TABS.SETTINGS]
+
+  const handleTabChange = (tab: TabKey) => {
+    const validTab = ALLOWED_TABS.includes(tab) ? tab : TABS.DASHBOARD
+    setActiveTab(validTab)
+  }
 
   if (isLoading) {
     return (
@@ -52,10 +60,10 @@ function AppContent() {
   return (
     <MainLayout 
       activeTab={activeTab} 
-      onTabChange={setActiveTab}
+      onTabChange={handleTabChange}
       userRole={user!.role}
       userName={user!.name}
-      allowedTabs={[TABS.DASHBOARD, TABS.CONTACTS, TABS.DEALS, TABS.TASKS, TABS.APPOINTMENTS, TABS.WHATSAPP, TABS.SETTINGS]}
+      allowedTabs={ALLOWED_TABS}
       onLogout={() => useAuthStore.getState().logout()}
       connectionStatus="connected"
     >
@@ -65,7 +73,11 @@ function AppContent() {
 }
 
 function App() {
-  return <AppContent />
+  return (
+    <TooltipProvider>
+      <AppContent />
+    </TooltipProvider>
+  )
 }
 
 export default App

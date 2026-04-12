@@ -14,7 +14,7 @@ export function SalesReportChart({ data }: SalesReportChartProps) {
         <p className="text-sm text-slate-500">2017-2018</p>
       </CardHeader>
       <CardContent>
-        <div className="h-80">
+        <div className="w-full h-80" style={{ minWidth: 0 }}>
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={data}>
               <CartesianGrid strokeDasharray="3 3" stroke="#334155" />

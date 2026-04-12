@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Send, Paperclip, Smile } from 'lucide-react'
-import { Button } from '@/shared/ui/button'
-import { Input } from '@/shared/ui/input'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { MessageInputProps } from '../types'
 
 export function MessageInput({ onSend }: MessageInputProps) {

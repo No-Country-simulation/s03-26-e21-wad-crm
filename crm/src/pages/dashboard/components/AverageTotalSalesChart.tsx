@@ -1,4 +1,4 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { AverageSalesData } from '../types'
 
 const COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444']
@@ -11,11 +11,11 @@ export function AverageTotalSalesChart({ data }: AverageTotalSalesChartProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Average Total Sales</CardTitle>
-        <p className="text-sm text-slate-500">2017-2018</p>
+        <CardTitle>Distribución de Contactos</CardTitle>
+        <p className="text-sm text-slate-500">Por estado</p>
       </CardHeader>
       <CardContent>
-        <div className="flex items-center justify-around">
+        <div className="flex flex-col md:flex-row items-center justify-around gap-6">
           {data.map((item, index) => (
             <div key={item.name} className="flex flex-col items-center">
               <div className="relative w-24 h-24">
@@ -47,10 +47,10 @@ export function AverageTotalSalesChart({ data }: AverageTotalSalesChartProps) {
                 </div>
               </div>
               <div className="mt-2 text-center">
-                <p className="text-2xl font-bold text-slate-900 dark:text-white">
+                <p className="text-[clamp(1.25rem,2vw,1.5rem)] font-bold text-slate-900 dark:text-white">
                   {item.value.toLocaleString()}
                 </p>
-                <p className="text-sm text-slate-500">{item.name}</p>
+                <p className="text-[clamp(0.75rem,1.5vw,0.875rem)] text-slate-500">{item.name}</p>
               </div>
             </div>
           ))}

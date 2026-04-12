@@ -1,5 +1,5 @@
 import { Phone, Video, MoreVertical, ArrowLeft } from 'lucide-react'
-import { Button } from '@/shared/ui/button'
+import { Button } from '@/components/ui/button'
 import { ConversationHeaderProps } from '../types'
 
 export function ConversationHeader({ conversation, onBack }: ConversationHeaderProps) {

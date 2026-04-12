@@ -546,28 +546,28 @@ export function ConversationsPanel({ config, crmConfig }: ConversationsPanelProp
 
   return (
     <div
-      className="rounded-xl border border-slate-700 bg-slate-800/50 overflow-hidden"
+      className="rounded-xl border border-border bg-card overflow-hidden"
       style={{ height: 'calc(100vh - 200px)', minHeight: '500px' }}
     >
       <div className="flex h-full">
         {/* ── Left Sidebar: Conversations List ── */}
-        <div className="w-80 border-r border-slate-700 bg-slate-900/50 flex flex-col">
-          <div className="p-4 border-b border-slate-700 flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-white flex items-center gap-2">
-              <MessageCircle className="w-4 h-4 text-green-400" />
+        <div className="w-80 border-r border-border bg-card flex flex-col">
+          <div className="p-4 border-b border-border flex items-center justify-between">
+            <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
+              <MessageCircle className="w-4 h-4 text-green-600" />
               Conversaciones
             </h2>
             <button
               onClick={() => fetchConversations()}
               disabled={isLoadingConversations}
-              className="px-2 py-1 rounded bg-slate-700 text-slate-300 text-xs hover:bg-slate-600 disabled:opacity-50 transition-colors"
+              className="px-2 py-1 rounded bg-secondary text-secondary-foreground text-xs hover:bg-secondary/80 disabled:opacity-50 transition-colors"
             >
               {isLoadingConversations ? '...' : '↻'}
             </button>
           </div>
 
           {error && (
-            <div className="mx-3 mt-3 p-2 rounded bg-red-900/30 text-red-300 text-xs border border-red-700">
+            <div className="mx-3 mt-3 p-2 rounded bg-destructive/20 text-destructive text-xs border border-destructive">
               ❌ {error}
             </div>
           )}
@@ -575,7 +575,7 @@ export function ConversationsPanel({ config, crmConfig }: ConversationsPanelProp
           <div className="flex-1 overflow-y-auto">
             {conversations.length === 0 && !isLoadingConversations && (
               <div className="flex items-center justify-center py-8">
-                <span className="text-slate-500 text-sm">Sin conversaciones</span>
+                <span className="text-muted-foreground text-sm">Sin conversaciones</span>
               </div>
             )}
 
@@ -587,18 +587,18 @@ export function ConversationsPanel({ config, crmConfig }: ConversationsPanelProp
                 <button
                   key={conv.id}
                   onClick={() => fetchMessages(conv.id)}
-                  className={`w-full text-left p-3 border-b border-slate-800 transition-colors ${
+                  className={`w-full text-left p-3 border-b border-border transition-colors ${
                     isSelected
-                      ? 'bg-green-900/20 border-l-2 border-l-green-500'
-                      : 'hover:bg-slate-800/50'
+                      ? 'bg-green-600/20 border-l-2 border-l-green-600'
+                      : 'hover:bg-muted'
                   }`}
                 >
                   <div className="flex items-center gap-3">
                     <div
-                      className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 ${
+                      className={`size-10 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 ${
                         conv.channel === 'WHATSAPP'
-                          ? 'bg-green-700 text-white'
-                          : 'bg-blue-700 text-white'
+                          ? 'bg-green-600 text-white'
+                          : 'bg-primary text-primary-foreground'
                       }`}
                     >
                       {info.name.charAt(0).toUpperCase()}
@@ -606,23 +606,23 @@ export function ConversationsPanel({ config, crmConfig }: ConversationsPanelProp
 
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium text-white truncate">
+                        <span className="text-sm font-medium text-foreground truncate">
                           {info.name}
                         </span>
-                        <span className="text-xs text-slate-500 flex-shrink-0 ml-2">
+                        <span className="text-xs text-muted-foreground flex-shrink-0 ml-2">
                           {conv.lastMessageAt ? formatMsgTime(conv.lastMessageAt) : ''}
                         </span>
                       </div>
 
                       <div className="flex items-center justify-between mt-0.5">
-                        <span className="text-xs text-slate-400 truncate">
+                        <span className="text-xs text-muted-foreground truncate">
                           {info.phone || info.email || 'Sin datos'}
                         </span>
                         <span
                           className={`text-xs px-1.5 py-0.5 rounded flex-shrink-0 ml-2 ${
                             conv.channel === 'WHATSAPP'
-                              ? 'bg-green-900/40 text-green-400'
-                              : 'bg-blue-900/40 text-blue-400'
+                              ? 'bg-green-600/20 text-green-600'
+                              : 'bg-primary/20 text-primary'
                           }`}
                         >
                           {conv.channel === 'WHATSAPP' ? 'WA' : 'EM'}
@@ -637,19 +637,19 @@ export function ConversationsPanel({ config, crmConfig }: ConversationsPanelProp
         </div>
 
         {/* ── Right Panel: Messages ── */}
-        <div className="flex-1 flex flex-col bg-slate-900/30">
+        <div className="flex-1 flex flex-col bg-muted/30">
           {!selectedConv ? (
             <div className="flex-1 flex items-center justify-center">
               <div className="text-center">
-                <MessageCircle className="w-16 h-16 text-slate-700 mx-auto mb-4" />
-                <p className="text-slate-500 text-lg">Seleccioná una conversación</p>
-                <p className="text-slate-600 text-sm mt-1">Elegí un contacto de la lista izquierda</p>
+                <MessageCircle className="size-16 text-muted-foreground mx-auto mb-4" />
+                <p className="text-muted-foreground text-lg">Seleccioná una conversación</p>
+                <p className="text-muted-foreground text-sm mt-1">Elegí un contacto de la lista izquierda</p>
               </div>
             </div>
           ) : (
             <>
               {/* Header */}
-              <div className="p-4 border-b border-slate-700 bg-slate-800/50">
+              <div className="p-4 border-b border-border bg-card">
                 <div className="flex items-center gap-3 justify-between">
                   <div
                     className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition"
@@ -663,20 +663,20 @@ export function ConversationsPanel({ config, crmConfig }: ConversationsPanelProp
                     }}
                   >
                     <div
-                      className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold ${
+                      className={`size-10 rounded-full flex items-center justify-center text-sm font-bold ${
                         selectedConvData?.channel === 'WHATSAPP'
-                          ? 'bg-green-700 text-white'
-                          : 'bg-blue-700 text-white'
+                          ? 'bg-green-600 text-white'
+                          : 'bg-primary text-primary-foreground'
                       }`}
                     >
                       {selectedContactInfo?.name?.charAt(0).toUpperCase() || '?'}
                     </div>
 
                     <div>
-                      <p className="text-sm font-semibold text-white">
+                      <p className="text-sm font-semibold text-foreground">
                         {selectedContactInfo?.name || 'Contacto'}
                       </p>
-                      <p className="text-xs text-slate-400">
+                      <p className="text-xs text-muted-foreground">
                         {selectedContactInfo?.phone ||
                           selectedContactInfo?.email ||
                           ''}
@@ -705,10 +705,10 @@ export function ConversationsPanel({ config, crmConfig }: ConversationsPanelProp
 
               {/* Banner - solo mostrar si está siendo atendida por OTRO agente */}
               {lockStatus?.isAttending && lockStatus?.agentId !== crmConfig?.userId && (
-                <div className="bg-yellow-900/40 border-b border-yellow-700 p-4 flex items-center gap-2 text-yellow-300 text-sm">
-                  <Activity className="w-5 h-5 text-yellow-400" />
+                <div className="bg-warning/20 border-b border-warning p-4 flex items-center gap-2 text-warning text-sm">
+                  <Activity className="size-5" />
                   <span className="font-medium">🔒 Atendiendo: {lockStatus.agentName}</span>
-                  <span className="text-xs text-yellow-400 ml-auto">Solo lectura</span>
+                  <span className="text-xs ml-auto">Solo lectura</span>
                 </div>
               )}
 
@@ -716,7 +716,7 @@ export function ConversationsPanel({ config, crmConfig }: ConversationsPanelProp
               <div className="flex-1 overflow-y-auto p-4 space-y-3">
                 {messages.length === 0 ? (
                   <div className="flex items-center justify-center h-full">
-                    <p className="text-slate-500 text-sm">
+                    <p className="text-muted-foreground text-sm">
                       Sin mensajes en esta conversación
                     </p>
                   </div>
@@ -731,8 +731,8 @@ export function ConversationsPanel({ config, crmConfig }: ConversationsPanelProp
                       <div
                         className={`max-w-md px-4 py-2.5 rounded-2xl text-sm ${
                           msg.direction === 'OUTBOUND'
-                            ? 'bg-green-700 text-white rounded-br-md'
-                            : 'bg-slate-700 text-white rounded-bl-md'
+                            ? 'bg-green-600 text-white rounded-br-md'
+                            : 'bg-muted text-foreground rounded-bl-md'
                         }`}
                       >
                         <MessageContent message={msg} />
@@ -740,8 +740,8 @@ export function ConversationsPanel({ config, crmConfig }: ConversationsPanelProp
                         <div
                           className={`flex items-center justify-end gap-2 mt-1 ${
                             msg.direction === 'OUTBOUND'
-                              ? 'text-green-200'
-                              : 'text-slate-400'
+                              ? 'text-green-100'
+                              : 'text-muted-foreground'
                           }`}
                         >
                           <span className="text-xs">{formatMsgTime(msg.sentAt)}</span>
@@ -761,7 +761,7 @@ export function ConversationsPanel({ config, crmConfig }: ConversationsPanelProp
 
               {/* Message Input - Solo mostrar si YO estoy atendiendo */}
               {lockStatus?.isAttending && lockStatus?.agentId === crmConfig?.userId ? (
-                <div className="p-4 border-t border-slate-700 bg-slate-800/50">
+                <div className="p-4 border-t border-border bg-card">
                   <div className="flex gap-2">
                     <textarea
                       value={newMessage}
@@ -769,7 +769,7 @@ export function ConversationsPanel({ config, crmConfig }: ConversationsPanelProp
                       onKeyDown={handleKeyPress}
                       placeholder="Escribí un mensaje..."
                       rows={1}
-                      className="flex-1 rounded-lg border border-slate-600 bg-slate-900 px-3 py-2 text-white placeholder-slate-500 focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500 resize-none min-h-[40px] max-h-[120px]"
+                      className="flex-1 rounded-lg border border-input bg-background px-3 py-2 text-foreground placeholder:text-muted-foreground focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500 resize-none min-h-[40px] max-h-[120px]"
                     />
                     <button
                       onClick={sendMessage}
@@ -781,15 +781,15 @@ export function ConversationsPanel({ config, crmConfig }: ConversationsPanelProp
                   </div>
                 </div>
               ) : !lockStatus?.isAttending ? (
-                <div className="p-4 border-t border-slate-700 bg-slate-800/50">
-                  <div className="p-3 rounded-lg bg-slate-700/50 text-slate-400 text-sm text-center border border-slate-600">
+                <div className="p-4 border-t border-border bg-card">
+                  <div className="p-3 rounded-lg bg-muted text-muted-foreground text-sm text-center border border-border">
                     📖 Solo lectura - Hacé clic en <strong>"Iniciar"</strong> para
                     atender esta conversación
                   </div>
                 </div>
               ) : (
-                <div className="p-4 border-t border-slate-700 bg-slate-800/50">
-                  <div className="p-3 rounded-lg bg-yellow-900/20 text-yellow-300 text-sm text-center border border-yellow-700">
+                <div className="p-4 border-t border-border bg-card">
+                  <div className="p-3 rounded-lg bg-warning/20 text-warning text-sm text-center border border-warning">
                     🔒 Atendido por: <strong>{lockStatus?.agentName}</strong>
                     <br />
                     <span className="text-xs">Esperá a que cierre la atención</span>
