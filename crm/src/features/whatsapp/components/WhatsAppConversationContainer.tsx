@@ -8,7 +8,7 @@ export function WhatsAppConversationContainer({ conversation, onBack }: WhatsApp
   const { messages, sendMessage } = useWhatsAppConversation(conversation)
 
   return (
-    <div className="flex flex-col h-full bg-slate-50 dark:bg-slate-950">
+    <div className="flex flex-col h-full bg-background">
       <ConversationMessages messages={messages} conversation={conversation} />
       <MessageInput onSend={sendMessage} />
     </div>

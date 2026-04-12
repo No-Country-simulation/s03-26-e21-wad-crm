@@ -1,9 +1,36 @@
 export interface Message {
   id: string
   content: string
-  direction: 'inbound' | 'outbound'
+  body: string
+  direction: 'inbound' | 'outbound' | 'INBOUND' | 'OUTBOUND'
   timestamp: Date
-  status?: 'sent' | 'delivered' | 'read' | 'failed'
+  sentAt: string
+  status?: 'sent' | 'delivered' | 'read' | 'failed' | 'SENT' | 'DELIVERED' | 'READ' | 'FAILED' | 'PENDING'
+  type?: 'text' | 'image' | 'audio' | 'video' | 'document' | 'sticker'
+  mediaUrl?: string
+  mimeType?: string
+  caption?: string
+}
+
+export interface Conversation {
+  id: string
+  contactId: string
+  channel: 'WHATSAPP' | 'EMAIL'
+  lastMessageAt?: string
+  messageCount?: number
+}
+
+export interface ContactInfo {
+  id: string
+  name: string
+  email?: string
+  phone?: string
+}
+
+export interface LockStatus {
+  isAttending: boolean
+  agentId?: string
+  agentName?: string
 }
 
 export interface ConversationData {

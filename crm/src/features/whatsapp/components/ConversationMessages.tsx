@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Message, ConversationData } from '../types'
 import { MessageBubble } from './MessageBubble'
@@ -8,12 +9,21 @@ interface ConversationMessagesProps {
 }
 
 export function ConversationMessages({ messages }: ConversationMessagesProps) {
+  const messagesEndRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' })
+    }
+  }, [messages])
+
   return (
     <ScrollArea className="flex-1 p-4">
       <div className="space-y-4">
         {messages.map((message) => (
           <MessageBubble key={message.id} message={message} />
         ))}
+        <div ref={messagesEndRef} />
       </div>
     </ScrollArea>
   )

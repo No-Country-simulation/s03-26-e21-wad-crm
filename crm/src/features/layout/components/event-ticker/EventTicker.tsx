@@ -23,7 +23,7 @@ export function EventTicker({ data, interval = 40000, onNotificationClick }: Eve
   if (notifications.length === 0) {
     return (
       <footer className="border-t border-border bg-muted/50">
-        <div className="flex items-center px-4 h-10">
+        <div className="flex items-center px-4 py-3">
           <div className="flex-shrink-0 mr-3">
             <Bell className="size-4 text-muted-foreground" />
           </div>
@@ -37,7 +37,7 @@ export function EventTicker({ data, interval = 40000, onNotificationClick }: Eve
 
   return (
     <footer className="border-t border-border bg-muted/50">
-      <div className="flex items-center px-4 h-10">
+      <div className="flex items-center px-4 py-3">
         <div className="flex-shrink-0 mr-3">
           <Bell className="size-4 text-muted-foreground" />
         </div>
