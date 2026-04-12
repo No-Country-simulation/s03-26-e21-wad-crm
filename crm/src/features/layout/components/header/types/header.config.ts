@@ -22,6 +22,7 @@ export const STATUS_CONFIG = {
 
 export const ROLE_CONFIG: Record<RoleType, { color: string }> = {
   ADMIN: { color: 'bg-red-600' },
+  MANAGER: { color: 'bg-purple-600' },
   AGENT: { color: 'bg-blue-600' },
   USER: { color: 'bg-green-600' },
   VIEWER: { color: 'bg-slate-600' },

@@ -64,8 +64,8 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: prod
       DB_URL: jdbc:postgresql://postgres:5432/crm_db
-      DB_USERNAME: crm_user
-      DB_PASSWORD: crm_pass
+      DB_USERNAME: postgres
+      DB_PASSWORD: Pino2026!
       REDIS_HOST: redis
       REDIS_PORT: 6379
       SPRING_DATA_MONGODB_URI: mongodb://mongoadmin:MongoAdmin2026!@mongodb:27017/crm_data

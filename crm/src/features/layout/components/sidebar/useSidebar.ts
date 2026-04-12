@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { SidebarProps, NavItem, Conversation } from './types'
 import { NAV_ITEMS, MOCK_CONVERSATIONS } from './constants'
 import { useMediaQuery } from '@/hooks/useMediaQuery'
@@ -35,6 +35,13 @@ export function useSidebar({
   
   const activeConversationId = externalActiveConversationId ?? internalActiveConversationId
   const isMobile = useMediaQuery('(max-width: 768px)')
+
+  useEffect(() => {
+    if (activeSubmenu && !activeTab.startsWith(activeSubmenu)) {
+      setActiveSubmenu(null)
+      setSearchQuery('')
+    }
+  }, [activeTab, activeSubmenu])
 
   const filteredItems = useMemo(() => {
     return NAV_ITEMS.filter(item => allowedTabs.includes(item.id))

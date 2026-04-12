@@ -35,34 +35,29 @@ services:
     networks:
       - crm_network
 
-  app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: crm_app
-    ports:
-      - "8080:8080"
+  mongodb:
+    image: mongo:7
+    container_name: crm_mongodb
     environment:
-      SPRING_PROFILES_ACTIVE: prod
-      DB_URL: jdbc:postgresql://postgres:5432/crm_db
-      DB_USERNAME: postgres
-      DB_PASSWORD: Pino2026!
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
-      ENCRYPTION_KEY: ${ENCRYPTION_KEY:-change-me-in-production}
-      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
+      MONGO_INITDB_DATABASE: crm_data
+      MONGO_INITDB_ROOT_USERNAME: mongoadmin
+      MONGO_INITDB_ROOT_PASSWORD: MongoAdmin2026!
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
       - crm_network
 
 volumes:
   postgres_data:
   redis_data:
+  mongodb_data:
 
 networks:
   crm_network:
