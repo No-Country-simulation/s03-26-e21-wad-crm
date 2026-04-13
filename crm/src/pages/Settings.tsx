@@ -1,25 +1,14 @@
-import { useState } from 'react';
 import { useAuthStore } from '../features/auth/store';
 import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
-
-type SettingsTab = 'profile' | 'integrations' | 'roles' | 'agents' | 'templates' | 'business';
+import { Card, CardContent } from '@/shared/ui/card';
+import { useSettings } from '@/contexts/SettingsContext';
+import { WhatsAppConfigPage } from '@/features/whatsapp/config/components/WhatsAppConfigPage';
+import { EmailConfigPage } from '@/features/email/components/EmailConfigPage';
 
 export function Settings() {
   const { user, hasPermission } = useAuthStore();
-  const [activeTab, setActiveTab] = useState<SettingsTab>('profile');
-
-  const tabs = [
-    { id: 'profile', label: 'Perfil', icon: '👤', permission: null },
-    { id: 'integrations', label: 'Integraciones', icon: '🔌', permission: 'settings:read' },
-    { id: 'roles', label: 'Roles y Permisos', icon: '🔐', permission: 'settings:write' },
-    { id: 'agents', label: 'Agentes', icon: '👥', permission: 'settings:read' },
-    { id: 'templates', label: 'Plantillas', icon: '📝', permission: 'settings:write' },
-    { id: 'business', label: 'Negocio', icon: '🏢', permission: 'settings:write' },
-  ];
-
-  const visibleTabs = tabs.filter(t => !t.permission || hasPermission(t.permission));
+  const { activeSection } = useSettings();
 
   return (
     <div className="p-6">
@@ -28,34 +17,18 @@ export function Settings() {
         <p className="text-gray-500">Administra tu cuenta y preferencias</p>
       </div>
 
-      <div className="flex gap-6">
-        <div className="w-56 shrink-0">
-          <nav className="space-y-1">
-            {visibleTabs.map(tab => (
-              <Button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id as SettingsTab)}
-                variant={activeTab === tab.id ? 'default' : 'ghost'}
-                className="w-full justify-start px-4 py-2.5 text-left"
-              >
-                <span className="mr-3">{tab.icon}</span>
-                {tab.label}
-              </Button>
-            ))}
-          </nav>
-        </div>
-
-        <Card className="flex-1">
-          <CardContent className="p-6">
-            {activeTab === 'profile' && <ProfileSettings user={user} />}
-            {activeTab === 'integrations' && hasPermission('settings:read') && <IntegrationSettings />}
-            {activeTab === 'roles' && hasPermission('settings:write') && <RolesSettings />}
-            {activeTab === 'agents' && <AgentsSettings />}
-            {activeTab === 'templates' && hasPermission('settings:write') && <TemplatesSettings />}
-            {activeTab === 'business' && hasPermission('settings:write') && <BusinessSettings />}
-          </CardContent>
-        </Card>
-      </div>
+      <Card>
+        <CardContent className="p-6">
+          {activeSection === 'profile' && <ProfileSettings user={user} />}
+          {activeSection === 'whatsapp-config' && hasPermission('settings:read') && <WhatsAppConfigPage />}
+          {activeSection === 'email-config' && hasPermission('settings:read') && <EmailConfigPage />}
+          {activeSection === 'webhooks' && hasPermission('settings:read') && <WebhooksSettings />}
+          {activeSection === 'roles' && hasPermission('settings:write') && <RolesSettings />}
+          {activeSection === 'agents' && <AgentsSettings />}
+          {activeSection === 'templates' && hasPermission('settings:write') && <TemplatesSettings />}
+          {activeSection === 'business' && hasPermission('settings:write') && <BusinessSettings />}
+        </CardContent>
+      </Card>
     </div>
   );
 }
@@ -110,61 +83,21 @@ function ProfileSettings({ user }: { user: any }) {
   );
 }
 
-function IntegrationSettings() {
+function WebhooksSettings() {
   return (
     <div className="space-y-6">
-      <h2 className="text-lg font-semibold">Integraciones</h2>
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-semibold">Webhooks</h2>
+        <Button size="sm">+ Agregar Webhook</Button>
+      </div>
       
       <Card>
         <CardContent className="pt-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <span className="text-2xl">📱</span>
-              <div>
-                <p className="font-medium">WhatsApp Business</p>
-                <p className="text-sm text-gray-500">Conecta tu número de WhatsApp Business</p>
-              </div>
-            </div>
-            <span className="px-3 py-1 bg-green-100 text-green-700 rounded text-sm">Conectado</span>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <Input type="text" placeholder="Phone Number ID" />
-            <Input type="text" placeholder="Access Token" />
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardContent className="pt-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <span className="text-2xl">📧</span>
-              <div>
-                <p className="font-medium">Email (SMTP / Gmail)</p>
-                <p className="text-sm text-gray-500">Configura el envío de emails</p>
-              </div>
-            </div>
-            <span className="px-3 py-1 bg-gray-100 text-gray-700 rounded text-sm">No configurado</span>
-          </div>
-          <select className="w-full px-3 py-2 border rounded-lg text-sm">
-            <option>Seleccionar proveedor</option>
-            <option>Gmail (OAuth)</option>
-            <option>SMTP</option>
-          </select>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardContent className="pt-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <span className="text-2xl">🔗</span>
-              <div>
-                <p className="font-medium">Webhooks</p>
-                <p className="text-sm text-gray-500">Recibe notificaciones en tiempo real</p>
-              </div>
-            </div>
-            <Button variant="ghost" className="text-blue-600 text-sm">+ Agregar</Button>
+          <p className="text-sm text-gray-500 mb-4">
+            Configura webhooks para recibir notificaciones en tiempo real sobre eventos del CRM.
+          </p>
+          <div className="text-center py-8 text-gray-400">
+            No hay webhooks configurados
           </div>
         </CardContent>
       </Card>

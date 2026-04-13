@@ -12,6 +12,7 @@ import { AppointmentsPage } from './features/appointments'
 import { WhatsAppPage } from './features/whatsapp'
 import { Settings } from './pages/Settings'
 import { MainLayout } from './features/layout'
+import { SettingsProvider } from './contexts/SettingsContext'
 
 function AppContent() {
   const { user, isAuthenticated, isLoading } = useAuthStore()
@@ -75,7 +76,9 @@ function AppContent() {
 function App() {
   return (
     <TooltipProvider>
-      <AppContent />
+      <SettingsProvider>
+        <AppContent />
+      </SettingsProvider>
     </TooltipProvider>
   )
 }

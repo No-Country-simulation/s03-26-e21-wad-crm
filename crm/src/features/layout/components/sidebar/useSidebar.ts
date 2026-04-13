@@ -3,6 +3,8 @@ import { SidebarProps, NavItem, Conversation } from './types'
 import { NAV_ITEMS } from './constants'
 import { MOCK_WHATSAPP_CONVERSATIONS } from './sidebar-whatsapp'
 import { useMediaQuery } from '@/hooks/useMediaQuery'
+import { useSettings } from '@/contexts/SettingsContext'
+import { TABS } from '@/utils/constants'
 
 interface UseSidebarReturn {
   collapsed: boolean
@@ -36,15 +38,24 @@ export function useSidebar({
   const [activeSubmenu, setActiveSubmenu] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [internalActiveConversationId, setInternalActiveConversationId] = useState<string | undefined>(externalActiveConversationId)
-  const [settingsActiveSection, setSettingsActiveSection] = useState('profile')
+  const [localSettingsSection, setLocalSettingsSection] = useState('profile')
 
+  const settingsContext = useSettings()
   const activeConversationId = externalActiveConversationId ?? internalActiveConversationId
   const isMobile = useMediaQuery('(max-width: 768px)')
+  
+  const settingsActiveSection = settingsContext?.activeSection ?? localSettingsSection
 
   useEffect(() => {
     if (activeSubmenu && !activeTab.startsWith(activeSubmenu)) {
       setActiveSubmenu(null)
       setSearchQuery('')
+    }
+  }, [activeTab, activeSubmenu])
+
+  useEffect(() => {
+    if (activeTab === TABS.SETTINGS && !activeSubmenu) {
+      setActiveSubmenu(TABS.SETTINGS)
     }
   }, [activeTab, activeSubmenu])
 
@@ -95,8 +106,12 @@ export function useSidebar({
   }
 
   const handleSettingsSectionChange = useCallback((section: string) => {
-    setSettingsActiveSection(section)
-  }, [])
+    if (settingsContext) {
+      settingsContext.setActiveSection(section as any)
+    } else {
+      setLocalSettingsSection(section)
+    }
+  }, [settingsContext])
 
   const hasPermission = useCallback((_permission: string): boolean => {
     return true
