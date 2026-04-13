@@ -16,9 +16,23 @@ export function useWhatsAppConfig() {
     setError(null)
     try {
       const response = await fetch(`${API_BASE}`)
-      if (!response.ok) throw new Error('Error al obtener estado')
+      
+      if (!response.ok) {
+        if (response.status === 404) {
+          setStatus(null)
+          return
+        }
+        throw new Error(`Error ${response.status}: ${response.statusText}`)
+      }
+      
+      const contentType = response.headers.get('content-type')
+      if (!contentType || !contentType.includes('application/json')) {
+        setStatus(null)
+        return
+      }
+      
       const data = await response.json()
-      setStatus(data.whatsapp)
+      setStatus(data.whatsapp || null)
       
       if (data.whatsapp?.phoneNumberId) {
         setConfig(prev => ({
@@ -27,7 +41,12 @@ export function useWhatsAppConfig() {
         }))
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error desconocido')
+      if (err instanceof TypeError && err.message.includes('JSON')) {
+        console.warn('API endpoint not available, using default config')
+        setStatus(null)
+      } else {
+        setError(err instanceof Error ? err.message : 'Error desconocido')
+      }
     } finally {
       setIsLoading(false)
     }
@@ -50,9 +69,22 @@ export function useWhatsAppConfig() {
       })
 
       if (!response.ok) {
-        const data = await response.json()
-        const msg = data.error?.message || `HTTP ${response.status}`
-        const result = { ok: false, msg }
+        const contentType = response.headers.get('content-type')
+        if (contentType && contentType.includes('application/json')) {
+          const data = await response.json()
+          const msg = data.error?.message || data.error?.error?.message || `HTTP ${response.status}`
+          const result = { ok: false, msg }
+          setTestResult(result)
+          return result
+        }
+        const result = { ok: false, msg: `Error ${response.status}: ${response.statusText}` }
+        setTestResult(result)
+        return result
+      }
+
+      const contentType = response.headers.get('content-type')
+      if (!contentType || !contentType.includes('application/json')) {
+        const result = { ok: false, msg: 'Respuesta inválida del servidor' }
         setTestResult(result)
         return result
       }
@@ -85,14 +117,24 @@ export function useWhatsAppConfig() {
       })
 
       if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.message || 'Error al guardar configuración')
+        const contentType = response.headers.get('content-type')
+        if (contentType && contentType.includes('application/json')) {
+          const errorData = await response.json()
+          throw new Error(errorData.message || `Error ${response.status}`)
+        }
+        throw new Error(`Error ${response.status}: ${response.statusText}`)
       }
 
-      const data = await response.json()
-      setStatus(data)
+      const contentType = response.headers.get('content-type')
+      if (contentType && contentType.includes('application/json')) {
+        const data = await response.json()
+        setStatus(data)
+        setConfig(configToSave)
+        return { success: true, status: data }
+      }
+      
       setConfig(configToSave)
-      return { success: true, status: data }
+      return { success: true }
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Error desconocido'
       setError(message)
@@ -110,7 +152,9 @@ export function useWhatsAppConfig() {
         method: 'DELETE',
       })
 
-      if (!response.ok) throw new Error('Error al desconectar')
+      if (!response.ok && response.status !== 404) {
+        throw new Error(`Error ${response.status}: ${response.statusText}`)
+      }
 
       setStatus(null)
       setConfig(DEFAULT_WHATSAPP_CONFIG)
