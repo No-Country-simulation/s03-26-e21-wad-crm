@@ -20,7 +20,7 @@ export function SettingsSubNav({
   if (collapsed) {
     return (
       <nav className="flex-1 flex flex-col gap-1 px-2 py-4 overflow-y-auto overflow-x-hidden">
-        <SubNavBackButton collapsed={collapsed} onBack={onBack} label="Config" />
+        <SubNavBackButton collapsed={collapsed} onBack={onBack} label="Configuración" />
         
         <Separator className="my-2" />
         

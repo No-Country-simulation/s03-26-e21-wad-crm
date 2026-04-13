@@ -7,13 +7,15 @@ interface SubNavBackButtonProps {
   collapsed: boolean
   onBack: () => void
   label?: string
+  tooltipLabel?: string
   activeIndicator?: boolean
 }
 
 export function SubNavBackButton({ 
   collapsed, 
   onBack, 
-  label = 'Volver',
+  label,
+  tooltipLabel = 'Volver',
   activeIndicator = true 
 }: SubNavBackButtonProps) {
   if (collapsed) {
@@ -35,7 +37,7 @@ export function SubNavBackButton({
           </Button>
         </TooltipTrigger>
         <TooltipContent side="right">
-          {label}
+          {tooltipLabel}
         </TooltipContent>
       </Tooltip>
     )
@@ -52,7 +54,7 @@ export function SubNavBackButton({
     >
       <ChevronRight className="size-4 flex-shrink-0 rotate-180" data-icon="inline-start" />
       <div className="flex-1 text-left min-w-0">
-        <span className="text-sm font-medium truncate">{label}</span>
+        <span className="text-sm font-medium truncate">{label ?? tooltipLabel}</span>
       </div>
       {activeIndicator && (
         <div className="absolute right-0 w-1 h-6 rounded-l-full bg-green-500 flex-shrink-0" />
