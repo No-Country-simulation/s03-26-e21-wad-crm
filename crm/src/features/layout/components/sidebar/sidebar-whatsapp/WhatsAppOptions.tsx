@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { WHATSAPP_OPTIONS } from '../constants'
+import { WHATSAPP_FILTER_OPTIONS } from './constants'
 
 interface WhatsAppOptionsProps {
   isMobile: boolean
@@ -10,7 +10,7 @@ interface WhatsAppOptionsProps {
 export function WhatsAppOptions({ isMobile }: WhatsAppOptionsProps) {
   const renderOptions = () => (
     <div className="flex flex-col gap-1 p-3">
-      {WHATSAPP_OPTIONS.map((option) => (
+      {WHATSAPP_FILTER_OPTIONS.map((option) => (
         <Button
           key={option.id}
           variant="ghost"
@@ -54,11 +54,11 @@ export function WhatsAppTabs({ isMobile, conversationsContent, optionsContent }:
           Opciones
         </TabsTrigger>
       </TabsList>
-      
+
       <TabsContent value="conversations" className="flex-1 m-0">
         {conversationsContent}
       </TabsContent>
-      
+
       <TabsContent value="options" className="flex-1 m-0">
         {optionsContent}
       </TabsContent>

@@ -10,6 +10,9 @@ export { MessageBubble } from './components/MessageBubble'
 export { MessageInput } from './components/MessageInput'
 export { useWhatsAppPage } from './hooks/useWhatsAppPage'
 export { useWhatsAppConversation } from './hooks/useWhatsAppConversation'
+
+// Config exports
+export { WhatsAppConfigPage, useWhatsAppConfig } from './config'
 export type { 
   Message,
   ConversationData,
@@ -20,5 +23,8 @@ export type {
   WhatsAppPageProps, 
   ConversationsPanelProps, 
   SendPanelProps, 
-  EmptyStateProps 
+  EmptyStateProps,
+  WhatsAppConfig,
+  WhatsAppStatus,
+  WhatsAppConfigResponse
 } from './types'

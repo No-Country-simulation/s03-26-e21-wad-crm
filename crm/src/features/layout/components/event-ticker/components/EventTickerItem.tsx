@@ -1,7 +1,7 @@
 import { Info, CheckCircle, AlertTriangle, AlertCircle, LucideIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { EventTickerItemProps } from './types'
-import { useEventTicker } from './useEventTicker'
+import { EventTickerItemProps } from '../types/types'
+import { useEventTicker } from '../hooks/useEventTicker'
 import { cn } from '@/lib/utils'
 
 const iconMap: Record<string, LucideIcon> = {

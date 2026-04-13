@@ -5,7 +5,8 @@ export enum ROLES {
   VIEWER = 'VIEWER',
 }
 
-export type RoleType = 'ADMIN' | 'MANAGER' | 'AGENT' | 'VIEWER'
+export type RoleType = 'ADMIN' | 'MANAGER' | 'AGENT' | 'VIEWER' | 'USER'
+
 
 // Import TabKey from constants instead of defining it here
 import type { TabKey } from '../utils/constants'

@@ -1,5 +1,6 @@
 import { TabKey } from '@/types'
 import { LucideIcon } from 'lucide-react'
+import { ReactNode } from 'react'
 
 export interface NavItem {
   id: TabKey
@@ -36,13 +37,32 @@ export interface SidebarNavProps {
   onItemClick: (item: NavItem) => void
 }
 
-export interface SidebarSubNavProps {
-  parentItem: NavItem
-  conversations: Conversation[]
+// Base props para todos los sub-navs
+export interface SubNavBaseProps {
+  collapsed: boolean
   onBack: () => void
-  onConversationClick: (conversation: Conversation) => void
-  activeConversationId?: string
 }
+
+// Props específicas de cada sub-nav
+export interface WhatsAppSubNavData {
+  conversations: Conversation[]
+  activeConversationId?: string
+  onConversationClick: (conversation: Conversation) => void
+  searchQuery: string
+  onSearchChange: (query: string) => void
+  onExpandAndFocus?: () => void
+}
+
+// Union type para todos los sub-navs data
+export type SubNavData = WhatsAppSubNavData // | EmailSubNavData | etc.
+
+// Props completas del sub-nav
+export interface SidebarSubNavProps extends SubNavBaseProps {
+  data?: SubNavData
+}
+
+// Tipo para el registro de sub-navs
+export type SubNavComponent = React.ComponentType<SidebarSubNavProps>
 
 export interface ConversationListProps {
   conversations: Conversation[]

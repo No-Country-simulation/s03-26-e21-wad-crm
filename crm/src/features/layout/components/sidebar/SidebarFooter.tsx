@@ -35,7 +35,7 @@ export function SidebarFooter({ collapsed }: SidebarFooterProps) {
     const currentLabel = themeConfig[theme as keyof typeof themeConfig].label
 
     return (
-      <div className="border-t border-border p-2 w-16 overflow-visible">
+      <div className="border-t border-border py-3 w-16 overflow-visible flex items-center justify-center">
         <Tooltip>
           <TooltipTrigger asChild>
             <div className="flex justify-center cursor-help">

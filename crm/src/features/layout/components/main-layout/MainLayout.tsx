@@ -1,13 +1,13 @@
 import { useState, useEffect, ReactNode } from 'react'
 import { Header } from '../header'
-import { Sidebar, MOCK_CONVERSATIONS } from '../sidebar'
+import { Sidebar, MOCK_WHATSAPP_CONVERSATIONS } from '../sidebar'
 import type { Conversation } from '../sidebar'
 import { EventTicker, mockNotifications } from '../event-ticker'
 import { WhatsAppConversationContainer, WhatsAppConversationHeader } from '@/features/whatsapp'
 import { RoleType, TabKey } from '@/types'
 import { TABS } from '@/utils/constants'
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable'
-import { ContactDetailsPanel } from '../sidebar/ContactDetailsPanel'
+import { ContactDetailsPanel } from '../../../whatsapp/components/ContactDetailsPanel'
 
 const eventTickerMocks = mockNotifications.map(notif => ({
   ...notif,
@@ -39,20 +39,23 @@ export function MainLayout({
   const [activeConversation, setActiveConversation] = useState<Conversation | null>(null)
 
   useEffect(() => {
-    if (activeTab === TABS.WHATSAPP && !activeConversation && MOCK_CONVERSATIONS.length > 0) {
-      setActiveConversation(MOCK_CONVERSATIONS[0])
+    if (activeTab === TABS.WHATSAPP && !activeConversation && MOCK_WHATSAPP_CONVERSATIONS.length > 0) {
+      setActiveConversation(MOCK_WHATSAPP_CONVERSATIONS[0])
     }
   }, [activeTab, activeConversation])
 
   const handleProfileClick = () => {
     console.log('Navegando a Mi Perfil...')
+    onTabChange(TABS.SETTINGS)
   }
 
   const handleSettingsClick = () => {
+    console.log('Navegando a Mi Config...')
     onTabChange(TABS.SETTINGS)
   }
 
   const handleConversationSelect = (conversation: Conversation) => {
+    console.log('Navegando a Mi Conversación...')
     setActiveConversation(conversation)
   }
 
@@ -79,7 +82,7 @@ export function MainLayout({
           onProfileClick={handleProfileClick}
           onSettingsClick={handleSettingsClick}
         />
-
+        {/* Main content area */}
         <main className="flex-1 overflow-hidden">
           {isWhatsAppActive ? (
             <div className="h-full flex flex-col">
@@ -137,10 +140,9 @@ export function MainLayout({
             </div>
           )}
         </main>
-
-        <EventTicker 
-          data={eventTickerMocks} 
-          interval={60000} 
+        <EventTicker
+          data={eventTickerMocks}
+          interval={60000}
           onNotificationClick={(section) => onTabChange(section)}
         />
       </div>

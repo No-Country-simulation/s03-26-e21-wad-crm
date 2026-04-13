@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Calendar, CheckSquare, MessageSquare, User } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
-import type { Conversation } from '../sidebar'
+import type { Conversation } from '../../layout/components/sidebar'
 
 interface ContactDetailsPanelProps {
   conversation: Conversation

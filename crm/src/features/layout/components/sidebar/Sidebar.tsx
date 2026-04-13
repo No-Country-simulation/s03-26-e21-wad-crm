@@ -4,8 +4,8 @@ import { useSidebar } from './useSidebar'
 import { SidebarProps, NavItem } from './types'
 import { cn } from '@/lib/utils'
 import { SidebarNav } from './SidebarNav'
-import { WhatsAppSubNav } from './WhatsAppSubNav'
 import { SidebarFooter } from './SidebarFooter'
+import { getSubNavComponent } from './subNavRegistry'
 
 interface SidebarHeaderProps {
   collapsed: boolean
@@ -70,19 +70,24 @@ function SidebarContent({
   onExpandAndFocus,
 }: SidebarContentProps) {
   if (activeSubmenu) {
-    return (
-      <WhatsAppSubNav
-        conversations={filteredConversations}
-        onBack={onBack}
-        onConversationClick={onConversationClick}
-        activeConversationId={activeConversationId}
-        searchQuery={searchQuery}
-        onSearchChange={onSearchChange}
-        isMobile={isMobile}
-        collapsed={collapsed}
-        onExpandAndFocus={onExpandAndFocus}
-      />
-    )
+    const SubNavComponent = getSubNavComponent(activeSubmenu)
+    
+    if (SubNavComponent) {
+      return (
+        <SubNavComponent
+          collapsed={collapsed}
+          onBack={onBack}
+          data={{
+            conversations: filteredConversations,
+            activeConversationId,
+            onConversationClick,
+            searchQuery,
+            onSearchChange,
+            onExpandAndFocus,
+          }}
+        />
+      )
+    }
   }
 
   return (
@@ -131,7 +136,7 @@ export function Sidebar({
     <aside
       className={cn(
         'border-r border-border bg-sidebar text-sidebar-foreground',
-        'transition-all duration-300 flex flex-col h-full shrink-0 overflow-visible',
+        'transition-all duration-300 flex flex-col h-full shrink-0 overflow-hidden',
         collapsed ? 'w-16' : 'w-64'
       )}
     >

@@ -18,7 +18,7 @@ export function Header({
   userRole = 'USER',
   userName = 'Usuario',
   onLogout,
-  connectionStatus = 'connected',
+  connectionStatus = STATUS_CONFIG["connected"].label as ConnectionStatus,
   onProfileClick,
   onSettingsClick,
 }: HeaderProps) {

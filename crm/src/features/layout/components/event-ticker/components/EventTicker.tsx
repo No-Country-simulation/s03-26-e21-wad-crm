@@ -1,6 +1,6 @@
 import { Bell } from 'lucide-react'
-import { EventTickerProps } from './types'
-import { useEventTicker } from './useEventTicker'
+import { EventTickerProps } from '../types/types'
+import { useEventTicker } from '../hooks/useEventTicker'
 import { EventTickerItem } from './EventTickerItem'
 import { useState } from 'react'
 
@@ -10,8 +10,8 @@ export function EventTicker({ data, interval = 40000, onNotificationClick }: Eve
 
   const renderNotification = (notification: typeof notifications[0], index: number, isDuplicate = false) => (
     <div key={`${isDuplicate ? 'dup-' : ''}${notification.id}-${index}`} className="inline-flex items-center">
-      <EventTickerItem 
-        notification={notification} 
+      <EventTickerItem
+        notification={notification}
         onClick={handleNotificationClick}
       />
       <span className="text-slate-400 dark:text-slate-600 select-none flex-shrink-0 mx-2">
@@ -42,7 +42,7 @@ export function EventTicker({ data, interval = 40000, onNotificationClick }: Eve
           <Bell className="size-4 text-muted-foreground" />
         </div>
 
-        <div 
+        <div
           className="flex-1 overflow-hidden"
           onMouseEnter={() => setIsPaused(true)}
           onMouseLeave={() => setIsPaused(false)}
@@ -51,9 +51,9 @@ export function EventTicker({ data, interval = 40000, onNotificationClick }: Eve
             maskImage: 'linear-gradient(90deg, transparent, currentColor 5%, currentColor 95%, transparent)',
           }}
         >
-          <div 
+          <div
             className="inline-flex items-center"
-            style={{ 
+            style={{
               animation: isPaused ? 'none' : `ticker-scroll ${interval}ms linear infinite`
             }}
           >

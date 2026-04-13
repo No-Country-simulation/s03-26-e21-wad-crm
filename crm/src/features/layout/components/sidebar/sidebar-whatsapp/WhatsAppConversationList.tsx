@@ -1,8 +1,6 @@
 import { MoreVertical } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -12,7 +10,6 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion'
 import { Conversation } from '../types'
-import { WHATSAPP_OPTIONS } from '../constants'
 import { cn } from '@/lib/utils'
 import { formatDistanceToNow } from '@/lib/utils'
 
@@ -44,7 +41,7 @@ export function WhatsAppConversationItem({ conversation, isActive, onClick }: Wh
           <div className="absolute bottom-0 right-0 size-3 rounded-full bg-green-500 border-2 border-background" />
         )}
       </div>
-      
+
       <div className="flex-1 min-w-0 text-left">
         <div className="flex items-center justify-between gap-2">
           <span className={cn(
@@ -57,12 +54,12 @@ export function WhatsAppConversationItem({ conversation, isActive, onClick }: Wh
             {formatDistanceToNow(conversation.timestamp)}
           </span>
         </div>
-        
+
         <p className="text-xs text-muted-foreground truncate mt-0.5">
           {conversation.lastMessage}
         </p>
       </div>
-      
+
       {conversation.unreadCount ? (
         <Badge className="flex-shrink-0 min-w-[18px] h-[18px] rounded-full bg-green-500 text-white text-xs font-medium flex items-center justify-center px-1.5">
           {conversation.unreadCount}

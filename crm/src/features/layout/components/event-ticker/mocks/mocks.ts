@@ -1,4 +1,4 @@
-import { Notification } from './types'
+import { Notification } from '../types/types'
 import { TabKey } from '@/types'
 
 export const mockNotifications: Notification[] = [

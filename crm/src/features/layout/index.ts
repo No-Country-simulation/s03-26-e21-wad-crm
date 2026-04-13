@@ -1,5 +1,6 @@
 export { Header, ConnectionStatusBadge, RoleBadge, UserAvatar, UserMenu } from './components/header'
-export { Sidebar, SidebarNav, SidebarNavItem, WhatsAppSubNav, NAV_ITEMS, MOCK_CONVERSATIONS, useSidebar } from './components/sidebar'
+export { Sidebar, SidebarNav, SidebarNavItem, WhatsAppSubNav, NAV_ITEMS, useSidebar } from './components/sidebar'
+export { MOCK_WHATSAPP_CONVERSATIONS } from './components/sidebar'
 export type { Conversation, NavItem } from './components/sidebar'
 export { EventTicker, EventTickerItem, mockNotifications } from './components/event-ticker'
 export type { EventNotification } from './components/event-ticker'

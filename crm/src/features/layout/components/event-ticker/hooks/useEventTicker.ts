@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Notification, NotificationType } from './types'
+import { Notification, NotificationType } from '../types/types'
 import { TabKey } from '@/types'
 
 interface UseEventTickerReturn {
@@ -15,7 +15,7 @@ export function useEventTicker(
 ): UseEventTickerReturn {
   const [notifications] = useState<Notification[]>(data)
 
-  useEffect(() => {}, [data])
+  useEffect(() => { }, [data])
 
   const handleNotificationClick = (notification: Notification) => {
     if (notification.section && onNotificationClick) {

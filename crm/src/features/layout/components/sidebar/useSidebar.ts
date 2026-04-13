@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from 'react'
 import { SidebarProps, NavItem, Conversation } from './types'
-import { NAV_ITEMS, MOCK_CONVERSATIONS } from './constants'
+import { NAV_ITEMS } from './constants'
+import { MOCK_WHATSAPP_CONVERSATIONS } from './sidebar-whatsapp'
 import { useMediaQuery } from '@/hooks/useMediaQuery'
 
 interface UseSidebarReturn {
@@ -32,7 +33,7 @@ export function useSidebar({
   const [activeSubmenu, setActiveSubmenu] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [internalActiveConversationId, setInternalActiveConversationId] = useState<string | undefined>(externalActiveConversationId)
-  
+
   const activeConversationId = externalActiveConversationId ?? internalActiveConversationId
   const isMobile = useMediaQuery('(max-width: 768px)')
 
@@ -48,10 +49,10 @@ export function useSidebar({
   }, [allowedTabs])
 
   const filteredConversations = useMemo(() => {
-    if (!searchQuery) return MOCK_CONVERSATIONS
+    if (!searchQuery) return MOCK_WHATSAPP_CONVERSATIONS
     const query = searchQuery.toLowerCase()
-    return MOCK_CONVERSATIONS.filter(
-      conv => 
+    return MOCK_WHATSAPP_CONVERSATIONS.filter(
+      conv =>
         conv.name.toLowerCase().includes(query) ||
         conv.lastMessage.toLowerCase().includes(query)
     )

@@ -7,7 +7,6 @@ import { Skeleton } from '@/components/ui/skeleton'
 export function WhatsAppPageContainer() {
   const {
     selectedConversationId,
-    setSelectedConversationId,
     isLoading,
   } = useWhatsAppPage()
 
@@ -20,31 +19,8 @@ export function WhatsAppPageContainer() {
   }
 
   return (
-    <div className="flex h-full bg-background">
-      {/* Conversations List */}
-      <div className="w-1/3 border-r border-border bg-sidebar overflow-hidden">
-        <ConversationsPanel 
-          selectedId={selectedConversationId}
-          onSelect={setSelectedConversationId}
-        />
-      </div>
-
-      {/* Send Panel */}
-      <div className="w-2/3 overflow-hidden bg-sidebar">
-        {selectedConversationId ? (
-          <SendPanel 
-            conversationId={selectedConversationId}
-            config={undefined}
-            templates={[]}
-            crmConfig={undefined}
-          />
-        ) : (
-          <WhatsAppEmptyState 
-            message="Selecciona una conversación"
-            description="Elige un chat de la lista para empezar"
-          />
-        )}
-      </div>
+    <div className="w-full h-full overflow-hidden">
+      <ConversationsPanel />
     </div>
   )
 }
