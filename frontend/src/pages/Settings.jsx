@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { userService, workspaceService, emailConfigService } from '../services/api';
-import { User, Building, Bell, Shield, Mail, MessageCircle } from 'lucide-react';
+import { User, Building, Bell, Shield, Mail, MessageCircle, Eye, EyeOff } from 'lucide-react';
 
 const inp = { background: 'var(--color-surface-2)', border: '1px solid var(--color-border)', color: 'var(--color-text)' };
 
@@ -204,6 +204,7 @@ function EmailSettings() {
   const [formData, setFormData] = useState({ host: '', port: 587, username: '', password: '', encryption: 'TLS' });
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -247,9 +248,15 @@ function EmailSettings() {
           </div>
           <div>
             <Label>Password</Label>
-            <input type="password" placeholder="App password" value={formData.password}
-              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-              className="w-full px-4 py-2 rounded-lg focus:outline-none" style={inp} required />
+            <div className="relative">
+              <input type={showPassword ? 'text' : 'password'} placeholder="App password" value={formData.password}
+                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                className="w-full px-4 py-2 pr-10 rounded-lg focus:outline-none" style={inp} required />
+              <button type="button" onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer" style={{ color: 'var(--color-muted)' }}>
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
           </div>
         </div>
         <div>
