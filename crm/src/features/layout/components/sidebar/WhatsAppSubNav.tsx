@@ -226,6 +226,8 @@ export function WhatsAppSubNav({
         />
       </div>
 
+      <Separator className="my-2" />
+
       <div className="flex flex-col gap-1 mt-2">
         {conversations.map((conversation) => (
           <ConversationItem
