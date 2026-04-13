@@ -2,6 +2,7 @@ import { ChevronRight, Search } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Separator } from '@/components/ui/separator'
 import { Conversation } from './types'
 import { cn } from '@/lib/utils'
 import { useRef, useEffect } from 'react'
@@ -166,6 +167,8 @@ export function WhatsAppSubNav({
           <div className="absolute right-0 w-1 h-6 rounded-l-full bg-green-500 flex-shrink-0" />
         </Button>
 
+        <Separator className="my-2" />
+
         <Button
           variant="ghost"
           size="icon"
@@ -209,6 +212,8 @@ export function WhatsAppSubNav({
         </div>
         <div className="absolute right-0 w-1 h-6 rounded-l-full bg-green-500 flex-shrink-0" />
       </Button>
+
+      <Separator className="my-2" />
 
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
