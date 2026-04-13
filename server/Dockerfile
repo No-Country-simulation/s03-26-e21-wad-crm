@@ -1,9 +1,9 @@
-FROM eclipse-temurin:17-jdk-alpine AS build
+﻿FROM eclipse-temurin:17-jdk-alpine AS build
 WORKDIR /app
 COPY mvnw .
 COPY .mvn .mvn
 COPY pom.xml .
-COPY src src                      # ← COPIAR SRC ANTES
+COPY src src
 RUN ./mvnw package -DskipTests -q -Dmaven.test.skip=true
 
 FROM eclipse-temurin:17-jre-alpine
