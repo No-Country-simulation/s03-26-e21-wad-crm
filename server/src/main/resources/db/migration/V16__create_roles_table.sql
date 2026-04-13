@@ -19,3 +19,19 @@ CREATE TABLE roles (
 CREATE INDEX idx_roles_workspace_id ON roles(workspace_id);
 CREATE INDEX idx_roles_is_system ON roles(is_system);
 CREATE INDEX idx_roles_is_active ON roles(is_active);
+
+-- Seed default system roles for existing workspaces
+INSERT INTO roles (workspace_id, name, is_system)
+SELECT w.id, 'ADMIN', TRUE 
+FROM workspaces w
+WHERE NOT EXISTS (SELECT 1 FROM roles r WHERE r.workspace_id = w.id AND r.name = 'ADMIN');
+
+INSERT INTO roles (workspace_id, name, is_system)
+SELECT w.id, 'USER', TRUE 
+FROM workspaces w
+WHERE NOT EXISTS (SELECT 1 FROM roles r WHERE r.workspace_id = w.id AND r.name = 'USER');
+
+INSERT INTO roles (workspace_id, name, is_system)
+SELECT w.id, 'AGENT', TRUE 
+FROM workspaces w
+WHERE NOT EXISTS (SELECT 1 FROM roles r WHERE r.workspace_id = w.id AND r.name = 'AGENT');
