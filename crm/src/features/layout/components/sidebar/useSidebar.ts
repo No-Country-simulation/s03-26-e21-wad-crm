@@ -90,6 +90,7 @@ export function useSidebar({
   const closeSubmenu = () => {
     setActiveSubmenu(null)
     setSearchQuery('')
+    onTabChange(TABS.DASHBOARD)
   }
 
   const handleConversationClick = (conversation: Conversation) => {
