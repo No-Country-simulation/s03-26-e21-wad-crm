@@ -1,5 +1,5 @@
 -- 1. Crear tabla de roles
-CREATE TABLE roles (
+CREATE TABLE  IF NOT EXISTS roles (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     workspace_id UUID NOT NULL,
     name VARCHAR(255) NOT NULL,
