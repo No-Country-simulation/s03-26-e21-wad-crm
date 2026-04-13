@@ -44,7 +44,9 @@ export interface SubNavBaseProps {
 }
 
 // Props específicas de cada sub-nav
-export interface WhatsAppSubNavData {
+
+// Conversaciones (WhatsApp, Email)
+export interface ConversationsSubNavData {
   conversations: Conversation[]
   activeConversationId?: string
   onConversationClick: (conversation: Conversation) => void
@@ -53,8 +55,22 @@ export interface WhatsAppSubNavData {
   onExpandAndFocus?: () => void
 }
 
+// Settings
+export interface SettingsSubNavData {
+  activeSection?: string
+  onSectionChange?: (section: string) => void
+  hasPermission?: (permission: string) => boolean
+}
+
+// Contactos, Deals, Tasks, Appointments (lista simple)
+export interface ListSubNavData {
+  searchQuery: string
+  onSearchChange: (query: string) => void
+  onExpandAndFocus?: () => void
+}
+
 // Union type para todos los sub-navs data
-export type SubNavData = WhatsAppSubNavData // | EmailSubNavData | etc.
+export type SubNavData = ConversationsSubNavData | SettingsSubNavData | ListSubNavData
 
 // Props completas del sub-nav
 export interface SidebarSubNavProps extends SubNavBaseProps {

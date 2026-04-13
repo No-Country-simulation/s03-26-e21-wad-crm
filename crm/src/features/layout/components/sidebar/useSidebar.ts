@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useCallback } from 'react'
 import { SidebarProps, NavItem, Conversation } from './types'
 import { NAV_ITEMS } from './constants'
 import { MOCK_WHATSAPP_CONVERSATIONS } from './sidebar-whatsapp'
@@ -12,12 +12,15 @@ interface UseSidebarReturn {
   searchQuery: string
   activeConversationId: string | undefined
   isMobile: boolean
+  settingsActiveSection: string
   toggleCollapse: () => void
   openSubmenu: (item: NavItem) => void
   closeSubmenu: () => void
   setSearchQuery: (query: string) => void
   handleConversationClick: (conversation: Conversation) => void
   handleNavItemClick: (item: NavItem) => void
+  handleSettingsSectionChange: (section: string) => void
+  hasPermission: (permission: string) => boolean
 }
 
 export function useSidebar({
@@ -33,6 +36,7 @@ export function useSidebar({
   const [activeSubmenu, setActiveSubmenu] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [internalActiveConversationId, setInternalActiveConversationId] = useState<string | undefined>(externalActiveConversationId)
+  const [settingsActiveSection, setSettingsActiveSection] = useState('profile')
 
   const activeConversationId = externalActiveConversationId ?? internalActiveConversationId
   const isMobile = useMediaQuery('(max-width: 768px)')
@@ -90,6 +94,14 @@ export function useSidebar({
     }
   }
 
+  const handleSettingsSectionChange = useCallback((section: string) => {
+    setSettingsActiveSection(section)
+  }, [])
+
+  const hasPermission = useCallback((_permission: string): boolean => {
+    return true
+  }, [])
+
   return {
     collapsed,
     activeSubmenu,
@@ -98,11 +110,14 @@ export function useSidebar({
     searchQuery,
     activeConversationId,
     isMobile,
+    settingsActiveSection,
     toggleCollapse,
     openSubmenu,
     closeSubmenu,
     setSearchQuery,
     handleConversationClick,
     handleNavItemClick,
+    handleSettingsSectionChange,
+    hasPermission,
   }
 }

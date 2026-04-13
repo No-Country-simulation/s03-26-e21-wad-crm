@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils'
 import { SidebarNav } from './SidebarNav'
 import { SidebarFooter } from './SidebarFooter'
 import { getSubNavComponent } from './subNavRegistry'
+import { TABS } from '@/utils/constants'
 
 interface SidebarHeaderProps {
   collapsed: boolean
@@ -47,44 +48,58 @@ interface SidebarContentProps {
   activeConversationId?: string
   searchQuery: string
   isMobile: boolean
+  settingsActiveSection: string
   onItemClick: (item: NavItem) => void
   onBack: () => void
   onConversationClick: ReturnType<typeof useSidebar>['handleConversationClick']
   onSearchChange: (query: string) => void
   onExpandAndFocus?: () => void
+  onSettingsSectionChange: (section: string) => void
+  hasPermission: (permission: string) => boolean
 }
 
 function SidebarContent({
-  activeTab,
   activeSubmenu,
   collapsed,
   items,
   filteredConversations,
   activeConversationId,
   searchQuery,
-  isMobile,
   onItemClick,
   onBack,
   onConversationClick,
   onSearchChange,
   onExpandAndFocus,
+  settingsActiveSection,
+  onSettingsSectionChange,
+  hasPermission,
 }: SidebarContentProps) {
   if (activeSubmenu) {
     const SubNavComponent = getSubNavComponent(activeSubmenu)
     
     if (SubNavComponent) {
-      return (
-        <SubNavComponent
-          collapsed={collapsed}
-          onBack={onBack}
-          data={{
+      const isSettings = activeSubmenu === TABS.SETTINGS
+      
+      const data = isSettings
+        ? {
+            activeSection: settingsActiveSection,
+            onSectionChange: onSettingsSectionChange,
+            hasPermission,
+          }
+        : {
             conversations: filteredConversations,
             activeConversationId,
             onConversationClick,
             searchQuery,
             onSearchChange,
             onExpandAndFocus,
-          }}
+          }
+
+      return (
+        <SubNavComponent
+          collapsed={collapsed}
+          onBack={onBack}
+          data={data}
         />
       )
     }
@@ -93,7 +108,7 @@ function SidebarContent({
   return (
     <SidebarNav
       items={items}
-      activeTab={activeTab}
+      activeTab={activeSubmenu ?? ''}
       collapsed={collapsed}
       onItemClick={onItemClick}
     />
@@ -117,11 +132,14 @@ export function Sidebar({
     searchQuery,
     activeConversationId,
     isMobile,
+    settingsActiveSection,
     toggleCollapse,
     closeSubmenu,
     setSearchQuery,
     handleConversationClick,
     handleNavItemClick,
+    handleSettingsSectionChange,
+    hasPermission,
   } = useSidebar({
     activeTab,
     allowedTabs,
@@ -146,7 +164,6 @@ export function Sidebar({
       />
       
       <SidebarContent
-        activeTab={activeTab}
         activeSubmenu={activeSubmenu}
         collapsed={collapsed}
         items={filteredItems}
@@ -159,6 +176,9 @@ export function Sidebar({
         onConversationClick={handleConversationClick}
         onSearchChange={setSearchQuery}
         onExpandAndFocus={toggleCollapse}
+        settingsActiveSection={settingsActiveSection}
+        onSettingsSectionChange={handleSettingsSectionChange}
+        hasPermission={hasPermission}
       />
 
       <SidebarFooter collapsed={collapsed} />
