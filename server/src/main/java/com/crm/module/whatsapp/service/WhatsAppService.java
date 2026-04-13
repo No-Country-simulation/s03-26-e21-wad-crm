@@ -53,23 +53,14 @@ public class WhatsAppService {
      * Multi-agente: Opcionalmente verifica lock si userId se proporciona.
      */
     @Transactional
-<<<<<<< HEAD
-    public SendWhatsAppResponse sendMessage(SendWhatsAppRequest request, UUID workspaceId, UUID userId) {
-        log.info("[WA-OUTBOUND] Sending message: contactId={}, workspaceId={}, template={}",
-                request.contactId(), workspaceId, request.templateName());
-=======
     public SendWhatsAppResponse sendMessage(SendWhatsAppRequest request, UUID workspaceId) {
         return sendMessage(request, workspaceId, null);
     }
 
-    /**
-     * Versión con userId para multi-agente locking.
-     */
     @Transactional
     public SendWhatsAppResponse sendMessage(SendWhatsAppRequest request, UUID workspaceId, UUID userId) {
         log.info("[WA-OUTBOUND] Sending message: contactId={}, workspaceId={}, userId={}, template={}",
                 request.contactId(), workspaceId, userId, request.templateName());
->>>>>>> origin/feat/startup-crm/whatsapp
 
         // Resolve contact
         Contact contact = contactRepository

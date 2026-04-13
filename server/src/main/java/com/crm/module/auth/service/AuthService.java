@@ -28,7 +28,6 @@ import java.util.UUID;
 
 /**
  * Handles registration, login, token refresh, and logout.
- *
  * Satisfies: Requirements 1.1–1.6, 2.1–2.5, 4.1–4.4, 5.1–5.3
  */
 @Service
@@ -41,30 +40,19 @@ public class AuthService {
     private final RefreshTokenRepository refreshTokenRepository;
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
-<<<<<<< HEAD
-=======
     private final WhatsAppAutoConfigService whatsAppAutoConfigService;
->>>>>>> origin/feat/startup-crm/whatsapp
     private final RoleService roleService;
 
-    // -------------------------------------------------------------------------
-    // Register
-    // -------------------------------------------------------------------------
-
-    /**
-     * Creates a new Workspace + ADMIN User in a single transaction.
-     * Throws {@link ConflictException} if the email is already registered.
-     */
     public TokenResponse register(RegisterRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new ConflictException("Email already registered: " + request.getEmail());
         }
 
-        // Create workspace - use companyName if provided, otherwise use user's name
         String workspaceName = request.getCompanyName() != null && !request.getCompanyName().isBlank()
                 ? request.getCompanyName()
                 : request.getName() + "'s Workspace";
         String slug = workspaceName.toLowerCase().replaceAll("[^a-z0-9]", "-") + "-" + UUID.randomUUID().toString().substring(0, 8);
+
         Workspace workspace = workspaceRepository.save(
                 Workspace.builder()
                         .name(workspaceName)
@@ -74,8 +62,9 @@ public class AuthService {
                         .build()
         );
 
-<<<<<<< HEAD
-// Create admin user with role
+        // Initialize system roles BEFORE getRoleByName
+        roleService.initializeSystemRoles(workspace.getId());
+
         Role adminRole = roleService.getRoleByName(workspace.getId(), "ADMIN");
         User user = User.builder()
                 .email(request.getEmail())
@@ -88,46 +77,11 @@ public class AuthService {
         user.setWorkspaceId(workspace.getId());
         user = userRepository.save(user);
 
-        // Initialize system roles for the workspace
-        roleService.initializeSystemRoles(workspace.getId());
+        whatsAppAutoConfigService.ensureWhatsAppConfigForWorkspace(workspace.getId());
 
         return buildTokenResponse(user, workspace.getId());
     }
 
-=======
-         // Initialize system roles for the workspace (MUST be before getRoleByName)
-         roleService.initializeSystemRoles(workspace.getId());
-
-         // Create admin user
-         Role adminRole = roleService.getRoleByName(workspace.getId(), "ADMIN");
-         User user = User.builder()
-                  .email(request.getEmail())
-                  .passwordHash(passwordEncoder.encode(request.getPassword()))
-                  .name(request.getName())
-                  .role(adminRole)
-                  .isActive(true)
-                  .timezone("UTC")
-                  .build();
-          user.setWorkspaceId(workspace.getId());
-
-         user = userRepository.save(user);
-
-         // Auto-configure WhatsApp for the new workspace
-         whatsAppAutoConfigService.ensureWhatsAppConfigForWorkspace(workspace.getId());
-
-         return buildTokenResponse(user, workspace.getId());
-     }
-
->>>>>>> origin/feat/startup-crm/whatsapp
-     // -------------------------------------------------------------------------
-     // Login
-    // -------------------------------------------------------------------------
-
-    /**
-     * Authenticates a user by email/password.
-     * Revokes all existing refresh tokens and issues a fresh pair.
-     * Throws {@link AuthenticationException} if credentials are invalid.
-     */
     public TokenResponse login(LoginRequest request) {
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new AuthenticationException("Invalid credentials"));
@@ -136,23 +90,12 @@ public class AuthService {
             throw new AuthenticationException("Invalid credentials");
         }
 
-        // Revoke all previous refresh tokens for this user
         refreshTokenRepository.revokeAllByUserId(user.getId());
-
-        // Auto-configure WhatsApp for this user's workspace if needed
         whatsAppAutoConfigService.ensureWhatsAppConfigForWorkspace(user.getWorkspaceId());
 
         return buildTokenResponse(user, user.getWorkspaceId());
     }
 
-    // -------------------------------------------------------------------------
-    // Refresh
-    // -------------------------------------------------------------------------
-
-    /**
-     * Rotates the refresh token: revokes the old one and issues a new pair.
-     * Throws {@link AuthenticationException} if the token is not found, revoked, or expired.
-     */
     public TokenResponse refresh(String rawRefreshToken) {
         String tokenHash = sha256(rawRefreshToken);
 
@@ -167,41 +110,25 @@ public class AuthService {
             throw new AuthenticationException("Refresh token has expired");
         }
 
-        // Revoke old token
         stored.setRevokedAt(LocalDateTime.now());
         refreshTokenRepository.save(stored);
 
-        // Load user to get current role / workspaceId
         User user = userRepository.findById(stored.getUserId())
                 .orElseThrow(() -> new AuthenticationException("User not found"));
 
         return buildTokenResponse(user, user.getWorkspaceId());
     }
 
-    // -------------------------------------------------------------------------
-    // Google OAuth helpers
-    // -------------------------------------------------------------------------
-
-    /**
-     * Finds the user by email and issues a fresh token pair.
-     * Throws {@link AuthenticationException} if no user with that email exists.
-     */
     public TokenResponse loginWithGoogle(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new AuthenticationException("User not found: " + email));
 
         refreshTokenRepository.revokeAllByUserId(user.getId());
-
-        // Auto-configure WhatsApp for this user's workspace if needed
         whatsAppAutoConfigService.ensureWhatsAppConfigForWorkspace(user.getWorkspaceId());
 
         return buildTokenResponse(user, user.getWorkspaceId());
     }
 
-    /**
-     * Creates a new Workspace + ADMIN User (no passwordHash) in a single transaction.
-     * Used when a Google email is new to the system.
-     */
     public TokenResponse registerWithGoogle(String email, String name) {
         Workspace workspace = workspaceRepository.save(
                 Workspace.builder()
@@ -209,36 +136,25 @@ public class AuthService {
                         .build()
         );
 
-         User user = User.builder()
-                 .email(email)
-                 .name(name)
-                 .role(roleService.getRoleByName(workspace.getId(), "ADMIN"))
-                 .isActive(true)
-                 .build();
-         user.setWorkspaceId(workspace.getId());
+        roleService.initializeSystemRoles(workspace.getId());
 
+        User user = User.builder()
+                .email(email)
+                .name(name)
+                .role(roleService.getRoleByName(workspace.getId(), "ADMIN"))
+                .isActive(true)
+                .build();
+        user.setWorkspaceId(workspace.getId());
         user = userRepository.save(user);
 
-        // Auto-configure WhatsApp for the new workspace
         whatsAppAutoConfigService.ensureWhatsAppConfigForWorkspace(workspace.getId());
 
         return buildTokenResponse(user, workspace.getId());
     }
 
-    // -------------------------------------------------------------------------
-    // Logout
-    // -------------------------------------------------------------------------
-
-    /**
-     * Revokes all refresh tokens for the given user (soft-revoke via revokedAt).
-     */
     public void logout(UUID userId) {
         refreshTokenRepository.revokeAllByUserId(userId);
     }
-
-    // -------------------------------------------------------------------------
-    // Helpers
-    // -------------------------------------------------------------------------
 
     private TokenResponse buildTokenResponse(User user, UUID workspaceId) {
         String rawRefreshToken = jwtService.generateRefreshToken();
@@ -246,8 +162,7 @@ public class AuthService {
                 user.getId(), workspaceId, user.getRole().getName());
 
         long expiryMs = jwtService.getRefreshTokenExpiry();
-        LocalDateTime expiresAt = LocalDateTime.now()
-                .plusSeconds(expiryMs / 1000);
+        LocalDateTime expiresAt = LocalDateTime.now().plusSeconds(expiryMs / 1000);
 
         refreshTokenRepository.save(
                 RefreshToken.builder()
