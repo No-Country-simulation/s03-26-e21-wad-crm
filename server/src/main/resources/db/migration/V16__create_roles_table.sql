@@ -15,9 +15,9 @@ CREATE TABLE  IF NOT EXISTS roles (
     CONSTRAINT uq_roles_workspace_name UNIQUE (workspace_id, name)
 );
 
-CREATE INDEX idx_roles_workspace_id ON roles(workspace_id);
-CREATE INDEX idx_roles_is_system ON roles(is_system);
-CREATE INDEX idx_roles_is_active ON roles(is_active);
+CREATE INDEX if NOT EXISTS idx_roles_workspace_id ON roles(workspace_id);
+CREATE INDEX if NOT EXISTS idx_roles_is_system ON roles(is_system);
+CREATE INDEX if NOT EXISTS idx_roles_is_active ON roles(is_active);
 
 -- 2. Seed de roles por defecto
 INSERT INTO roles (workspace_id, name, is_system)
