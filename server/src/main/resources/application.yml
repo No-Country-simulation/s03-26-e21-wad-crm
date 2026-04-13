@@ -22,8 +22,9 @@ spring:
   # Flyway
   spring:
     flyway:
-      validate-on-migrate: false
-      enabled: false
+       baseline-on-migrate: true
+    baseline-version: '0'
+    validate-on-migrate: false
 
   # Redis
   data:
