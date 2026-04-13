@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react'
+import { useEffect } from 'react'
+import { Settings, Trash2, Loader2, CheckCircle2, XCircle, Plug } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -6,14 +7,22 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
 import { useWhatsAppConfig } from '../hooks/useWhatsAppConfig'
-import { CheckCircle2, XCircle, Loader2 } from 'lucide-react'
+import { WHATSAPP_CONFIG_FIELDS } from '../constants'
 
 export function WhatsAppConfigPage() {
-  const { status, isLoading, error, fetchStatus, saveConfig, disconnect } = useWhatsAppConfig()
-  const [phoneNumberId, setPhoneNumberId] = useState('')
-  const [accessToken, setAccessToken] = useState('')
-  const [webhookVerifyToken, setWebhookVerifyToken] = useState('')
-  const [appSecret, setAppSecret] = useState('')
+  const {
+    config,
+    status,
+    isLoading,
+    error,
+    testResult,
+    fetchStatus,
+    testConnection,
+    saveConfig,
+    disconnect,
+    updateConfig,
+    resetConfig,
+  } = useWhatsAppConfig()
 
   useEffect(() => {
     fetchStatus()
@@ -21,21 +30,18 @@ export function WhatsAppConfigPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    await saveConfig({
-      phoneNumberId,
-      accessToken,
-      webhookVerifyToken,
-      appSecret,
-    })
+    await saveConfig()
   }
 
   const handleDisconnect = async () => {
     if (window.confirm('¿Estás seguro de desconectar WhatsApp?')) {
       await disconnect()
-      setPhoneNumberId('')
-      setAccessToken('')
-      setWebhookVerifyToken('')
-      setAppSecret('')
+    }
+  }
+
+  const handleClear = () => {
+    if (window.confirm('¿Estás seguro de limpiar la configuración?')) {
+      resetConfig()
     }
   }
 
@@ -67,59 +73,35 @@ export function WhatsAppConfigPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Configuración de API</CardTitle>
+          <CardTitle className="text-base flex items-center gap-2">
+            <Settings className="size-4" />
+            Configuración de API
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="phone-number-id">Phone Number ID</Label>
+            {WHATSAPP_CONFIG_FIELDS.map((field) => (
+              <div key={field.key} className="space-y-2">
+                <Label htmlFor={field.key}>
+                  {field.label}
+                  {field.required && <span className="text-destructive ml-1">*</span>}
+                </Label>
                 <Input
-                  id="phone-number-id"
-                  type="text"
-                  value={phoneNumberId}
-                  onChange={(e) => setPhoneNumberId(e.target.value)}
-                  placeholder="123456789012345"
+                  id={field.key}
+                  type={field.type}
+                  value={config[field.key] ?? ''}
+                  onChange={(e) => updateConfig({ [field.key]: e.target.value })}
+                  placeholder={field.placeholder}
                   disabled={status?.connected}
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="access-token">Access Token</Label>
-                <Input
-                  id="access-token"
-                  type="password"
-                  value={accessToken}
-                  onChange={(e) => setAccessToken(e.target.value)}
-                  placeholder="EAAxxxxxxxxxx"
-                  disabled={status?.connected}
-                />
-              </div>
-            </div>
+            ))}
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="webhook-verify-token">Webhook Verify Token</Label>
-                <Input
-                  id="webhook-verify-token"
-                  type="text"
-                  value={webhookVerifyToken}
-                  onChange={(e) => setWebhookVerifyToken(e.target.value)}
-                  placeholder="verify_token_123"
-                  disabled={status?.connected}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="app-secret">App Secret</Label>
-                <Input
-                  id="app-secret"
-                  type="password"
-                  value={appSecret}
-                  onChange={(e) => setAppSecret(e.target.value)}
-                  placeholder="app_secret_xyz"
-                  disabled={status?.connected}
-                />
-              </div>
-            </div>
+            {testResult && (
+              <Alert variant={testResult.ok ? 'default' : 'destructive'}>
+                <AlertDescription>{testResult.msg}</AlertDescription>
+              </Alert>
+            )}
 
             {status?.connected ? (
               <div className="flex items-center gap-4">
@@ -153,16 +135,39 @@ export function WhatsAppConfigPage() {
                 </Button>
               </div>
             ) : (
-              <Button type="submit" disabled={isLoading || !phoneNumberId || !accessToken}>
-                {isLoading ? (
-                  <>
+              <div className="flex gap-3 flex-wrap">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={testConnection}
+                  disabled={isLoading || !config.phoneNumberId || !config.accessToken}
+                >
+                  {isLoading ? (
                     <Loader2 className="size-4 mr-2 animate-spin" />
-                    Verificando...
-                  </>
-                ) : (
-                  'Guardar y Verificar'
-                )}
-              </Button>
+                  ) : (
+                    <Plug className="size-4 mr-2" />
+                  )}
+                  Probar Conexión
+                </Button>
+                <Button type="submit" disabled={isLoading}>
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="size-4 mr-2 animate-spin" />
+                      Guardando...
+                    </>
+                  ) : (
+                    'Guardar Configuración'
+                  )}
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={handleClear}
+                  title="Limpiar configuración"
+                >
+                  <Trash2 className="size-4" />
+                </Button>
+              </div>
             )}
           </form>
         </CardContent>

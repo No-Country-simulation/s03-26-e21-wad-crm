@@ -84,20 +84,36 @@ export interface EmptyStateProps {
 
 // WhatsApp Configuration Types
 export interface WhatsAppConfig {
+  baseUrl?: string
   phoneNumberId: string
   accessToken: string
   webhookVerifyToken: string
   appSecret: string
+  wabaId?: string
 }
 
 export interface WhatsAppStatus {
   connected: boolean
   phoneNumberId: string | null
   connectedAt: string | null
+  displayPhoneNumber?: string
 }
 
 export interface WhatsAppConfigResponse {
   success: boolean
   status?: WhatsAppStatus
   error?: string
+}
+
+export interface WhatsAppConfigField {
+  key: keyof WhatsAppConfig
+  label: string
+  placeholder: string
+  type: 'text' | 'password'
+  required?: boolean
+}
+
+export interface TestResult {
+  ok: boolean
+  msg: string
 }
