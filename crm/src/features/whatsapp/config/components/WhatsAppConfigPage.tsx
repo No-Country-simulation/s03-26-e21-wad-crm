@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
@@ -71,11 +72,10 @@ export function WhatsAppConfigPage() {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  Phone Number ID
-                </label>
+              <div className="space-y-2">
+                <Label htmlFor="phone-number-id">Phone Number ID</Label>
                 <Input
+                  id="phone-number-id"
                   type="text"
                   value={phoneNumberId}
                   onChange={(e) => setPhoneNumberId(e.target.value)}
@@ -83,11 +83,10 @@ export function WhatsAppConfigPage() {
                   disabled={status?.connected}
                 />
               </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  Access Token
-                </label>
+              <div className="space-y-2">
+                <Label htmlFor="access-token">Access Token</Label>
                 <Input
+                  id="access-token"
                   type="password"
                   value={accessToken}
                   onChange={(e) => setAccessToken(e.target.value)}
@@ -98,11 +97,10 @@ export function WhatsAppConfigPage() {
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  Webhook Verify Token
-                </label>
+              <div className="space-y-2">
+                <Label htmlFor="webhook-verify-token">Webhook Verify Token</Label>
                 <Input
+                  id="webhook-verify-token"
                   type="text"
                   value={webhookVerifyToken}
                   onChange={(e) => setWebhookVerifyToken(e.target.value)}
@@ -110,11 +108,10 @@ export function WhatsAppConfigPage() {
                   disabled={status?.connected}
                 />
               </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  App Secret
-                </label>
+              <div className="space-y-2">
+                <Label htmlFor="app-secret">App Secret</Label>
                 <Input
+                  id="app-secret"
                   type="password"
                   value={appSecret}
                   onChange={(e) => setAppSecret(e.target.value)}
