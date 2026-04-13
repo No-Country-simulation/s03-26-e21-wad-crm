@@ -81,7 +81,7 @@ function ConversationItem({
             </AvatarFallback>
           </Avatar>
         )}
-        <div className="absolute left-full ml-2 px-2 py-1 rounded-lg bg-popover text-popover-foreground text-xs font-medium opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50 border border-border shadow-md">
+        <div className="absolute left-full ml-2 px-2 py-1 rounded-lg bg-popover text-popover-foreground text-xs font-medium opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-[999] border border-border shadow-md">
           {conversation.name}
         </div>
       </Button>
@@ -151,7 +151,7 @@ export function WhatsAppSubNav({
 
   if (collapsed) {
     return (
-      <nav className="flex-1 flex flex-col gap-1 px-2 py-4 overflow-y-auto overflow-x-hidden">
+      <nav className="flex-1 flex flex-col gap-1 px-2 py-4 overflow-y-auto overflow-x-visible">
         <Button
           variant="secondary"
           className={cn(
@@ -161,7 +161,7 @@ export function WhatsAppSubNav({
           onClick={onBack}
         >
           <ChevronRight className="size-4 flex-shrink-0 rotate-180" data-icon="inline-start" />
-          <div className="absolute left-full ml-2 px-2 py-1 rounded-lg bg-popover text-popover-foreground text-xs font-medium opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50 border border-border shadow-md">
+          <div className="absolute left-full ml-2 px-2 py-1 rounded-lg bg-popover text-popover-foreground text-xs font-medium opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-[999] border border-border shadow-md">
             WhatsApp
           </div>
           <div className="absolute right-0 w-1 h-6 rounded-l-full bg-green-500 flex-shrink-0" />
@@ -176,7 +176,7 @@ export function WhatsAppSubNav({
           onClick={onExpandAndFocus}
         >
           <Search className="size-4" data-icon="inline-start" />
-          <div className="absolute left-full ml-2 px-2 py-1 rounded-lg bg-popover text-popover-foreground text-xs font-medium opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50 border border-border shadow-md">
+          <div className="absolute left-full ml-2 px-2 py-1 rounded-lg bg-popover text-popover-foreground text-xs font-medium opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-[999] border border-border shadow-md">
             Buscar
           </div>
         </Button>
@@ -197,7 +197,7 @@ export function WhatsAppSubNav({
   }
 
   return (
-    <nav className="flex-1 overflow-y-auto px-2 py-4 flex flex-col gap-1">
+    <nav className="flex-1 overflow-y-auto overflow-x-visible px-2 py-4 flex flex-col gap-1">
       <Button
         variant="secondary"
         className={cn(
@@ -215,7 +215,7 @@ export function WhatsAppSubNav({
 
       <Separator className="my-2" />
 
-      <div className="relative">
+      <div className="relative" style={{ paddingTop: '5px', paddingBottom: '5px' }}>
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
         <Input
           ref={inputRef}

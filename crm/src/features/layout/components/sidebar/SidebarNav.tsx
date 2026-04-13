@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils'
 
 export function SidebarNav({ items, activeTab, collapsed, onItemClick }: SidebarNavProps) {
   return (
-    <nav className="flex-1 overflow-y-auto overflow-x-hidden px-2 py-4 flex flex-col gap-1">
+    <nav className="flex-1 overflow-y-auto overflow-x-visible px-2 py-4 flex flex-col gap-1">
       {items.map((item) => {
         const Icon = item.icon
         const isActive = activeTab === item.id
@@ -31,7 +31,7 @@ export function SidebarNav({ items, activeTab, collapsed, onItemClick }: Sidebar
                   )}
                 </Button>
               </TooltipTrigger>
-              <TooltipContent side="right">
+              <TooltipContent side="right" className="z-[999]">
                 {item.label}
               </TooltipContent>
             </Tooltip>

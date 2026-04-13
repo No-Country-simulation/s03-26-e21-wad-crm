@@ -131,7 +131,7 @@ export function Sidebar({
     <aside
       className={cn(
         'border-r border-border bg-sidebar text-sidebar-foreground',
-        'transition-all duration-300 flex flex-col h-full shrink-0',
+        'transition-all duration-300 flex flex-col h-full shrink-0 overflow-visible',
         collapsed ? 'w-16' : 'w-64'
       )}
     >
