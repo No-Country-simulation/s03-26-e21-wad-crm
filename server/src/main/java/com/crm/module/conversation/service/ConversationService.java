@@ -197,7 +197,11 @@ public class ConversationService {
                 m.getExternalId(),
                 m.getSentAt(),
                 m.getDeliveredAt(),
-                m.getReadAt()
+                m.getReadAt(),
+                m.getType(),
+                m.getMediaUrl(),
+                m.getMimeType(),
+                m.getCaption()
         );
     }
 

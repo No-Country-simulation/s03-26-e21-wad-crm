@@ -14,6 +14,7 @@ import com.crm.module.user.repository.UserRepository;
 import com.crm.module.user.service.RoleService;
 import com.crm.module.workspace.entity.Workspace;
 import com.crm.module.workspace.repository.WorkspaceRepository;
+import com.crm.module.whatsapp.service.WhatsAppAutoConfigService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -40,6 +41,10 @@ public class AuthService {
     private final RefreshTokenRepository refreshTokenRepository;
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
+<<<<<<< HEAD
+=======
+    private final WhatsAppAutoConfigService whatsAppAutoConfigService;
+>>>>>>> origin/feat/startup-crm/whatsapp
     private final RoleService roleService;
 
     // -------------------------------------------------------------------------
@@ -69,6 +74,7 @@ public class AuthService {
                         .build()
         );
 
+<<<<<<< HEAD
 // Create admin user with role
         Role adminRole = roleService.getRoleByName(workspace.getId(), "ADMIN");
         User user = User.builder()
@@ -88,6 +94,31 @@ public class AuthService {
         return buildTokenResponse(user, workspace.getId());
     }
 
+=======
+         // Initialize system roles for the workspace (MUST be before getRoleByName)
+         roleService.initializeSystemRoles(workspace.getId());
+
+         // Create admin user
+         Role adminRole = roleService.getRoleByName(workspace.getId(), "ADMIN");
+         User user = User.builder()
+                  .email(request.getEmail())
+                  .passwordHash(passwordEncoder.encode(request.getPassword()))
+                  .name(request.getName())
+                  .role(adminRole)
+                  .isActive(true)
+                  .timezone("UTC")
+                  .build();
+          user.setWorkspaceId(workspace.getId());
+
+         user = userRepository.save(user);
+
+         // Auto-configure WhatsApp for the new workspace
+         whatsAppAutoConfigService.ensureWhatsAppConfigForWorkspace(workspace.getId());
+
+         return buildTokenResponse(user, workspace.getId());
+     }
+
+>>>>>>> origin/feat/startup-crm/whatsapp
      // -------------------------------------------------------------------------
      // Login
     // -------------------------------------------------------------------------
@@ -107,6 +138,9 @@ public class AuthService {
 
         // Revoke all previous refresh tokens for this user
         refreshTokenRepository.revokeAllByUserId(user.getId());
+
+        // Auto-configure WhatsApp for this user's workspace if needed
+        whatsAppAutoConfigService.ensureWhatsAppConfigForWorkspace(user.getWorkspaceId());
 
         return buildTokenResponse(user, user.getWorkspaceId());
     }
@@ -158,6 +192,9 @@ public class AuthService {
 
         refreshTokenRepository.revokeAllByUserId(user.getId());
 
+        // Auto-configure WhatsApp for this user's workspace if needed
+        whatsAppAutoConfigService.ensureWhatsAppConfigForWorkspace(user.getWorkspaceId());
+
         return buildTokenResponse(user, user.getWorkspaceId());
     }
 
@@ -181,6 +218,9 @@ public class AuthService {
          user.setWorkspaceId(workspace.getId());
 
         user = userRepository.save(user);
+
+        // Auto-configure WhatsApp for the new workspace
+        whatsAppAutoConfigService.ensureWhatsAppConfigForWorkspace(workspace.getId());
 
         return buildTokenResponse(user, workspace.getId());
     }
@@ -220,6 +260,8 @@ public class AuthService {
         return TokenResponse.builder()
                 .accessToken(accessToken)
                 .refreshToken(rawRefreshToken)
+                .workspaceId(workspaceId)
+                .role(user.getRole().getName())
                 .build();
     }
 

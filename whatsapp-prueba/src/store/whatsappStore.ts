@@ -69,7 +69,18 @@ export const useWhatsAppStore = create<WhatsAppStore>()(
     (set, get) => ({
       // User & Session
       session: null,
+<<<<<<< HEAD
       setSession: (session) => set({ session, currentRole: session?.role || null }),
+=======
+      setSession: (session) => {
+        set({ session, currentRole: session?.role || null });
+        if (session?.role) {
+          localStorage.setItem('user-role', session.role);
+          localStorage.setItem('user-id', session.userId);
+          localStorage.setItem('workspace-id', session.workspaceId);
+        }
+      },
+>>>>>>> origin/feat/startup-crm/whatsapp
       currentRole: null,
 
       // Configuration
@@ -119,7 +130,11 @@ export const useWhatsAppStore = create<WhatsAppStore>()(
       logs: [],
       addLog: (log) =>
         set((state) => ({
+<<<<<<< HEAD
           logs: [log, ...state.logs].slice(0, 100), // Keep last 100 logs
+=======
+          logs: [log, ...state.logs].slice(0, 100),
+>>>>>>> origin/feat/startup-crm/whatsapp
         })),
       clearLogs: () => set({ logs: [] }),
 
@@ -132,13 +147,22 @@ export const useWhatsAppStore = create<WhatsAppStore>()(
       setError: (error) => set({ error }),
     }),
     {
+<<<<<<< HEAD
       name: 'wa-prueba-store', // localStorage key
       partialize: (state) => ({
         // Only persist these fields
+=======
+      name: 'wa-prueba-store',
+      partialize: (state) => ({
+>>>>>>> origin/feat/startup-crm/whatsapp
         config: state.config,
         crmConfig: state.crmConfig,
         templates: state.templates,
         session: state.session,
+<<<<<<< HEAD
+=======
+        currentRole: state.currentRole,
+>>>>>>> origin/feat/startup-crm/whatsapp
         activeTab: state.activeTab,
       }),
     }

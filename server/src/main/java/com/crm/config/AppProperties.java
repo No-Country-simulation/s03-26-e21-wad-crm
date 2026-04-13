@@ -16,11 +16,10 @@ import java.util.List;
 @ConfigurationProperties(prefix = "app")
 public class AppProperties {
 
-    private final Jwt jwt = new Jwt();
-    private final Cors cors = new Cors();
-    private final Encryption encryption = new Encryption();
-    /** WhatsApp Business API credentials for dev mode. Loaded from WA_* env vars. */
-    private final WhatsApp whatsApp = new WhatsApp();
+    private Jwt jwt = new Jwt();
+    private Cors cors = new Cors();
+    private Encryption encryption = new Encryption();
+    private WhatsApp whatsApp = new WhatsApp();
 
     @Getter
     @Setter

@@ -8,6 +8,7 @@ import com.crm.module.conversation.entity.Conversation;
 import com.crm.module.conversation.entity.MessageChannel;
 import com.crm.module.conversation.entity.MessageDirection;
 import com.crm.module.conversation.entity.MessageStatus;
+import com.crm.module.conversation.service.ConversationLockService;
 import com.crm.module.conversation.service.ConversationService;
 import com.crm.module.whatsapp.dto.SendWhatsAppRequest;
 import com.crm.module.whatsapp.dto.SendWhatsAppResponse;
@@ -37,6 +38,7 @@ public class WhatsAppService {
     private final WhatsAppConfigRepository whatsAppConfigRepository;
     private final ContactRepository contactRepository;
     private final ConversationService conversationService;
+    private final ConversationLockService conversationLockService;
     private final MetaCloudApiProvider metaCloudApiProvider;
     private final EncryptionService encryptionService;
 
@@ -47,11 +49,27 @@ public class WhatsAppService {
      * Req 21.1: registra con estado SENDING → SENT/FAILED.
      * Req 21.4: crea conversación si no existe.
      * Req 21.5: actualiza lastMessageAt.
+     * 
+     * Multi-agente: Opcionalmente verifica lock si userId se proporciona.
      */
     @Transactional
+<<<<<<< HEAD
     public SendWhatsAppResponse sendMessage(SendWhatsAppRequest request, UUID workspaceId, UUID userId) {
         log.info("[WA-OUTBOUND] Sending message: contactId={}, workspaceId={}, template={}",
                 request.contactId(), workspaceId, request.templateName());
+=======
+    public SendWhatsAppResponse sendMessage(SendWhatsAppRequest request, UUID workspaceId) {
+        return sendMessage(request, workspaceId, null);
+    }
+
+    /**
+     * Versión con userId para multi-agente locking.
+     */
+    @Transactional
+    public SendWhatsAppResponse sendMessage(SendWhatsAppRequest request, UUID workspaceId, UUID userId) {
+        log.info("[WA-OUTBOUND] Sending message: contactId={}, workspaceId={}, userId={}, template={}",
+                request.contactId(), workspaceId, userId, request.templateName());
+>>>>>>> origin/feat/startup-crm/whatsapp
 
         // Resolve contact
         Contact contact = contactRepository
@@ -80,6 +98,19 @@ public class WhatsAppService {
         Conversation conversation = conversationService.findOrCreate(
                 contact.getId(), MessageChannel.WHATSAPP, workspaceId);
         log.info("[WA-OUTBOUND] Conversation: id={}", conversation.getId());
+
+        // MULTI-AGENT: Check if this agent is attending the conversation
+        if (userId != null) {
+            if (!conversationLockService.canAgentSendMessage(conversation.getId(), userId)) {
+                UUID attendingAgent = conversationLockService.getAttendingAgent(conversation.getId()).orElse(null);
+                String errorMsg = attendingAgent != null
+                        ? "Conversación atendida por otro agente. Debes iniciar atención primero."
+                        : "Nadie está atendiendo esta conversación. Haz clic en 'Iniciar' primero.";
+                log.warn("[WA-OUTBOUND] SEND DENIED: conversationId={}, userId={}, attendingAgent={}", 
+                        conversation.getId(), userId, attendingAgent);
+                throw new IllegalStateException(errorMsg);
+            }
+        }
 
         // Persist message with SENDING status first
         var pendingMsg = conversationService.addMessage(new AddMessageRequest(

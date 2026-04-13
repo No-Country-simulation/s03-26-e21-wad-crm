@@ -1,6 +1,7 @@
 package com.crm.module.auth.controller;
 
 import com.crm.common.security.JwtService;
+import com.crm.common.security.WorkspaceContext;
 import com.crm.module.auth.dto.GoogleAuthRequest;
 import com.crm.module.auth.dto.LoginRequest;
 import com.crm.module.auth.dto.RefreshRequest;
@@ -8,10 +9,13 @@ import com.crm.module.auth.dto.RegisterRequest;
 import com.crm.module.auth.dto.TokenResponse;
 import com.crm.module.auth.service.AuthService;
 import com.crm.module.auth.service.GoogleOAuthService;
+import com.crm.module.user.entity.User;
+import com.crm.module.user.repository.UserRepository;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -33,6 +37,7 @@ public class AuthController {
     private final AuthService authService;
     private final GoogleOAuthService googleOAuthService;
     private final JwtService jwtService;
+    private final UserRepository userRepository;
 
     @PostMapping("/register")
     public ResponseEntity<TokenResponse> register(@Valid @RequestBody RegisterRequest request) {
@@ -66,4 +71,28 @@ public class AuthController {
         authService.logout(userId);
         return ResponseEntity.noContent().build();
     }
+
+    /**
+     * Get current user info (including workspaceId).
+     */
+    @GetMapping("/me")
+    public ResponseEntity<UserInfoResponse> getCurrentUser(
+            @RequestHeader("Authorization") String authorizationHeader) {
+        String token = authorizationHeader.substring(7);
+        UUID userId = jwtService.extractUserId(token);
+        
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
+        
+        return ResponseEntity.ok(new UserInfoResponse(
+                user.getId(),
+                user.getEmail(),
+                user.getName(),
+                user.getWorkspaceId(),
+                user.getRole().toString()
+        ));
+    }
+
+    // DTO for user info
+    public record UserInfoResponse(UUID id, String email, String name, UUID workspaceId, String role) {}
 }

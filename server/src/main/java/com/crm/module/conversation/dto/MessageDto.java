@@ -21,5 +21,9 @@ public record MessageDto(
         String externalId,
         LocalDateTime sentAt,
         LocalDateTime deliveredAt,
-        LocalDateTime readAt
+        LocalDateTime readAt,
+        String type,
+        String mediaUrl,
+        String mimeType,
+        String caption
 ) {}

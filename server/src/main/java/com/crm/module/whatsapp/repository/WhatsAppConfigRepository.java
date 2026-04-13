@@ -16,6 +16,9 @@ public interface WhatsAppConfigRepository extends JpaRepository<WhatsAppConfig, 
     /** Find all configs for a workspace (active or inactive). */
     List<WhatsAppConfig> findByWorkspaceId(UUID workspaceId);
 
+    /** Find all configs for a phone number (active or inactive). */
+    List<WhatsAppConfig> findByPhoneNumberId(String phoneNumberId);
+
     /** Req 20.1: resolver workspace a partir del phone_number_id del metadata del webhook. */
     Optional<WhatsAppConfig> findByPhoneNumberIdAndActiveTrue(String phoneNumberId);
 }

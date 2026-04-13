@@ -47,7 +47,7 @@ spring:
 
   # WebSocket / STOMP
   websocket:
-    allowed-origins: ${CORS_ORIGINS:http://localhost:3000}
+    allowed-origins: ${CORS_ORIGINS:http://localhost:5174,http://localhost:5175,http://localhost:3000,http://127.0.0.1:5174,http://127.0.0.1:5175,http://127.0.0.1:3000}
 
 # App config - all in one section
 app:
@@ -58,7 +58,7 @@ app:
     access-token-expiry: 86400000      # 24 hours in ms
     refresh-token-expiry: 604800000    # 7 days in ms
   cors:
-    allowed-origins: ${CORS_ORIGINS:http://localhost:5173,http://localhost:3000,http://127.0.0.1:5173,http://127.0.0.1:3000}
+    allowed-origins: ${CORS_ORIGINS:http://localhost:5173,http://localhost:5174,http://localhost:5175,http://localhost:3000,http://127.0.0.1:5173,http://127.0.0.1:5174,http://127.0.0.1:5175,http://127.0.0.1:3000}
   encryption:
     key: ${ENCRYPTION_KEY:your-aes-256-key-here-change-in-production}
   whatsapp:
