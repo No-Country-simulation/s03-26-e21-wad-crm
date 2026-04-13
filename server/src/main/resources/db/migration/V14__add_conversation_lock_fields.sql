@@ -1,12 +1,4 @@
-<<<<<<< HEAD
 -- V14__add_conversation_lock_fields.sql
--- Add lock fields for multi-agent conversation support
-
-ALTER TABLE conversations ADD COLUMN locked_by UUID;
-ALTER TABLE conversations ADD COLUMN locked_at TIMESTAMP;
-
-CREATE INDEX idx_conversations_locked_by ON conversations(locked_by);
-=======
 -- Add multi-agente conversation lock fields
 -- Allows tracking which user is handling a conversation to prevent message conflicts
 
@@ -29,4 +21,3 @@ WHERE locked_until IS NOT NULL;
 ALTER TABLE conversations
 ADD CONSTRAINT fk_conversations_locked_by_user_id
 FOREIGN KEY (locked_by_user_id) REFERENCES users(id) ON DELETE SET NULL;
->>>>>>> origin/feat/startup-crm/whatsapp
