@@ -1,16 +1,9 @@
 package com.crm.module.user.dto;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.validation.constraints.NotNull;
-import lombok.Value;
 
-@Value
-public class UpdateRoleRequest {
-
-    @JsonCreator
-    public UpdateRoleRequest(@NotNull String role) {
-        this.role = role;
-    }
-
-    public String getRole() { return role; }
-}
+@JsonIgnoreProperties(ignoreUnknown = true)
+public record UpdateRoleRequest(
+    @NotNull String role
+) {}
