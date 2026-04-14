@@ -42,7 +42,7 @@ export default function Contacts() {
     e.preventDefault();
     try {
       await contactsService.create(formData);
-      setFormData({ name: '', email: '', phone: '' });
+      setFormData({ name: '', email: '', phone: '', status: null });
       setShowForm(false);
       loadContacts();
     } catch (error) {
@@ -58,7 +58,7 @@ export default function Contacts() {
 
   const handleEdit = (contact) => {
     setEditingId(contact.id);
-    setFormData({ name: contact.name, email: contact.email, phone: contact.phone || '' });
+    setFormData({ name: contact.name, email: contact.email, phone: contact.phone || '', status: contact.status });
     setShowForm(true);
   };
 
@@ -66,7 +66,7 @@ export default function Contacts() {
     e.preventDefault();
     try {
       await contactsService.update(editingId, formData);
-      setFormData({ name: '', email: '', phone: '' });
+      setFormData({ name: '', email: '', phone: '', status: null });
       setEditingId(null);
       setShowForm(false);
       loadContacts();
@@ -77,7 +77,7 @@ export default function Contacts() {
 
   const handleCancelEdit = () => {
     setEditingId(null);
-    setFormData({ name: '', email: '', phone: '' });
+    setFormData({ name: '', email: '', phone: '', status: null });
     setShowForm(false);
   };
 
@@ -112,7 +112,7 @@ export default function Contacts() {
             </button>
           </div>
           <form onSubmit={editingId ? handleUpdate : handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               {[
                 { icon: User,  type: 'text',  key: 'name',  ph: 'Full Name' },
                 { icon: Mail,  type: 'email', key: 'email', ph: 'Email' },
@@ -126,6 +126,24 @@ export default function Contacts() {
                     required={key !== 'phone'} />
                 </div>
               ))}
+              {editingId && (
+                <div className="relative">
+                  <select
+                    value={formData.status || 'NEW'}
+                    onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                    className="w-full px-4 py-3 rounded-lg focus:outline-none appearance-none cursor-pointer" 
+                    style={{ ...inp, backgroundColor: 'var(--color-surface-2)' }}>
+                    <option value="NEW">New</option>
+                    <option value="CONTACTED">Contacted</option>
+                    <option value="QUALIFIED">Qualified</option>
+                    <option value="CONVERTED">Converted</option>
+                    <option value="LOST">Lost</option>
+                  </select>
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: 'var(--color-muted)' }}>
+                    ▾
+                  </div>
+                </div>
+              )}
             </div>
             <button type="submit" className="px-8 py-3 rounded-lg font-medium" style={{ background: 'var(--color-primary)', color: '#fff' }}>
               Save Contact
