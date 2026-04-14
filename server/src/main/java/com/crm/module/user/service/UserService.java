@@ -56,19 +56,19 @@ public class UserService {
      * Throws {@link ConflictException} if the email is already registered.
      */
     public UserDto inviteUser(UUID workspaceId, InviteUserRequest request) {
-        if (userRepository.existsByEmail(request.getEmail())) {
-            throw new ConflictException("Email already registered: " + request.getEmail());
+        if (userRepository.existsByEmail(request.email())) {
+            throw new ConflictException("Email already registered: " + request.email());
         }
 
         // Get role by name (default to USER)
-        String roleName = request.getRole() != null ? request.getRole() : "USER";
+        String roleName = request.role() != null ? request.role() : "USER";
         Role role = roleRepository
                 .findByWorkspaceIdAndNameAndIsActiveTrue(workspaceId, roleName)
                 .orElseThrow(() -> new IllegalArgumentException("Role not found: " + roleName));
 
         User user = User.builder()
-                .email(request.getEmail())
-                .name(request.getName())
+                .email(request.email())
+                .name(request.name())
                 .role(role)
                 .isActive(false)
                 .build();
@@ -90,8 +90,8 @@ public class UserService {
 
         // Get new role
         Role newRole = roleRepository
-                .findByWorkspaceIdAndNameAndIsActiveTrue(workspaceId, request.getRole())
-                .orElseThrow(() -> new IllegalArgumentException("Role not found: " + request.getRole()));
+                .findByWorkspaceIdAndNameAndIsActiveTrue(workspaceId, request.role())
+                .orElseThrow(() -> new IllegalArgumentException("Role not found: " + request.role()));
 
         boolean demotingAdmin = "ADMIN".equals(user.getRole().getName())
                 && !"ADMIN".equals(newRole.getName());
@@ -161,14 +161,14 @@ public class UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", userId));
 
-        if (request.getName() != null && !request.getName().isBlank()) {
-            user.setName(request.getName());
+        if (request.name() != null && !request.name().isBlank()) {
+            user.setName(request.name());
         }
-        if (request.getPhone() != null) {
-            user.setPhone(request.getPhone());
+        if (request.phone() != null) {
+            user.setPhone(request.phone());
         }
-        if (request.getTimezone() != null) {
-            user.setTimezone(request.getTimezone());
+        if (request.timezone() != null) {
+            user.setTimezone(request.timezone());
         }
 
         return UserDto.from(userRepository.save(user));
@@ -188,11 +188,11 @@ public class UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", userId));
 
-        if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPasswordHash())) {
+        if (!passwordEncoder.matches(request.currentPassword(), user.getPasswordHash())) {
             throw new com.crm.common.exception.AuthenticationException("Current password is incorrect");
         }
 
-        user.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
+        user.setPasswordHash(passwordEncoder.encode(request.newPassword()));
         userRepository.save(user);
     }
 
