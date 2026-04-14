@@ -24,6 +24,7 @@ export default function Layout() {
     { path: '/tasks',              label: 'Tasks',              icon: CheckSquare },
     { path: '/email-templates',    label: 'Email Templates',    icon: Mail },
     { path: '/whatsapp-templates', label: 'WhatsApp Templates', icon: MessageCircle, color: '#25D366' },
+    { path: '/whatsapp', label: 'WhatsApp', icon: MessageCircle, color: '#25D366' },
     { path: '/settings',           label: 'Settings',           icon: Settings },
   ];
 

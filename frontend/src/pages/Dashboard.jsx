@@ -2,6 +2,7 @@
 import { dashboardService } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { Users, DollarSign, TrendingUp, Activity, MessageCircle, Mail } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 export default function Dashboard() {
   const [stats, setStats] = useState(null);
@@ -39,6 +40,21 @@ export default function Dashboard() {
         <StatCard title="Active Deals" value={stats?.activeDeals || 0} icon={<DollarSign className="w-6 h-6" />} color="#2563eb" />
         <StatCard title="Pipeline Value" value={`$${(stats?.pipelineValue || 0).toLocaleString()}`} icon={<TrendingUp className="w-6 h-6" />} color="#a855f7" />
         <StatCard title="Conversion Rate" value={`${((stats?.conversionRate || 0) * 100).toFixed(1)}%`} icon={<Activity className="w-6 h-6" />} color="#3b82f6" />
+        {/* WhatsApp quick access card */}
+        <div className="rounded-xl p-6" style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm" style={{ color: 'var(--color-muted)' }}>WhatsApp</p>
+              <p className="text-2xl font-bold mt-1" style={{ color: 'var(--color-text)' }}>Module</p>
+            </div>
+            <div className="p-3 rounded-full" style={{ background: '#25D36622', color: '#25D366' }}>
+              <MessageCircle className="w-6 h-6" />
+            </div>
+          </div>
+          <div className="mt-4">
+            <Link to="/whatsapp" className="text-sm font-medium text-blue-500 hover:underline">Open WhatsApp</Link>
+          </div>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">

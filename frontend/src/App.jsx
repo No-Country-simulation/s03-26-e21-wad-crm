@@ -11,6 +11,7 @@ import Deals from './pages/Deals';
 import Settings from './pages/Settings';
 import EmailTemplates from './pages/EmailTemplates';
 import WhatsAppTemplates from './pages/WhatsAppTemplates';
+import WhatsApp from './pages/WhatsApp';
 
 function App() {
   return (
@@ -35,6 +36,7 @@ function App() {
             <Route path="email-templates" element={<EmailTemplates />} />
             <Route path="whatsapp-templates" element={<WhatsAppTemplates />} />
             <Route path="settings" element={<Settings />} />
+            <Route path="whatsapp" element={<WhatsApp />} />
           </Route>
         </Routes>
       </AuthProvider>

@@ -1,4 +1,5 @@
 {
     "mdx-preview.preview.enableScripts": false,
-    "kiroAgent.configureMCP": "Disabled"
+    "kiroAgent.configureMCP": "Disabled",
+    "java.compile.nullAnalysis.mode": "automatic"
 }
