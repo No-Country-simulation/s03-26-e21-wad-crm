@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { userService, workspaceService, emailConfigService } from '../services/api';
 import { User, Building, Bell, Shield, Mail, MessageCircle, Eye, EyeOff } from 'lucide-react';
+import WhatsAppSettingsPanel from '../../../server/frontend/src/components/settings/WhatsAppSettingsPanel';
 
 const inp = { background: 'var(--color-surface-2)', border: '1px solid var(--color-border)', color: 'var(--color-text)' };
 
@@ -292,12 +293,7 @@ function WhatsAppSettings() {
   return (
     <div>
       <SectionTitle>WhatsApp Integration</SectionTitle>
-      <div className="p-8 rounded-lg text-center" style={{ background: 'var(--color-surface-2)', border: '1px solid var(--color-border)' }}>
-        <MessageCircle className="w-16 h-16 mx-auto mb-4" style={{ color: '#25D366' }} />
-        <h3 className="text-lg font-semibold mb-2" style={{ color: 'var(--color-text)' }}>Coming Soon</h3>
-        <p style={{ color: 'var(--color-muted)' }}>WhatsApp Business API integration is being developed.</p>
-        <p className="text-sm mt-2" style={{ color: 'var(--color-muted)' }}>Contact support for early access.</p>
-      </div>
+      <WhatsAppSettingsPanel />
     </div>
   );
 }
