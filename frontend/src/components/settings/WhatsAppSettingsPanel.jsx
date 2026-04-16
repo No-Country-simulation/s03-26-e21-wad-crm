@@ -53,30 +53,32 @@ export default function WhatsAppSettingsPanel() {
       .finally(() => setLoading(false));
   };
 
+  const inp = { background: 'var(--color-surface)', border: '1px solid var(--color-border)', color: 'var(--color-text)' };
+
   return (
-    <section style={{ padding: '16px', borderRadius: 12, border: '1px solid var(--color-border)', background: 'var(--color-surface-2)' }}>
+    <section style={{ padding: 16, borderRadius: 12, border: '1px solid var(--color-border)', background: 'var(--color-surface-2)' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-        <h3 style={{ margin: 0, color: 'var(--color-text)' }}> WhatsApp Configuration</h3>
-        <button onClick={save} disabled={loading} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 6, background: 'var(--color-primary)', color: '#fff', border: 'none' }}>
+        <h3 style={{ margin: 0, color: 'var(--color-text)' }}>WhatsApp Configuration</h3>
+        <button onClick={save} disabled={loading} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 6, background: 'var(--color-primary)', color: '#fff', border: 'none', cursor: 'pointer' }}>
           <Save size={16} /> Save
         </button>
       </div>
       <div style={{ display: 'grid', gap: 12 }}>
         <div>
           <label style={{ display: 'block', marginBottom: 4, color: 'var(--color-text)' }}>Phone Number ID</label>
-          <input name="phoneNumberId" value={config.phoneNumberId} onChange={handleChange} placeholder="Phone Number ID from Meta" style={{ width: '100%', padding: '10px', borderRadius: 6, border: '1px solid var(--color-border)', background: 'var(--color-surface)', color: 'var(--color-text)' }} />
+          <input name="phoneNumberId" value={config.phoneNumberId} onChange={handleChange} placeholder="Phone Number ID from Meta" style={{ width: '100%', padding: 10, borderRadius: 6, border: '1px solid var(--color-border)', background: 'var(--color-surface)', color: 'var(--color-text)' }} />
         </div>
         <div>
           <label style={{ display: 'block', marginBottom: 4, color: 'var(--color-text)' }}>Access Token</label>
-          <input name="accessToken" value={config.accessToken} onChange={handleChange} placeholder="Meta Access Token" style={{ width: '100%', padding: '10px', borderRadius: 6, border: '1px solid var(--color-border)', background: 'var(--color-surface)', color: 'var(--color-text)' }} />
+          <input name="accessToken" value={config.accessToken} onChange={handleChange} placeholder="Meta Access Token" style={{ width: '100%', padding: 10, borderRadius: 6, border: '1px solid var(--color-border)', background: 'var(--color-surface)', color: 'var(--color-text)' }} />
         </div>
         <div>
           <label style={{ display: 'block', marginBottom: 4, color: 'var(--color-text)' }}>Webhook Verify Token</label>
-          <input name="webhookVerifyToken" value={config.webhookVerifyToken} onChange={handleChange} placeholder="Webhook Verify Token" style={{ width: '100%', padding: '10px', borderRadius: 6, border: '1px solid var(--color-border)', background: 'var(--color-surface)', color: 'var(--color-text)' }} />
+          <input name="webhookVerifyToken" value={config.webhookVerifyToken} onChange={handleChange} placeholder="Webhook Verify Token" style={{ width: '100%', padding: 10, borderRadius: 6, border: '1px solid var(--color-border)', background: 'var(--color-surface)', color: 'var(--color-text)' }} />
         </div>
         <div>
           <label style={{ display: 'block', marginBottom: 4, color: 'var(--color-text)' }}>App Secret</label>
-          <input name="appSecret" value={config.appSecret} onChange={handleChange} placeholder="Meta App Secret" style={{ width: '100%', padding: '10px', borderRadius: 6, border: '1px solid var(--color-border)', background: 'var(--color-surface)', color: 'var(--color-text)' }} />
+          <input name="appSecret" value={config.appSecret} onChange={handleChange} placeholder="Meta App Secret" style={{ width: '100%', padding: 10, borderRadius: 6, border: '1px solid var(--color-border)', background: 'var(--color-surface)', color: 'var(--color-text)' }} />
         </div>
       </div>
       {message && <div style={{ marginTop: 12, color: 'var(--color-accent)' }}>{message}</div>}
