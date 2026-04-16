@@ -121,7 +121,8 @@ public class SettingsService {
             WhatsAppConfig config = new WhatsAppConfig();
             config.setPhoneNumberId(request.phoneNumberId());
             config.setAccessToken(request.accessToken());
-            return whatsAppProvider.verifyConnection(config);
+            whatsAppProvider.verifyConnection(config);
+            return true;
         } catch (Exception e) {
             log.warn("WhatsApp verification failed: {}", e.getMessage());
             return false;
