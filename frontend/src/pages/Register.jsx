@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
-import { Mail, Lock, User, Building, UserPlus } from 'lucide-react';
+import { Mail, Lock, User, Building, UserPlus, Eye, EyeOff } from 'lucide-react';
 
 export default function Register() {
   const [formData, setFormData] = useState({ name: '', email: '', password: '', companyName: '' });
@@ -9,6 +9,7 @@ export default function Register() {
   const [loading, setLoading] = useState(false);
   const { register } = useAuth();
   const navigate = useNavigate();
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
@@ -56,20 +57,45 @@ export default function Register() {
               <label className="block text-sm font-medium mb-2" style={{ color: 'var(--color-text)' }}>
                 {label} {optional && <span style={{ color: 'var(--color-muted)' }}>(optional)</span>}
               </label>
-              <div className="relative">
-                <Icon className="absolute left-3 top-1/2 -translate-y-1/2" size={18} style={{ color: 'var(--color-muted)' }} />
-                <input
-                  type={type}
-                  name={name}
-                  value={formData[name]}
-                  onChange={handleChange}
-                  placeholder={placeholder}
-                  className="w-full pl-10 pr-4 py-3 rounded-lg focus:outline-none transition-colors"
-                  style={inputStyle}
-                  required={!optional}
-                  minLength={minLength}
-                />
-              </div>
+              {name === 'password' ? (
+                <div className="relative">
+                  <Icon className="absolute left-3 top-1/2 -translate-y-1/2" size={18} style={{ color: 'var(--color-muted)' }} />
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    name={name}
+                    value={formData[name]}
+                    onChange={handleChange}
+                    placeholder={placeholder}
+                    className="w-full pl-10 pr-10 py-3 rounded-lg focus:outline-none transition-colors"
+                    style={inputStyle}
+                    required={!optional}
+                    minLength={minLength}
+                  />
+                  <button
+                    type="button"
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    onClick={() => setShowPassword(v => !v)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
+              ) : (
+                <div className="relative">
+                  <Icon className="absolute left-3 top-1/2 -translate-y-1/2" size={18} style={{ color: 'var(--color-muted)' }} />
+                  <input
+                    type={type}
+                    name={name}
+                    value={formData[name]}
+                    onChange={handleChange}
+                    placeholder={placeholder}
+                    className="w-full pl-10 pr-4 py-3 rounded-lg focus:outline-none transition-colors"
+                    style={inputStyle}
+                    required={!optional}
+                    minLength={minLength}
+                  />
+                </div>
+              )}
             </div>
           ))}
 
