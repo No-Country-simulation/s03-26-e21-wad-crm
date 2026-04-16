@@ -113,6 +113,22 @@ public class SettingsService {
     }
 
     /**
+     * Verifica la conexión de WhatsApp sin guardar la configuración.
+     * Usado para probar las credenciales antes de guardar.
+     */
+    public boolean verifyWhatsAppConfig(WhatsAppConfigRequest request) {
+        try {
+            WhatsAppConfig config = new WhatsAppConfig();
+            config.setPhoneNumberId(request.phoneNumberId());
+            config.setAccessToken(request.accessToken());
+            return whatsAppProvider.verifyConnection(config);
+        } catch (Exception e) {
+            log.warn("WhatsApp verification failed: {}", e.getMessage());
+            return false;
+        }
+    }
+
+    /**
      * Desconecta WhatsApp eliminando las credenciales del workspace.
      * Requisito: 35.2
      */

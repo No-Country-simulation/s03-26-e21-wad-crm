@@ -49,7 +49,23 @@ public class SettingsController {
         return ResponseEntity.noContent().build();
     }
 
-    @DeleteMapping("/email")
+    @PostMapping("/whatsapp/test")
+    public ResponseEntity<?> testWhatsAppConnection(@RequestBody WhatsAppConfigRequest request) {
+        try {
+            boolean isValid = settingsService.verifyWhatsAppConfig(request);
+            if (isValid) {
+                return ResponseEntity.ok(Map.of("success", true, "message", "✅ Conexión exitosa con Meta"));
+            } else {
+                return ResponseEntity.badRequest()
+                        .body(Map.of("success", false, "error", "Token inválido o ID incorrecto"));
+            }
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("success", false, "error", "Error de conexión: " + e.getMessage()));
+        }
+    }
+
+@DeleteMapping("/email")
     public ResponseEntity<Void> disconnectEmail() {
         settingsService.disconnectEmail(WorkspaceContext.getWorkspaceId());
         return ResponseEntity.noContent().build();
