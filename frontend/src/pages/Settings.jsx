@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { userService, workspaceService, emailConfigService } from '../services/api';
 import { User, Building, Bell, Shield, Mail, MessageCircle, Eye, EyeOff } from 'lucide-react';
-import WhatsAppSettingsPanel from '../../../server/frontend/src/components/settings/WhatsAppSettingsPanel';
+import WhatsAppSettingsPanel from '../components/settings/WhatsAppSettingsPanel';
 
 const inp = { background: 'var(--color-surface-2)', border: '1px solid var(--color-border)', color: 'var(--color-text)' };
 
