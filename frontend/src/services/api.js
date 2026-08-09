@@ -65,4 +65,12 @@ export const workspaceService = {
   update: (data) => api.patch('/api/settings/workspace', data),
 };
 
+export const conversationsService = {
+  getAll: (page = 0, size = 20) => api.get('/api/conversations', { params: { page, size } }),
+  getMessages: (conversationId, page = 0, size = 50) => 
+    api.get(`/api/conversations/${conversationId}/messages`, { params: { page, size } }),
+  sendMessage: (conversationId, body) => 
+    api.post(`/api/conversations/${conversationId}/messages`, { body }),
+};
+
 export default api;

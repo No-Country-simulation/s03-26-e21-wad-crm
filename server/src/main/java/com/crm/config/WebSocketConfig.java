@@ -11,10 +11,13 @@ import java.util.List;
 
 @Configuration
 @EnableWebSocketMessageBroker
-@RequiredArgsConstructor
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     private final AppProperties appProperties;
+
+    public WebSocketConfig(AppProperties appProperties) {
+        this.appProperties = appProperties;
+    }
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {

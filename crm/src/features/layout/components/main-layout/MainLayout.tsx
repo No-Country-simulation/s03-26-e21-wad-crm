@@ -1,6 +1,6 @@
-import { useState, useEffect, ReactNode } from 'react'
+import { useState, ReactNode } from 'react'
 import { Header } from '../header'
-import { Sidebar, MOCK_WHATSAPP_CONVERSATIONS } from '../sidebar'
+import { Sidebar } from '../sidebar'
 import type { Conversation } from '../sidebar'
 import { EventTicker, mockNotifications } from '../event-ticker'
 import { WhatsAppConversationContainer, WhatsAppConversationHeader } from '@/features/whatsapp'
@@ -9,7 +9,7 @@ import { TABS } from '@/utils/constants'
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable'
 import { ContactDetailsPanel } from '../../../whatsapp/components/ContactDetailsPanel'
 
-const eventTickerMocks = mockNotifications.map(notif => ({
+const eventTickerData = mockNotifications.map((notif) => ({
   ...notif,
   section: notif.section as TabKey
 }))
@@ -38,11 +38,7 @@ export function MainLayout({
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [activeConversation, setActiveConversation] = useState<Conversation | null>(null)
 
-  useEffect(() => {
-    if (activeTab === TABS.WHATSAPP && !activeConversation && MOCK_WHATSAPP_CONVERSATIONS.length > 0) {
-      setActiveConversation(MOCK_WHATSAPP_CONVERSATIONS[0])
-    }
-  }, [activeTab, activeConversation])
+  // Ya no usamos mock - el panel de conversaciones trae los datos del servidor
 
   const handleProfileClick = () => {
     console.log('Navegando a Mi Perfil...')
@@ -141,7 +137,7 @@ export function MainLayout({
           )}
         </main>
         <EventTicker
-          data={eventTickerMocks}
+          data={eventTickerData}
           interval={60000}
           onNotificationClick={(section) => onTabChange(section)}
         />

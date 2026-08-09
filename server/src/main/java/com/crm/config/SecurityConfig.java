@@ -23,12 +23,17 @@ import java.util.List;
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
-@RequiredArgsConstructor
 public class SecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter;
     private final WorkspaceFilter workspaceFilter;
     private final AppProperties appProperties;
+
+    public SecurityConfig(JwtAuthFilter jwtAuthFilter, WorkspaceFilter workspaceFilter, AppProperties appProperties) {
+        this.jwtAuthFilter = jwtAuthFilter;
+        this.workspaceFilter = workspaceFilter;
+        this.appProperties = appProperties;
+    }
 
     private static final String[] PUBLIC_PATHS = {
             "/api/auth/**",

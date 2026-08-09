@@ -1,7 +1,6 @@
 import axios from 'axios'
 
-const isDev = import.meta.env.DEV
-const API_BASE_URL = isDev ? 'http://localhost:3001' : 'http://localhost:8080/api'
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080'
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -11,7 +10,7 @@ export const apiClient = axios.create({
 })
 
 apiClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem('crm_token')
+  const token = localStorage.getItem('crm_access_token')
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
   }
@@ -22,7 +21,8 @@ apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem('crm_token')
+      localStorage.removeItem('crm_access_token')
+      localStorage.removeItem('crm_refresh_token')
       localStorage.removeItem('crm_user')
       window.location.href = '/login'
     }

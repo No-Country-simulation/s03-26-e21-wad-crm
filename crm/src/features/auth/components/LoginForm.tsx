@@ -14,7 +14,7 @@ export function LoginForm({
   return (
     <form onSubmit={onSubmit} className="space-y-4">
       <div className="space-y-2">
-        <label htmlFor="email" className="text-sm font-medium">
+        <label htmlFor="email" className="text-sm font-medium text-secondary-700">
           Email
         </label>
         <Input
@@ -28,7 +28,7 @@ export function LoginForm({
       </div>
 
       <div className="space-y-2">
-        <label htmlFor="password" className="text-sm font-medium">
+        <label htmlFor="password" className="text-sm font-medium text-secondary-700">
           Contraseña
         </label>
         <Input
@@ -42,12 +42,12 @@ export function LoginForm({
       </div>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded text-sm">
+        <div className="bg-danger-50 border border-danger-200 text-danger-600 px-4 py-3 rounded text-sm">
           {error}
         </div>
       )}
 
-      <Button type="submit" className="w-full" disabled={isLoading}>
+      <Button type="submit" className="w-full bg-primary-600 hover:bg-primary-700" disabled={isLoading}>
         {isLoading ? 'Ingresando...' : 'Ingresar'}
       </Button>
     </form>

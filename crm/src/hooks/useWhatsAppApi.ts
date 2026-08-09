@@ -218,7 +218,7 @@ export function useWhatsAppApi(options: UseWhatsAppApiOptions = {}) {
         method: 'POST',
         body: JSON.stringify(payload),
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('auth-token') || ''}`,
+          Authorization: `Bearer ${localStorage.getItem('crm_access_token') || ''}`,
         },
       });
     },
@@ -266,7 +266,7 @@ export function useWhatsAppApi(options: UseWhatsAppApiOptions = {}) {
       return callApi<Array<{ id: string; contactId: string; lastMessage: string }>>(url, {
         method: 'GET',
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('auth-token') || ''}`,
+          Authorization: `Bearer ${localStorage.getItem('crm_access_token') || ''}`,
         },
       });
     },

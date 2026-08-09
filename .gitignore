@@ -145,3 +145,11 @@ target/
 # Temporary test files
 thoughts/
 test-login.js
+.todos/
+.sidecar/
+.sidecar-agent
+.sidecar-task
+.sidecar-pr
+.sidecar-start.sh
+.sidecar-base
+.td-root

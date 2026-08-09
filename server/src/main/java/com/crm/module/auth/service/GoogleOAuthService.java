@@ -17,7 +17,6 @@ import java.util.Map;
  * Satisfies: Requirements 3.1–3.4
  */
 @Service
-@RequiredArgsConstructor
 public class GoogleOAuthService {
 
     private static final String TOKENINFO_URL =
@@ -25,6 +24,11 @@ public class GoogleOAuthService {
 
     private final UserRepository userRepository;
     private final AuthService authService;
+
+    public GoogleOAuthService(UserRepository userRepository, AuthService authService) {
+        this.userRepository = userRepository;
+        this.authService = authService;
+    }
 
     private final RestClient restClient = RestClient.create();
 

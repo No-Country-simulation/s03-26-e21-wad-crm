@@ -1,9 +1,11 @@
 import { useState } from 'react'
+import { Routes, Route, Navigate } from 'react-router-dom'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { useAuthStore } from './features/auth/store'
 import { TABS } from './utils/constants'
 import type { TabKey } from './types'
 import { LoginPage } from './features/auth'
+import { Register } from './pages/Register'
 import { Dashboard } from './pages/dashboard'
 import { ContactsPage } from './features/contacts'
 import { DealsPage } from './features/deals'
@@ -28,13 +30,19 @@ function AppContent() {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
       </div>
     )
   }
 
   if (!isAuthenticated) {
-    return <LoginPage />
+    return (
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="*" element={<Navigate to="/login" replace />} />
+      </Routes>
+    )
   }
 
   const renderContent = () => {

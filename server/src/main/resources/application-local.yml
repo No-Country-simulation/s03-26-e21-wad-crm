@@ -3,12 +3,17 @@ spring:
     url: jdbc:postgresql://localhost:5432/crm_db
     username: postgres
     password: "Pino2026!"
+  flyway:
+    out-of-order: true
   jpa:
     show-sql: true
   data:
     redis:
       host: localhost
       port: 6379
+    mongodb:
+      uri: ${SPRING_DATA_MONGODB_URI:mongodb://mongoadmin:MongoAdmin2026!@localhost:27017/crm_data?authSource=admin}
+      database: ${SPRING_DATA_MONGODB_DATABASE:crm_data}
 
 server:
   port: 8081

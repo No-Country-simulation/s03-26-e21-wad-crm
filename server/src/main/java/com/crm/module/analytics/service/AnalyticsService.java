@@ -16,11 +16,15 @@ import java.util.UUID;
  * Requisitos: 31.1–31.5
  */
 @Service
-@RequiredArgsConstructor
 public class AnalyticsService {
 
     private final ContactRepository contactRepository;
     private final DealRepository dealRepository;
+
+    public AnalyticsService(ContactRepository contactRepository, DealRepository dealRepository) {
+        this.contactRepository = contactRepository;
+        this.dealRepository = dealRepository;
+    }
 
     /**
      * Retorna los KPIs del dashboard para el workspace y período indicados.

@@ -1,6 +1,6 @@
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LayoutDashboard, Users, CheckSquare, LogOut } from 'lucide-react';
+import { LayoutDashboard, Users, MessageCircle, CheckSquare, LogOut } from 'lucide-react';
 
 export default function Layout() {
   const { user, logout } = useAuth();
@@ -9,6 +9,7 @@ export default function Layout() {
   const navItems = [
     { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { path: '/contacts', label: 'Contacts', icon: Users },
+    { path: '/conversations', label: 'Conversations', icon: MessageCircle },
     { path: '/tasks', label: 'Tasks', icon: CheckSquare },
   ];
 

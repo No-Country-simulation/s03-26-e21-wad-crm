@@ -31,13 +31,19 @@ import java.util.UUID;
  */
 @RestController
 @RequestMapping("/api/auth")
-@RequiredArgsConstructor
 public class AuthController {
 
     private final AuthService authService;
     private final GoogleOAuthService googleOAuthService;
     private final JwtService jwtService;
     private final UserRepository userRepository;
+
+    public AuthController(AuthService authService, GoogleOAuthService googleOAuthService, JwtService jwtService, UserRepository userRepository) {
+        this.authService = authService;
+        this.googleOAuthService = googleOAuthService;
+        this.jwtService = jwtService;
+        this.userRepository = userRepository;
+    }
 
     @PostMapping("/register")
     public ResponseEntity<TokenResponse> register(@Valid @RequestBody RegisterRequest request) {
@@ -49,6 +55,18 @@ public class AuthController {
     public ResponseEntity<TokenResponse> login(@Valid @RequestBody LoginRequest request) {
         TokenResponse response = authService.login(request);
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/dev-create-user")
+    public ResponseEntity<TokenResponse> createDevUser(@RequestBody DevUserRequest request) {
+        RegisterRequest registerRequest = new RegisterRequest();
+        registerRequest.setEmail(request.email());
+        registerRequest.setPassword(request.password());
+        registerRequest.setName(request.name());
+        registerRequest.setCompanyName(request.companyName() != null ? request.companyName() : "Dev Company");
+        
+        TokenResponse response = authService.register(registerRequest);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PostMapping("/google")
@@ -89,10 +107,13 @@ public class AuthController {
                 user.getEmail(),
                 user.getName(),
                 user.getWorkspaceId(),
-                user.getRole().toString()
+                user.getRole().getName()
         ));
     }
 
     // DTO for user info
     public record UserInfoResponse(UUID id, String email, String name, UUID workspaceId, String role) {}
+
+    // Dev endpoint to create test user
+    public record DevUserRequest(String email, String password, String name, String companyName) {}
 }

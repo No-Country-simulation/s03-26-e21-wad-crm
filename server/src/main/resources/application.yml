@@ -1,15 +1,15 @@
 spring:
   application:
-    name: startup-crm
+    name: ${SERVER_NAME:}
   profiles:
-    active: ${SPRING_PROFILES_ACTIVE:dev}
+    active: ${SPRING_PROFILES_ACTIVE:}
 
   # Datasource (overridden per profile)
   datasource:
-    url: jdbc:postgresql://localhost:5432/crm_db
-    username: postgres
-    password: "Pino2026!"
-  # JPA
+    url: ${POSTGRESQL_URL:}
+    username: ${POSTGRESQL_USERNAME:}
+    password: ${POSTGRESQL_PASSWORD:}
+# JPA
   jpa:
     hibernate:
       ddl-auto: validate
@@ -22,20 +22,24 @@ spring:
   # Flyway
   flyway:
     enabled: true
-    locations: classpath:db/migration
+    locations: ${SERVER_LOCATIONS:}
     baseline-on-migrate: true
+    out-of-order: true
 
   # Redis
   data:
     redis:
-      host: ${REDIS_HOST:localhost}
-      port: ${REDIS_PORT:6379}
+      host: ${REDIS_HOST:}
+      port: ${REDIS_PORT:}
       password: ${REDIS_PASSWORD:}
+    mongodb:
+      uri: ${MONGODB_URI:}
+      database: ${MONGODB_DATABASE:}
 
   # Mail
   mail:
-    host: ${MAIL_HOST:smtp.gmail.com}
-    port: ${MAIL_PORT:587}
+    host: ${MAIL_HOST:}
+    port: ${MAIL_PORT:}
     username: ${MAIL_USERNAME:}
     password: ${MAIL_PASSWORD:}
     properties:
@@ -47,24 +51,23 @@ spring:
 
   # WebSocket / STOMP
   websocket:
-    allowed-origins: ${CORS_ORIGINS:http://localhost:5174,http://localhost:5175,http://localhost:3000,http://127.0.0.1:5174,http://127.0.0.1:5175,http://127.0.0.1:3000}
+    allowed-origins: ${CORS_ORIGINS:}
 
 # App config - all in one section
 app:
-  timezone: America/Guayaquil
-  format_sql: true
+  timezone: ${SERVER_TIMEZONE:}
+  format_sql: ${SERVER_FORMAT_SQL:}
   jwt:
-    secret: ${JWT_SECRET:your-256-bit-secret-key-here-change-in-production}
-    access-token-expiry: 86400000      # 24 horas
-    refresh-token-expiry: 604800000    # 7 days in ms
+    secret: ${JWT_SECRET:}
+    access-token-expiry: ${JWT_EXPIRATION_MS:}
+    refresh-token-expiry: ${JWT_REFRESH_EXPIRATION_MS:}
   cors:
-    allowed-origins: ${CORS_ORIGINS:http://localhost:5173,http://localhost:5174,http://localhost:5175,http://localhost:3000,http://127.0.0.1:5173,http://127.0.0.1:5174,http://127.0.0.1:5175,http://127.0.0.1:3000}
+    allowed-origins: ${CORS_ORIGINS:}
   encryption:
-    key: ${ENCRYPTION_KEY:your-aes-256-key-here-change-in-production}
+    key: ${ENCRYPTION_KEY:}
   whatsapp:
-    api-version: ${WA_API_VERSION:v22.0}
-    webhook-path: /webhooks/whatsapp
-    # Dev credentials loaded from .env
+    api-version: ${WA_API_VERSION:}
+    webhook-path: ${WA_WEBHOOK_PATH:}
     access-token: ${WA_ACCESS_TOKEN:}
     phone-number-id: ${WA_PHONE_NUMBER_ID:}
     waba-id: ${WA_WABA_ID:}
@@ -90,7 +93,7 @@ springdoc:
 
 # Server
 server:
-  port: ${PORT:8080}
+  port: ${SERVER_PORT:}
 
 # Logging
 logging:

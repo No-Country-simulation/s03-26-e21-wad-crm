@@ -1,7 +1,6 @@
 import { useState, useMemo, useEffect, useCallback } from 'react'
 import { SidebarProps, NavItem, Conversation } from './types'
 import { NAV_ITEMS } from './constants'
-import { MOCK_WHATSAPP_CONVERSATIONS } from './sidebar-whatsapp'
 import { useMediaQuery } from '@/hooks/useMediaQuery'
 import { useSettings } from '@/contexts/SettingsContext'
 import { TABS } from '@/utils/constants'
@@ -64,13 +63,9 @@ export function useSidebar({
   }, [allowedTabs])
 
   const filteredConversations = useMemo(() => {
-    if (!searchQuery) return MOCK_WHATSAPP_CONVERSATIONS
-    const query = searchQuery.toLowerCase()
-    return MOCK_WHATSAPP_CONVERSATIONS.filter(
-      conv =>
-        conv.name.toLowerCase().includes(query) ||
-        conv.lastMessage.toLowerCase().includes(query)
-    )
+    // TODO: Traer del endpoint /api/conversations cuando esté implementado
+    // Por ahora retorna vacío - el panel de conversaciones trae sus propios datos
+    return []
   }, [searchQuery])
 
   const toggleCollapse = () => {
